@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="py-8 px-4">
+    <div class="container mx-auto max-w-4xl">
+        <!-- Result Header -->
+        <div class="bg-white rounded-2xl shadow-md p-8 mb-8 text-center">
+            <div class="mb-6">
+                {% if attempt.passed %}
+                <div class="text-green-500 text-6xl mb-4">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-green-600 mb-2">Congratulations!</h1>
+                <p class="text-lg text-gray-600">You passed the quiz</p>
+                {% else %}
+                <div class="text-red-500 text-6xl mb-4">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-red-600 mb-2">Quiz Completed</h1>
+                <p class="text-lg text-gray-600">Better luck next time</p>
+                {% endif %}
+            </div>
+
+            <!-- Score Circle -->
+            <div class="relative inline-block mb-6">
+                <svg class="w-32 h-32 transform -rotate-90">
+                    <circle cx="64" cy="64" r="54" stroke="#e5e7eb" stroke-width="8" fill="none"></circle>
+                    <circle cx="64" cy="64" r="54" 
+                            stroke="{% if attempt.passed %}#10b981{% else %}#ef4444{% endif %}" 
+                            stroke-width="8" fill="none"
+                            stroke-dasharray="339.292" 
+                            stroke-dashoffset="{% widthratio 100 attempt.score 339.292 %}">
+                    </circle>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold {% if attempt.passed %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ attempt.score }}%
+                        </div>
+                        <div class="text-sm text-gray-600">Score</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-600">{{ correct_answers }}</div>
+                    <div class="text-sm text-gray-600">Correct Answers</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600">{{ total_questions }}</div>
+                    <div class="text-sm text-gray-600">Total Questions</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-600">{{ attempt.quiz.passing_score }}%</div>
+                    <div class="text-sm text-gray-600">Passing Score</div>
+                </div>
+            </div>
+
+            <!-- Result Message -->
+            <div class="mb-6">
+                {% if attempt.passed %}
+                <p class="text-green-600 font-medium">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    You scored {{ attempt.score }}% which meets the passing requirement of {{ attempt.quiz.passing_score }}%
+                </p>
+                {% else %}
+                <p class="text-red-600 font-medium">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    You scored {{ attempt.score }}% but needed {{ attempt.quiz.passing_score }}% to pass
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'app:quiz_list' %}" 
+                   class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                    <i class="fas fa-list mr-2"></i>Browse More Quizzes
+                </a>
+                
+                <!-- <a href="{% url 'app:start_quiz' attempt.quiz.id %}" 
+                   class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                    <i class="fas fa-redo mr-2"></i>Retake Quiz
+                </a> -->
+                
+                {% if attempt.passed %}
+                <button onclick="downloadCertificate()" 
+                        class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+                    <i class="fas fa-download mr-2"></i>Download Certificate
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Detailed Results -->
+        <div class="bg-white rounded-2xl shadow-md p-8">
+            <h2 class="text-2xl font-bold mb-6">Detailed Results</h2>
+            
+            <div class="space-y-4">
+                {% for user_answer in attempt.user_answers.all %}
+                <div class="border border-gray-200 rounded-lg p-4 {% if user_answer.is_correct %}bg-green-50{% else %}bg-red-50{% endif %}">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-medium">Question {{ forloop.counter }}</h3>
+                        <span class="px-2 py-1 text-xs rounded-full {% if user_answer.is_correct %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %}">
+                            {% if user_answer.is_correct %}Correct{% else %}Incorrect{% endif %}
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-700 mb-3">{{ user_answer.question.question_text }}</p>
+                    
+                    <div class="space-y-2">
+                        <!-- User’s selected answer -->
+                        <div class="flex items-center">
+                            <span class="font-medium mr-2">Your answer:</span>
+                            <span class="{% if user_answer.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ user_answer.selected_choice.choice_text }}
+                            </span>
+                        </div>
+                        
+                        <!-- Correct answers (only show if the user was wrong) -->
+                        {% if not user_answer.is_correct %}
+                        <div class="flex items-center">
+                            <span class="font-medium mr-2">
+                                Correct answer{% if user_answer.correct_choices|length > 1 %}s{% endif %}:
+                            </span>
+                            <span class="text-green-600">
+                                {% for correct_choice in user_answer.correct_choices %}
+                                    {{ correct_choice.choice_text }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Performance Insights -->
+        <div class="bg-blue-50 rounded-2xl shadow-md p-8 mt-8">
+            <h2 class="text-2xl font-bold mb-4">Performance Insights</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-bold mb-2">Areas of Strength</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            <span>Fundamental concepts</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            <span>Basic terminology</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-bold mb-2">Areas for Improvement</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                            <span>Advanced applications</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                            <span>Complex scenarios</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h3 class="font-bold mb-2">Recommended Next Steps</h3>
+                <div class="bg-white rounded-lg p-4">
+                    <ul class="space-y-2 text-sm">
+                        <li>• Review the questions you answered incorrectly</li>
+                        <li>• Practice with similar quizzes</li>
+                        <li>• Consider taking our advanced courses</li>
+                        <li>• Retake this quiz after further study</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Certificate Download Script -->
+<script>
+function downloadCertificate() {
+    // Simulate certificate download
+    alert('Certificate download feature would be implemented here!');
+    // In a real implementation, this would generate and download a PDF certificate
+}
+</script>
+
+<style>
+/* Progress circle animation */
+circle {
+    transition: stroke-dashoffset 0.5s ease-in-out;
+}
+</style>
+{% endblock %}
