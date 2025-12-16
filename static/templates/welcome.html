@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- ================= HERO SECTION ================= -->
+<section class="relative overflow-hidden bg-gradient-to-br from-[#e0f3fc] via-[#f0fbff] to-[#d3e9f9] py-32 px-6 rounded-[32px] shadow-xl mx-4 mt-4">
+
+  <!-- Soft background blobs -->
+  <div class="absolute top-[-140px] right-[-140px] w-[400px] h-[400px] bg-blue-300/20 rounded-full blur-[140px]"></div>
+  <div class="absolute bottom-[-140px] left-[-140px] w-[400px] h-[400px] bg-cyan-300/25 rounded-full blur-[140px]"></div>
+
+  <div class="container mx-auto text-center relative z-10">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
+      Discover Your <span class="text-blue-700">AI-Powered</span> Career
+    </h1>
+
+    <p class="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-16">
+      Smarter job matching, skill-based learning, and faster growth for your career.
+    </p>
+
+    <form method="GET" action="{% url 'app:search_jobs' %}" class="max-w-5xl mx-auto flex flex-col md:flex-row gap-4 bg-white/90 backdrop-blur-lg p-4 rounded-full shadow-lg">
+      
+      <div class="relative flex-grow">
+        <input type="text" name="q" placeholder="Job title, keywords, or company"
+          class="w-full pl-14 pr-4 py-3 rounded-full border border-blue-200 focus:ring-2 focus:ring-blue-400 outline-none bg-white placeholder-gray-400">
+        <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+      </div>
+
+      <div class="relative flex-grow">
+        <input type="text" name="location" placeholder="Location"
+          class="w-full pl-14 pr-4 py-3 rounded-full border border-blue-200 focus:ring-2 focus:ring-blue-400 outline-none bg-white placeholder-gray-400">
+        <i class="fas fa-map-marker-alt absolute left-4 top-3.5 text-gray-400"></i>
+      </div>
+
+      <button type="submit" class="px-12 py-3 bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-full font-semibold hover:shadow-xl hover:scale-[1.02] transition">
+        Search Jobs
+      </button>
+    </form>
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20">
+
+      <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow hover:shadow-xl transition">
+        <p class="text-4xl font-extrabold text-blue-700">{{ featured_jobs.count }}+</p>
+        <p class="text-sm text-gray-600">Active Jobs</p>
+      </div>
+
+      <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow hover:shadow-xl transition">
+        <p class="text-4xl font-extrabold text-blue-700">3K+</p>
+        <p class="text-sm text-gray-600">Companies</p>
+      </div>
+
+      <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow hover:shadow-xl transition">
+        <p class="text-4xl font-extrabold text-blue-700">100+</p>
+        <p class="text-sm text-gray-600">Skill Quizzes</p>
+      </div>
+
+      <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow hover:shadow-xl transition">
+        <p class="text-4xl font-extrabold text-blue-700">{{ popular_courses.count }}+</p>
+        <p class="text-sm text-gray-600">Courses</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURED JOBS ================= -->
+<section class="py-28 bg-[#f7fbfd] my-16 rounded-[32px] shadow-xl mx-4">
+  <div class="container mx-auto px-4">
+
+    <div class="text-center mb-20">
+      <h2 class="text-4xl md:text-5xl font-extrabold text-gray-800">Featured Jobs</h2>
+      <p class="mt-4 text-gray-500">Hand-picked opportunities from top companies</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+      {% for job in featured_jobs %}
+      <div class="bg-white p-8 rounded-[28px] shadow-md hover:shadow-2xl transition hover:-translate-y-2 relative">
+
+        <div class="flex items-center mb-6">
+          <img src="{{ job.company.logo.url }}" class="h-12 w-12 rounded-xl object-cover mr-4">
+          <div>
+            <h3 class="font-bold text-lg text-gray-800">{{ job.title }}</h3>
+            <p class="text-sm text-gray-500">{{ job.company.name }}</p>
+          </div>
+        </div>
+
+        <div class="space-y-3 text-sm text-gray-600">
+          <div class="flex items-center">
+            <i class="fas fa-map-marker-alt mr-3 text-blue-500"></i>{{ job.location }}
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-dollar-sign mr-3 text-blue-500"></i>{{ job.get_salary_range }}
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-clock mr-3 text-blue-500"></i>{{ job.posted_date|timesince }} ago
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-4">
+          {% for skill in job.get_skills_list|slice:":3" %}
+          <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium">{{ skill }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="mt-6">
+          <a href="{% url 'app:job_detail' job.id %}"
+            class="block w-full text-center py-3 bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-full font-semibold hover:shadow-lg transition">
+            View Details
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-3 text-center text-gray-400">No featured jobs available.</div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center">
+      <a href="{% url 'app:job_list' %}"
+        class="px-14 py-4 bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-full font-semibold hover:shadow-xl hover:scale-[1.03] transition">
+        View All Jobs
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= POPULAR COURSES ================= -->
+<section class="py-28 bg-gradient-to-b from-[#eef7fb] to-[#d9eef8]">
+  <div class="container mx-auto px-4">
+
+    <div class="text-center mb-20">
+      <h2 class="text-4xl md:text-5xl font-extrabold text-gray-800">Popular Courses</h2>
+      <p class="mt-4 text-gray-500">Industry-focused courses to level up your skills</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+      {% for course in popular_courses %}
+      <div class="bg-white p-7 rounded-[28px] shadow-md hover:shadow-2xl transition hover:-translate-y-2 relative">
+
+        <span class="absolute top-4 right-4 bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-semibold">
+          {{ course.get_difficulty_display }}
+        </span>
+
+        <div class="flex items-center mb-5">
+          <img src="https://via.placeholder.com/60x60?text={{ course.title|slice:':1' }}"
+            class="h-14 w-14 rounded-xl mr-4">
+          <div>
+            <h3 class="font-bold text-lg text-gray-800">{{ course.title }}</h3>
+            <p class="text-sm text-gray-500">{{ course.category.name }}</p>
+          </div>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-4">{{ course.short_description }}</p>
+
+        <div class="flex flex-wrap gap-2 mb-5">
+          {% for skill in course.get_skills_list|slice:":3" %}
+          <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium">{{ skill }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="flex justify-between items-center text-sm text-gray-700">
+          <div class="flex items-center">
+            <i class="fas fa-clock mr-2 text-blue-500"></i>{{ course.lessons_count }} Lessons
+          </div>
+          <span class="font-semibold text-blue-700">{{ course.price }} Tk</span>
+        </div>
+
+        <div class="mt-6">
+          <a href="{% url 'app:course_detail' course.id %}"
+            class="block w-full text-center py-3 bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-full font-semibold hover:shadow-lg transition">
+            View Course
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-3 text-center text-gray-400">No courses available.</div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center">
+      <a href="{% url 'app:course_list' %}"
+        class="px-14 py-4 bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-full font-semibold hover:shadow-xl hover:scale-[1.03] transition">
+        View All Courses
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section class="py-28 bg-gradient-to-br from-[#d9eef8] via-[#eef7fb] to-[#d3e9f9] text-white">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl md:text-5xl font-extrabold text-center mb-20 text-gray-900">How It Works</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-20 text-center">
+
+      <div class="hover:scale-[1.05] transition">
+        <div class="w-16 h-16 mx-auto mb-6 bg-[#e0f3fc]/20 rounded-full flex items-center justify-center text-2xl text-[#003366]">🧠</div>
+        <h3 class="text-xl font-bold mb-3 text-[#003366]">Skill Quizzes</h3>
+        <p class="opacity-90 text-gray-700">AI evaluates real abilities, not resumes.</p>
+      </div>
+
+      <div class="hover:scale-[1.05] transition">
+        <div class="w-16 h-16 mx-auto mb-6 bg-[#e0f3fc]/20 rounded-full flex items-center justify-center text-2xl text-[#003366]">📚</div>
+        <h3 class="text-xl font-bold mb-3 text-[#003366]">Smart Learning</h3>
+        <p class="opacity-90 text-gray-700">Courses tailored to your growth path.</p>
+      </div>
+
+      <div class="hover:scale-[1.05] transition">
+        <div class="w-16 h-16 mx-auto mb-6 bg-[#e0f3fc]/20 rounded-full flex items-center justify-center text-2xl text-[#003366]">🚀</div>
+        <h3 class="text-xl font-bold mb-3 text-[#003366]">Get Hired</h3>
+        <p class="opacity-90 text-gray-700">Matched with jobs that fit you perfectly.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+{% endblock %}
