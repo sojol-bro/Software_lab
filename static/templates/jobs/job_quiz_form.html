@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10 max-w-3xl">
+  <h1 class="text-2xl font-bold mb-6">Add Quiz (Optional)</h1>
+  <div class="bg-white rounded-xl shadow p-6">
+    <p class="text-sm text-gray-600 mb-4">Job: <span class="font-medium">{{ job.title }}</span></p>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Quiz</label>
+        {{ form.quiz }}
+        <p class="text-xs text-gray-500 mt-1">You can create a quiz first under Quizzes, then select it here.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
+        <a href="{% url 'app:publish_job' job.id %}" class="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Skip</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
