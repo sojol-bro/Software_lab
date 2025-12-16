@@ -16,7 +16,13 @@ urlpatterns = [
     path('employee/jobs/<int:job_id>/quiz/', views.add_job_quiz, name='add_job_quiz'),
     path('employee/jobs/<int:job_id>/publish/', views.publish_job, name='publish_job'),
     path('jobs/search/', views.search_jobs, name='search_jobs'),
+   path('employee/dashboard/', views.employee_dashboard, name='employee_dashboard'),
+    path('create_course/', views.create_course, name='create_course'),
+     path('course_admin/', views.create_admin, name='create_admin'),
     
+
+    path('dashboard/', views.dashboard, name='dashboard'),
+
     path('courses/', views.course_list, name='course_list'),
     path('courses/<int:course_id>/', views.course_detail, name='course_detail'),
     path('courses/<int:course_id>/enroll/', views.enroll_course, name='enroll_course'),
