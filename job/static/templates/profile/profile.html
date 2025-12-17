@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto px-6 py-10">
+
+<!-- ================= HERO ================= -->
+<section class="relative bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 rounded-3xl p-10 text-white shadow-2xl overflow-hidden mb-12">
+
+  <div class="absolute inset-0 bg-white/10 backdrop-blur-2xl"></div>
+
+  <div class="relative flex flex-col md:flex-row gap-8 items-center">
+    <img
+      src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}https://via.placeholder.com/200{% endif %}"
+      class="w-40 h-40 rounded-full object-cover ring-4 ring-white/40 shadow-xl"
+      alt="{{ profile_user.username }}"
+    />
+
+    <div class="flex-1 text-center md:text-left">
+      <h1 class="text-4xl font-bold tracking-tight">
+        {{ profile_user.get_full_name|default:profile_user.username }}
+      </h1>
+      <p class="text-white/80 mt-2 text-lg">
+        {{ profile.title|default:"Professional Profile" }}
+      </p>
+
+      <div class="flex flex-wrap gap-6 mt-4 text-sm text-white/80 justify-center md:justify-start">
+        {% if profile.location %}
+        <span><i class="fas fa-map-marker-alt mr-1"></i>{{ profile.location }}</span>
+        {% endif %}
+        {% if profile_user.email %}
+        <span><i class="fas fa-envelope mr-1"></i>{{ profile_user.email }}</span>
+        {% endif %}
+        {% if profile.phone %}
+        <span><i class="fas fa-phone mr-1"></i>{{ profile.phone }}</span>
+        {% endif %}
+      </div>
+
+      <div class="flex gap-4 mt-6 justify-center md:justify-start">
+        {% if profile.github %}
+        <a href="{{ profile.github }}" target="_blank" class="btn-glass"><i class="fab fa-github"></i></a>
+        {% endif %}
+        {% if profile.linkedin %}
+        <a href="{{ profile.linkedin }}" target="_blank" class="btn-glass"><i class="fab fa-linkedin"></i></a>
+        {% endif %}
+        {% if profile.website %}
+        <a href="{{ profile.website }}" target="_blank" class="btn-glass"><i class="fas fa-globe"></i></a>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if is_own_profile %}
+    <div class="flex flex-col gap-3">
+      <a href="{% url 'app:edit_profile' %}" class="btn-primary">
+        <i class="fas fa-edit mr-1"></i>Edit
+      </a>
+      {% if profile.resume %}
+      <a href="{% url 'app:download_cv' %}" class="btn-secondary">
+        <i class="fas fa-download mr-1"></i>CV
+      </a>
+      {% endif %}
+      <button onclick="shareProfile()" class="btn-secondary">
+        <i class="fas fa-share-alt mr-1"></i>Share
+      </button>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ================= TABS ================= -->
+<nav class="sticky top-6 z-30 mb-10">
+  <div class="flex gap-2 bg-white/80 backdrop-blur-xl border border-gray-200 rounded-full p-2 shadow-lg overflow-x-auto">
+
+    <a href="?tab=overview" class="tab {% if active_tab == 'overview' %}tab-active{% endif %}">Overview</a>
+    <a href="?tab=experience" class="tab {% if active_tab == 'experience' %}tab-active{% endif %}">Experience</a>
+    <a href="?tab=education" class="tab {% if active_tab == 'education' %}tab-active{% endif %}">Education</a>
+    <a href="?tab=skills" class="tab {% if active_tab == 'skills' %}tab-active{% endif %}">Skills</a>
+    <a href="?tab=projects" class="tab {% if active_tab == 'projects' %}tab-active{% endif %}">Projects</a>
+    <a href="?tab=certificates" class="tab {% if active_tab == 'certificates' %}tab-active{% endif %}">Certificates</a>
+
+  </div>
+</nav>
+
+<!-- ================= CONTENT ================= -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+{% if active_tab == "overview" %}
+<div class="lg:col-span-2 space-y-6">
+
+  <div class="card">
+    <h3 class="card-title">About Me</h3>
+    <p class="text-gray-600 text-sm leading-relaxed">
+      {{ profile.bio|default:"No bio added yet." }}
+    </p>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">Recent Experience</h3>
+    {% for experience in experiences|slice:":3" %}
+    <div class="mb-5">
+      <h4 class="font-semibold">{{ experience.position }}</h4>
+      <p class="text-blue-600 text-sm">{{ experience.company }}</p>
+      <p class="text-xs text-gray-500">
+        {{ experience.start_date|date:"M Y" }} -
+        {% if experience.current %}Present{% else %}{{ experience.end_date|date:"M Y" }}{% endif %}
+      </p>
+      <p class="text-sm text-gray-600 mt-2">
+        {{ experience.description|truncatewords:25 }}
+      </p>
+    </div>
+    {% empty %}
+    <p class="text-gray-400">No experience added.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="space-y-6">
+  <div class="card">
+    <h3 class="card-title">Top Skills</h3>
+    {% for skill in skills|slice:":5" %}
+    <div class="mb-3">
+      <div class="flex justify-between text-sm">
+        <span>{{ skill.name }}</span>
+        <span>{{ skill.percentage }}%</span>
+      </div>
+      <div class="h-2 bg-gray-200 rounded-full mt-1">
+        <div class="h-2 bg-blue-600 rounded-full" style="width: {{ skill.percentage }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% elif active_tab == "experience" %}
+<div class="lg:col-span-3 card">
+  <h3 class="card-title mb-6">Experience</h3>
+  {% for experience in experiences %}
+  <div class="border-b pb-5 mb-5">
+    <h4 class="font-semibold">{{ experience.position }}</h4>
+    <p class="text-blue-600">{{ experience.company }}</p>
+    <p class="text-sm text-gray-500">
+      {{ experience.start_date|date:"M Y" }} -
+      {% if experience.current %}Present{% else %}{{ experience.end_date|date:"M Y" }}{% endif %}
+    </p>
+    <p class="text-gray-600 text-sm mt-2">{{ experience.description }}</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% elif active_tab == "education" %}
+<div class="lg:col-span-3 card">
+  <h3 class="card-title">Education</h3>
+  {% for education in educations %}
+  <div class="mb-5">
+    <h4 class="font-semibold">{{ education.degree }}</h4>
+    <p class="text-green-600">{{ education.institution }}</p>
+    <p class="text-sm text-gray-500">
+      {{ education.start_date|date:"M Y" }} -
+      {% if education.current %}Present{% else %}{{ education.end_date|date:"M Y" }}{% endif %}
+    </p>
+  </div>
+  {% endfor %}
+</div>
+
+{% elif active_tab == "skills" %}
+<div class="lg:col-span-3 card">
+  <h3 class="card-title">Skills</h3>
+  <div class="grid md:grid-cols-2 gap-6">
+    {% for skill in skills %}
+    <div>
+      <div class="flex justify-between text-sm mb-1">
+        <span>{{ skill.name }}</span>
+        <span>{{ skill.get_proficiency_display }}</span>
+      </div>
+      <div class="h-3 bg-gray-200 rounded-full">
+        <div class="h-3 bg-blue-600 rounded-full" style="width: {{ skill.percentage }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% elif active_tab == "projects" %}
+<div class="lg:col-span-3 card">
+  <h3 class="card-title">Projects</h3>
+  <div class="grid md:grid-cols-2 gap-6">
+    {% for project in projects %}
+    <div class="border rounded-xl p-4 hover:shadow-lg transition">
+      <h4 class="font-semibold">{{ project.title }}</h4>
+      <p class="text-sm text-gray-600 mt-2">
+        {{ project.description|truncatewords:20 }}
+      </p>
+      <div class="flex gap-2 mt-3">
+        {% if project.project_url %}
+        <a href="{{ project.project_url }}" class="text-blue-600 text-sm">Live</a>
+        {% endif %}
+        {% if project.github_url %}
+        <a href="{{ project.github_url }}" class="text-gray-700 text-sm">GitHub</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% elif active_tab == "certificates" %}
+<div class="lg:col-span-3 card">
+  <h3 class="card-title">Certificates</h3>
+  {% for certificate in certificates %}
+  <div class="flex justify-between items-center border-b py-4">
+    <div>
+      <p class="font-semibold">{{ certificate.title }}</p>
+      <p class="text-sm text-gray-500">{{ certificate.issuing_organization }}</p>
+    </div>
+    {% if certificate.credential_url %}
+    <a href="{{ certificate.credential_url }}" target="_blank" class="text-blue-600">
+      <i class="fas fa-external-link-alt"></i>
+    </a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+</section>
+</main>
+
+<!-- ================= STYLES ================= -->
+<style>
+.tab {
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  color: #4b5563;
+  transition: 0.3s;
+}
+.tab:hover { color: #2563eb; }
+.tab-active {
+  background: white;
+  color: #2563eb;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.card {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(14px);
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+.card-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+.btn-glass {
+  background: rgba(255,255,255,0.2);
+  padding: 0.6rem;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+}
+.btn-secondary {
+  background: rgba(255,255,255,0.85);
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+}
+</style>
+
+<script>
+function shareProfile() {
+  navigator.clipboard.writeText(window.location.href);
+  alert("Profile link copied!");
+}
+</script>
+{% endblock %}
