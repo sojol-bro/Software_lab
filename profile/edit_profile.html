@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-8">
+  <div class="bg-white rounded-2xl shadow-md p-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
+      <a href="{% url 'app:profile' %}" class="text-gray-500 hover:text-gray-700">
+        <i class="fas fa-times text-xl"></i>
+      </a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      
+      <!-- Profile Picture -->
+      <div class="flex items-center gap-6">
+        <div class="relative">
+          <img id="profile-preview" src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}https://via.placeholder.com/150{% endif %}" 
+               alt="Profile Picture" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200">
+          <label for="profile_picture" class="absolute bottom-0 right-0 bg-blue-600 text-white p-1 rounded-full cursor-pointer hover:bg-blue-700">
+            <i class="fas fa-camera text-xs"></i>
+          </label>
+          <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="hidden" onchange="previewImage(this)">
+        </div>
+        <div>
+          <p class="font-medium">Profile Picture</p>
+          <p class="text-sm text-gray-600">Recommended: 150x150 pixels, JPG or PNG</p>
+        </div>
+      </div>
+
+      <!-- Basic Information -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Professional Title</label>
+          <input type="text" id="title" name="title" value="{{ profile.title }}" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                 placeholder="e.g., Software Engineer">
+        </div>
+        
+        <div>
+          <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+          <input type="text" id="location" name="location" value="{{ profile.location }}" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                 placeholder="e.g., Dhaka, Bangladesh">
+        </div>
+        
+        <div>
+          <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+          <input type="tel" id="phone" name="phone" value="{{ profile.phone }}" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                 placeholder="e.g., +880 123456789">
+        </div>
+        
+        <div>
+          <label for="website" class="block text-sm font-medium text-gray-700 mb-2">Website</label>
+          <input type="url" id="website" name="website" value="{{ profile.website }}" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                 placeholder="https://">
+        </div>
+      </div>
+
+      <!-- Social Links -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="linkedin" class="block text-sm font-medium text-gray-700 mb-2">LinkedIn</label>
+          <input type="url" id="linkedin" name="linkedin" value="{{ profile.linkedin }}" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                 placeholder="https://linkedin.com/in/username">
+        </div>
+        
+        <div>
+          <label for="github" class="block text-sm font-medium text-gray-700 mb-2">GitHub</label>
+          <input type="url" id="github" name="github" value="{{ profile.github }}" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                 placeholder="https://github.com/username">
+        </div>
+      </div>
+
+      <!-- Bio -->
+      <div>
+        <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">About Me</label>
+        <textarea id="bio" name="bio" rows="4" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                  placeholder="Tell people about yourself, your experience, and what you're passionate about...">{{ profile.bio }}</textarea>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-4 pt-6">
+        <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium">
+          Save Changes
+        </button>
+        <a href="{% url 'app:profile' %}" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-medium text-center">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('profile-preview').src = e.target.result;
+    }
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}
