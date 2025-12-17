@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from .models import CustomUser
 from django.contrib.auth.decorators import login_required
 from app.models import Job, Quiz, Course
-
+ 
 def signup_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')

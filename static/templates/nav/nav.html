@@ -3,14 +3,21 @@
     <!-- Logo -->
     <a href="/" class="text-2xl font-bold text-gray-900">SkillNet</a>
 
-    <!-- Navigation -->
-    <nav class="hidden md:flex space-x-8">
-      <a href="/" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Home</a>
-      <a href="/jobs" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Jobs</a>
-      <a href="/courses" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Courses</a>
-      <a href="/quizzes" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Quizzes</a>
-      <a href="/about" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">About</a>
-    </nav>
+<div class="w-full flex justify-center">
+  <nav class="hidden md:flex space-x-8">
+    <a href="/" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Home</a>
+    <a href="/jobs" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Jobs</a>
+    <a href="/courses" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Courses</a>
+    <a href="/quizzes" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Quizzes</a>
+    <a href="/about" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">About</a>
+
+    {% if user.is_authenticated and user.customuser.user_type == 'employee' %}
+      <a href="{% url 'employee_view' %}" class="px-4 py-2 rounded-full bg-[#C3E3F1] text-black hover:bg-blue-100 transition">Dashboard</a>
+    {% endif %}
+  </nav>
+</div>
+
+    <!-- ...existing code below... -->
 
     <!-- Right Side -->
     <div class="flex items-center space-x-4">
@@ -95,8 +102,16 @@
         </div>
       {% else %}
         <!-- If not logged in -->
-        <a href="{% url 'login' %}" class="px-5 py-2 rounded-full bg-blue-300 text-blue-800 hover:bg-blue-400 transition font-medium">Sign In</a>
-        <a href="{% url 'signup' %}" class="px-5 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition font-medium">Signup</a>
+       <a href="{% url 'login' %}" 
+   class="px-5 py-2.5 min-w-[100px] text-center rounded-full bg-blue-300 text-blue-800 hover:bg-blue-400 transition font-medium">
+   Sign In
+</a>
+
+<a href="{% url 'signup' %}" 
+   class="px-5 py-2.5 min-w-[100px] text-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition font-medium">
+   Signup
+</a>
+
       {% endif %}
     </div>
   </div>

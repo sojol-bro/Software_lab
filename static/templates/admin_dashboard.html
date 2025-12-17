@@ -1,0 +1,226 @@
+{% extends 'base-admin.html' %} 
+{% load static %} 
+{% block content_admin %}
+<head>
+     <link rel="stylesheet" href="{% static 'css/style-admin.css' %}" />
+</head>
+<div class="container">
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="page-title">
+      <h1>Admin Dashboard</h1>
+      <p>SkillNet management and analytics</p>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      "
+    >
+      <div></div>
+      <a href="#" class="export-btn">📥 Export Data</a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-title">Total users</div>
+        <div class="stat-value">
+          {{ total_users }} <span class="icon icon-user">👤</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +12.3%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Active jobs</div>
+           <div class="stat-value">
+         {{ total_active_jobs }} <span class="icon icon-job">💼</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +22.9%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Total courses</div>
+        <div class="stat-value">
+         {{ total_courses }} <span class="icon icon-course">📚</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +17.5%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Total revenue</div>
+        <div class="stat-value">
+          18k <span class="icon icon-revenue">💰</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +35.8%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Conversation rate</div>
+        <div class="stat-value">
+          12.4% <span class="icon icon-conversion">📈</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +12.3%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Avg rating</div>
+        <div class="stat-value">
+          4.8 <span class="icon icon-rating">⭐</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +0.3%</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <a href="#" class="nav-tab">Overview</a>
+      <a href="{% url 'admin_user' %}" class="nav-tab">Users</a>
+      <a href="#" class="nav-tab">Content</a>
+ 
+      <a href="#" class="nav-tab">Support</a>
+      <a href="#" class="nav-tab">Analytics</a>
+      <a href="#" class="nav-tab">Settings</a>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Users Card -->
+      <div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Recent Users</h3>
+  </div>
+
+  <div class="user-list">
+    {% for u in recent_users %}
+      <div class="user-item">
+        <div class="user-info">
+          <div class="user-avatar">
+            <img src="https://via.placeholder.com/50" alt="User" />
+          </div>
+          <div class="user-details">
+            <div class="user-name">{{ u.user.username }}</div>
+            <div class="user-email">{{ u.user.email }}</div>
+            <div class="user-meta">
+              <span class="user-role">{{ u.get_user_type_display }}</span>
+              <span>{{ u.created_at|date:"Y-m-d" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="user-status status-active">
+          {% if u.user.is_active %}Active{% else %}Inactive{% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p>No recent users found.</p>
+    {% endfor %}
+  </div>
+</div>
+
+
+      <!-- System Health Card -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">System Health</h3>
+        </div>
+        <div class="system-health">
+          <div class="health-item">
+            <div class="health-label">Database</div>
+            <div class="health-bar">
+              <div class="health-progress" style="width: 80%"></div>
+            </div>
+            <div class="health-percentage">80%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Server Uptime</div>
+            <div class="health-bar">
+              <div class="health-progress" style="width: 70%"></div>
+            </div>
+            <div class="health-percentage">70%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Api Response</div>
+            <div class="health-bar">
+              <div class="health-progress" style="width: 75%"></div>
+            </div>
+            <div class="health-percentage">75%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Storage</div>
+            <div class="health-bar">
+              <div class="health-progress" style="width: 55%"></div>
+            </div>
+            <div class="health-percentage">55%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity Card -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Recent activity</h3>
+        </div>
+        <div class="activity-list">
+          <div class="activity-item">
+            <div class="activity-dot" style="background-color: #007bff"></div>
+            <div class="activity-content">
+              <div class="activity-title">
+                New employer registration : Techcrop Inc.
+              </div>
+              <div class="activity-time">2 hour ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background-color: #28a745"></div>
+            <div class="activity-content">
+              <div class="activity-title">
+                Course published : Advance react development
+              </div>
+              <div class="activity-time">5 hour ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background-color: #ffc107"></div>
+            <div class="activity-content">
+              <div class="activity-title">
+                Job flagged for review : Frontend developer
+              </div>
+              <div class="activity-time">2 hour ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Card -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Quick action</h3>
+        </div>
+        <div class="quick-action-grid">
+          <div class="quick-action-item">
+            <div class="quick-action-icon">👥</div>
+            <div class="quick-action-text">Manage users</div>
+          </div>
+          <div class="quick-action-item">
+            <div class="quick-action-icon">💼</div>
+            <div class="quick-action-text">Review jobs</div>
+          </div>
+          <div class="quick-action-item">
+            <div class="quick-action-icon">📚</div>
+            <div class="quick-action-text">Approve Courses</div>
+          </div>
+          <div class="quick-action-item">
+            <div class="quick-action-icon">🎫</div>
+            <div class="quick-action-text">Support tickets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  
+{% endblock %}

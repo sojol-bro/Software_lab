@@ -20,18 +20,22 @@ from app.views import home,  logout_view, about_view
 from accounts.views import employee_view, signup_view,login_view
 from django.conf.urls.static import static
 from django.conf import settings
+from admin import views as project_admin_views
 
 app_name = 'job'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
+    path('', include('app.urls')),
+    path('', include('admin.urls')),
     path('employee/', employee_view, name='employee_view'),
     path('login/', login_view, name='login'),
     path('signup/', signup_view, name='signup'), 
     path('logout/', logout_view, name='logout'),
     path('about/', about_view, name='about_view'),
-    path('',include('app.urls', namespace='app'))
+    path('',include('app.urls', namespace='app')),
+    path('admin_dashboard/', project_admin_views.admin_dashboard, name='admin_dashboard'),
 ]
 
 if settings.DEBUG:
