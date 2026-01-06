@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <!-- Hero Section -->
+  <section class="py-12 px-4">
+    <div class="container mx-auto text-center">
+      <h1 class="text-3xl md:text-4xl font-bold mb-4">Find Your Perfect Job</h1>
+      <p class="text-gray-700 max-w-2xl mx-auto mb-8">
+        Discover amazing opportunities from top companies. Use our AI-powered matching to find jobs that fit your skills.
+      </p>
+
+      <!-- Search Bar -->
+      <form method="GET" action="{% url 'app:job_list' %}" class="max-w-4xl mx-auto mb-8 relative">
+        <input type="text" name="q" placeholder="Job Title, company or skills" 
+               value="{{ search_query }}"
+               class="w-full pl-12 pr-32 py-3 rounded-xl border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50" />
+        <i class="fas fa-search absolute left-4 top-3.5 text-gray-500"></i>
+        <button type="submit" class="absolute right-4 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+          Search Jobs
+        </button>
+      </form>
+
+      <!-- Filters -->
+      <form method="GET" action="{% url 'app:job_list' %}" class="flex flex-wrap justify-center gap-6 mb-10">
+        <input type="hidden" name="q" value="{{ search_query }}">
+        
+        <select name="location" class="px-4 py-2 rounded-lg bg-blue-50 border border-blue-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+          <option value="">All Locations</option>
+          <option value="remote" {% if selected_location == 'remote' %}selected{% endif %}>Remote</option>
+          {% for location in locations %}
+            <option value="{{ location }}" {% if selected_location == location %}selected{% endif %}>{{ location }}</option>
+          {% endfor %}
+        </select>
+        
+        <select name="job_type" class="px-4 py-2 rounded-lg bg-blue-50 border border-blue-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+          <option value="">All Types</option>
+          {% for job_type_code, job_type_name in job_types %}
+            <option value="{{ job_type_code }}" {% if selected_job_type == job_type_code %}selected{% endif %}>{{ job_type_name }}</option>
+          {% endfor %}
+        </select>
+        
+        <select name="experience" class="px-4 py-2 rounded-lg bg-blue-50 border border-blue-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+          <option value="">All Levels</option>
+          {% for exp_code, exp_name in experience_levels %}
+            <option value="{{ exp_code }}" {% if selected_experience == exp_code %}selected{% endif %}>{{ exp_name }}</option>
+          {% endfor %}
+        </select>
+        
+        <a href="{% url 'app:job_list' %}" class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-blue-600 transition">
+          <i class="fas fa-times"></i>
+          <span>Clear Filters</span>
+        </a>
+      </form>
+    </div>
+  </section>
+
+  <!-- Job Listings -->
+  <section class="py-10 px-4">
+    <div class="container mx-auto">
+      <!-- Results Count -->
+      <div class="mb-6 text-gray-600">
+        <p>{{ jobs.count }} job{% if jobs.count != 1 %}s{% endif %} found</p>
+      </div>
+
+      {% for job in jobs %}
+      <!-- Job Card -->
+      <div class="{% cycle 'bg-gray-200' 'bg-blue-100' 'bg-blue-200' %} p-6 rounded-xl shadow-md mb-6 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-shadow">
+        <img src="{{ job.company.logo.url }}" 
+              alt="{{ job.company.name }}" 
+              class="mr-4 rounded-lg h-10 w-10 object-cover overflow-hidden" /> 
+
+        <div class="flex-grow">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-lg">{{ job.title }}</h3>
+            <span class="px-2 py-1 text-xs 
+              {% if job.experience_level == 'entry' %}bg-green-200 text-green-800
+              {% elif job.experience_level == 'mid' %}bg-purple-200 text-purple-800
+              {% elif job.experience_level == 'senior' %}bg-blue-200 text-blue-800
+              {% else %}bg-yellow-200 text-yellow-800{% endif %} rounded-full">
+              {{ job.get_experience_level_display }}
+            </span>
+          </div>
+          
+          <div class="flex items-center text-sm text-gray-600 mb-2 flex-wrap gap-2">
+            <span class="flex items-center">
+              <i class="fas fa-building mr-2"></i> {{ job.company.name }}
+            </span>
+            <span class="flex items-center">
+              <i class="fas fa-map-marker-alt ml-3 mr-2"></i> {{ job.location }}
+            </span>
+            <span class="px-2 py-1 text-xs 
+              {% if job.work_mode == 'remote' %}bg-green-200 text-green-800
+              {% elif job.work_mode == 'office' %}bg-gray-200 text-gray-800
+              {% else %}bg-blue-200 text-blue-800{% endif %} rounded-full">
+              {{ job.get_work_mode_display }}
+            </span>
+            <span class="flex items-center">
+              <i class="fas fa-clock ml-3 mr-2"></i> {{ job.get_job_type_display }}
+            </span>
+            <span class="ml-2 font-medium">{{ job.get_salary_range }}</span>
+          </div>
+          
+          <p class="text-gray-700 text-sm mb-4">{{ job.description|truncatewords:30 }}</p>
+          
+          <div class="flex flex-wrap gap-2 mb-4">
+            {% for skill in job.get_skills_list|slice:":4" %}
+            <span class="bg-white text-gray-700 px-3 py-1 rounded-full text-xs">{{ skill }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="flex justify-between items-center flex-col md:flex-row gap-4">
+            <div class="flex items-center text-xs text-gray-600">
+              <i class="fas fa-calendar-alt mr-1"></i>
+              Posted {{ job.get_formatted_date }}
+              <span class="mx-2">|</span>
+              {{ job.category }}
+            </div>
+            <div class="flex space-x-2">
+              {% if user.is_authenticated %}
+              <button class="flex items-center space-x-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                <i class="fas fa-bookmark"></i>
+                <span>Save</span>
+              </button>
+              {% endif %}
+              <a href="{% url 'app:job_detail' job.id %}" class="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition">
+                Apply Now
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-center py-12">
+        <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+        <h3 class="text-xl font-bold text-gray-600 mb-2">No jobs found</h3>
+        <p class="text-gray-500">Try adjusting your search criteria or clear filters</p>
+        <a href="{% url 'app:job_list' %}" class="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+          View All Jobs
+        </a>
+      </div>
+      {% endfor %}
+
+      <!-- Pagination (Optional) -->
+      {% if jobs.has_other_pages %}
+      <div class="flex justify-center mt-8">
+        <div class="flex space-x-2">
+          {% if jobs.has_previous %}
+            <a href="?page={{ jobs.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}" 
+               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Previous</a>
+          {% endif %}
+          
+          {% for i in jobs.paginator.page_range %}
+            {% if jobs.number == i %}
+              <span class="px-4 py-2 bg-blue-700 text-white rounded-lg">{{ i }}</span>
+            {% else %}
+              <a href="?page={{ i }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}" 
+                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{{ i }}</a>
+            {% endif %}
+          {% endfor %}
+          
+          {% if jobs.has_next %}
+            <a href="?page={{ jobs.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}" 
+               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Next</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

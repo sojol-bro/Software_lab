@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="container mx-auto px-4 max-w-6xl">
+        <!-- Course Header -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="md:flex">
+                <!-- Course Image -->
+                <div class="md:w-2/5">
+                    <img src="{% if course.thumbnail %}{{ course.thumbnail.url }}{% else %}https://via.placeholder.com/600x400?text={{ course.title|slice:':10' }}{% endif %}" 
+                         alt="{{ course.title }}" 
+                         class="w-full h-64 md:h-full object-cover" />
+                </div>
+                
+                <!-- Course Info -->
+                <div class="md:w-3/5 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 text-sm {{ course.get_difficulty_badge_class }} rounded-full font-medium">
+                            {{ course.get_difficulty_display }}
+                        </span>
+                        <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                            {{ course.category.name }}
+                        </span>
+                    </div>
+                    
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ course.title }}</h1>
+                    <p class="text-gray-700 text-lg mb-6">{{ course.short_description }}</p>
+                    
+                    <div class="flex items-center mb-6">
+                        <img src="{% if course.instructor_photo %}{{ course.instructor_photo.url }}{% else %}https://via.placeholder.com/50x50?text={{ course.instructor|slice:':2' }}{% endif %}" 
+                             alt="{{ course.instructor }}" 
+                             class="w-12 h-12 rounded-full mr-4 object-cover" />
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ course.instructor }}</p>
+                            <p class="text-sm text-gray-600">Instructor</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Course Stats -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">{{ course.rating }}</div>
+                            <div class="text-sm text-gray-600">Rating</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">{{ course.students_count }}</div>
+                            <div class="text-sm text-gray-600">Students</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-600">{{ course.lessons_count }}</div>
+                            <div class="text-sm text-gray-600">Lessons</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-600">{{ course.duration_weeks }}</div>
+                            <div class="text-sm text-gray-600">Weeks</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar (if enrolled) -->
+                    {% if enrollment %}
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Your Progress</span>
+                            <span>{{ progress_percentage }}% Complete</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-green-500 h-3 rounded-full" style="width: {{ progress_percentage }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        {% if enrollment %}
+                            {% if progress_percentage == 100 %}
+                                <button class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+                                    🎉 Course Completed!
+                                </button>
+                                <a href="{% url 'app:course_list' %}?tab=my_courses" 
+                                   class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-center">
+                                    Back to My Courses
+                                </a>
+                            {% else %}
+                                <a href="{% url 'app:continue_learning' course.id %}" 
+                                   class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-center">
+                                    {% if progress_percentage > 0 %}
+                                        Continue Learning
+                                    {% else %}
+                                        Start Learning
+                                    {% endif %}
+                                </a>
+                                <a href="#curriculum" 
+                                   class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium text-center">
+                                    View Curriculum
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'app:enroll_course' course.id %}" 
+                                   class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-center">
+                                    Enroll Now - 
+                                    {% if course.price == 0 %}
+                                        FREE
+                                    {% else %}
+                                        {{ course.price }} Tk
+                                    {% endif %}
+                                </a>
+                            {% else %}
+                                <a href="{% url 'login' %}?next={% url 'app:course_detail' course.id %}" 
+                                   class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-center">
+                                    Login to Enroll - 
+                                    {% if course.price == 0 %}
+                                        FREE
+                                    {% else %}
+                                        {{ course.price }} Tk
+                                    {% endif %}
+                                </a>
+                            {% endif %}
+                            <button class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                                <i class="far fa-heart mr-2"></i>Add to Wishlist
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Tabs -->
+        <div class="bg-white rounded-xl shadow-md mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="flex flex-wrap -mb-px">
+                    <button onclick="showTab('overview')" 
+                            class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-blue-500 text-blue-600">
+                        <i class="fas fa-info-circle mr-2"></i>Overview
+                    </button>
+                    <button onclick="showTab('curriculum')" 
+                            class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        <i class="fas fa-list-ol mr-2"></i>Curriculum
+                    </button>
+                    <button onclick="showTab('reviews')" 
+                            class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        <i class="fas fa-star mr-2"></i>Reviews
+                    </button>
+                    <button onclick="showTab('instructor')" 
+                            class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        <i class="fas fa-user mr-2"></i>Instructor
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Overview Tab -->
+                <div id="overview" class="tab-content">
+                    <h3 class="text-2xl font-bold mb-4">Course Description</h3>
+                    <p class="text-gray-700 mb-6 leading-relaxed">{{ course.description }}</p>
+                    
+                    <h4 class="text-xl font-bold mb-4">What You'll Learn</h4>
+                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                        {% for skill in course.get_skills_list %}
+                        <div class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            <span class="text-gray-700">{{ skill }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 class="text-xl font-bold mb-4">Course Requirements</h4>
+                    <ul class="list-disc list-inside text-gray-700 mb-6 space-y-2">
+                        <li>Basic computer skills</li>
+                        <li>Internet connection</li>
+                        <li>Dedication to learn</li>
+                    </ul>
+                    
+                    <h4 class="text-xl font-bold mb-4">Who This Course Is For</h4>
+                    <p class="text-gray-700">This course is perfect for beginners who want to start their journey in {{ course.category.name }}.</p>
+                </div>
+
+                <!-- Curriculum Tab -->
+                <div id="curriculum" class="tab-content hidden">
+                    <h3 class="text-2xl font-bold mb-6">Course Curriculum</h3>
+                    
+                    {% if lessons_with_completion %}
+                    <div class="space-y-4">
+                        {% for lesson_data in lessons_with_completion %}
+                        <div class="border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                            <div class="p-4 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    {% if enrollment %}
+                                        {% if lesson_data.completion and lesson_data.completion.completed %}
+                                            <i class="fas fa-check-circle text-green-500 text-xl mr-4"></i>
+                                        {% else %}
+                                            <i class="far fa-circle text-gray-400 text-xl mr-4"></i>
+                                        {% endif %}
+                                    {% else %}
+                                        <i class="fas fa-lock text-gray-400 text-xl mr-4"></i>
+                                    {% endif %}
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-gray-900">{{ lesson_data.lesson.title }}</h5>
+                                        <p class="text-sm text-gray-600">
+                                            <i class="fas fa-clock mr-1"></i>{{ lesson_data.lesson.duration_minutes }} minutes
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3">
+                                    {% if enrollment %}
+                                        {% if lesson_data.completion and lesson_data.completion.completed %}
+                                            <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Completed</span>
+                                        {% else %}
+                                            <a href="{% url 'app:mark_lesson_complete' enrollment.id lesson_data.lesson.id %}" 
+                                               class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition">
+                                                Mark Complete
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">Enroll to access</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if not forloop.last %}
+                            <div class="border-t border-gray-100"></div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-book-open text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-600">Curriculum details will be available soon.</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if enrollment %}
+                    <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-semibold text-blue-900">Your Progress</h4>
+                                <p class="text-blue-700">{{ progress_percentage }}% complete ({{ enrollment.get_completed_lessons_count }}/{{ course.lessons.count }} lessons)</p>
+                            </div>
+                            {% if progress_percentage < 100 %}
+                            <a href="{% url 'app:continue_learning' course.id %}" 
+                               class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                Continue Learning
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Reviews Tab -->
+                <div id="reviews" class="tab-content hidden">
+                    <h3 class="text-2xl font-bold mb-6">Student Reviews</h3>
+                    
+                    <!-- Overall Rating -->
+                    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-4xl font-bold text-gray-900">{{ course.rating }}</div>
+                                <div class="flex text-yellow-400 mb-2">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= course.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <p class="text-gray-600">Based on {{ course.rating_count }} reviews</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-gray-700">{{ course.students_count }} students enrolled</p>
+                                <p class="text-sm text-gray-600">Last updated: {{ course.created_date|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample Reviews -->
+                    <div class="space-y-6">
+                        <div class="border-b border-gray-200 pb-6">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                    <span class="font-semibold text-blue-600">JS</span>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold">John Smith</h5>
+                                    <div class="flex text-yellow-400 text-sm">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-gray-700">"This course completely changed my perspective on {{ course.category.name }}. The instructor explains complex topics in a very simple way."</p>
+                        </div>
+                        
+                        <div class="border-b border-gray-200 pb-6">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                    <span class="font-semibold text-green-600">SA</span>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold">Sarah Ahmed</h5>
+                                    <div class="flex text-yellow-400 text-sm">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-gray-700">"Great course for beginners. The practical examples helped me understand the concepts better."</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Review Form (for enrolled students) -->
+                    {% if enrollment %}
+                    <div class="mt-8 p-6 bg-gray-50 rounded-lg">
+                        <h4 class="text-lg font-semibold mb-4">Add Your Review</h4>
+                        <form class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
+                                <div class="flex space-x-1">
+                                    {% for i in "12345" %}
+                                    <button type="button" class="text-2xl text-gray-300 hover:text-yellow-400 focus:text-yellow-400">
+                                        <i class="far fa-star"></i>
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Your Review</label>
+                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                          rows="4" placeholder="Share your experience with this course..."></textarea>
+                            </div>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                Submit Review
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Instructor Tab -->
+                <div id="instructor" class="tab-content hidden">
+                    <div class="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-6">
+                        <img src="{% if course.instructor_photo %}{{ course.instructor_photo.url }}{% else %}https://via.placeholder.com/200x200?text={{ course.instructor|slice:':2' }}{% endif %}" 
+                             alt="{{ course.instructor }}" 
+                             class="w-32 h-32 rounded-full object-cover mx-auto md:mx-0" />
+                        
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold mb-2">{{ course.instructor }}</h3>
+                            <p class="text-lg text-gray-600 mb-4">Professional Instructor</p>
+                            <p class="text-gray-700 mb-6 leading-relaxed">
+                                {{ course.instructor }} is an experienced professional with years of expertise in {{ course.category.name }}. 
+                                Passionate about teaching and helping students achieve their goals through practical, hands-on learning experiences.
+                            </p>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                                <div class="text-center">
+                                    <div class="text-xl font-bold text-blue-600">5+</div>
+                                    <div class="text-sm text-gray-600">Years Experience</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-xl font-bold text-green-600">{{ instructor_courses_count }}</div>
+                                    <div class="text-sm text-gray-600">Courses</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-xl font-bold text-purple-600">1000+</div>
+                                    <div class="text-sm text-gray-600">Students</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-600 hover:text-blue-600 transition">
+                                    <i class="fab fa-linkedin text-xl"></i>
+                                </a>
+                                <a href="#" class="text-gray-600 hover:text-blue-400 transition">
+                                    <i class="fab fa-twitter text-xl"></i>
+                                </a>
+                                <a href="#" class="text-gray-600 hover:text-gray-900 transition">
+                                    <i class="fab fa-github text-xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Courses -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-2xl font-bold mb-6">Related Courses</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for related_course in related_courses %}
+                <div class="border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                    <img src="{% if related_course.thumbnail %}{{ related_course.thumbnail.url }}{% else %}https://via.placeholder.com/400x250?text={{ related_course.title|slice:':10' }}{% endif %}" 
+                         alt="{{ related_course.title }}" 
+                         class="w-full h-40 object-cover rounded-t-lg" />
+                    
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">{{ related_course.title }}</h4>
+                        <p class="text-sm text-gray-600 mb-3">{{ related_course.instructor }}</p>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-blue-600">
+                                {% if related_course.price == 0 %}
+                                    FREE
+                                {% else %}
+                                    {{ related_course.price }} Tk
+                                {% endif %}
+                            </span>
+                            <a href="{% url 'app:course_detail' related_course.id %}" 
+                               class="text-sm text-blue-600 hover:text-blue-800 transition">
+                                View Course →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        
+        // Remove active class from all tab buttons
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('border-blue-500', 'text-blue-600');
+            button.classList.add('border-transparent', 'text-gray-500');
+        });
+        
+        // Show selected tab content
+        document.getElementById(tabName).classList.remove('hidden');
+        
+        // Add active class to clicked tab button
+        event.target.classList.add('border-blue-500', 'text-blue-600');
+        event.target.classList.remove('border-transparent', 'text-gray-500');
+    }
+
+    // Show overview tab by default
+    document.addEventListener('DOMContentLoaded', function() {
+        showTab('overview');
+    });
+</script>
+
+<style>
+    .tab-button {
+        transition: all 0.3s ease;
+    }
+    
+    .tab-content {
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
