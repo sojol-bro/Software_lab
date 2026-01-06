@@ -1,0 +1,189 @@
+/* Custom Variables to match the Image Palette */
+:root {
+    --primary-blue: #9EC5FE;
+    --dark-blue: #1E3A8A;
+    --bg-light: #E3F2FD;
+    --accent-green: #28A745;
+    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --border-color: #DEE2E6;
+}
+
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-light);
+    color: #333;
+}
+
+/* Navbar Custom Styles */
+.nav-link-pill {
+    padding: 8px 20px;
+    border-radius: 9999px;
+    background-color: #B3D4FF;
+    color: var(--dark-blue);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-link-pill:hover {
+    background-color: white;
+    transform: translateY(-1px);
+}
+
+.nav-active {
+    background-color: var(--accent-green) !important;
+    color: white !important;
+}
+
+/* Stats Cards Styling */
+.stat-card {
+    background: white;
+    border-radius: 24px; /* Image a besh rounded corner ache */
+    padding: 24px;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(0,0,0,0.03);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.stat-change-up {
+    color: var(--accent-green);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* Tab Navigation */
+.tab-container {
+    background-color: rgba(179, 212, 255, 0.4);
+    padding: 10px;
+    border-radius: 20px;
+}
+
+.tab-item {
+    padding: 10px 30px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+/* User List & Cards */
+.custom-card {
+    background: white;
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+}
+
+.user-item-border {
+    border: 1px solid #edf2f7;
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: 0.3s;
+}
+
+.user-item-border:hover {
+    border-color: var(--primary-blue);
+    background-color: #f8fbff;
+}
+
+/* System Health Bars */
+.health-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.health-bar-container {
+    height: 12px;
+    background-color: #E9ECEF;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.health-bar-fill {
+    height: 100%;
+    background-color: var(--dark-blue);
+    border-radius: 10px;
+}
+
+/* Activity Items (Image er color matching) */
+.activity-blue { background-color: #CCE5FF; border-left: 5px solid #007bff; }
+.activity-green { background-color: #CCFFCC; border-left: 5px solid #28a745; }
+.activity-yellow { background-color: #FFFFCC; border-left: 5px solid #ffc107; }
+
+/* Quick Action Buttons */
+.action-box {
+    background-color: #D1E9F6;
+    border-radius: 24px;
+    padding: 30px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.action-box:hover {
+    background-color: var(--dark-blue);
+    color: white !important;
+    transform: scale(1.02);
+}
+
+.action-box p {
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+/* Footer Styling */
+footer {
+    background-color: var(--dark-blue);
+    border-top-left-radius: 40px;
+    border-top-right-radius: 40px;
+}
+
+footer h4 {
+    position: relative;
+    padding-bottom: 8px;
+}
+
+footer h4::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 3px;
+    background-color: var(--primary-blue);
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 15px;
+    }
+    .action-box {
+        padding: 20px 10px;
+    }
+}
