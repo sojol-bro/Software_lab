@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10 max-w-4xl">
+  <h1 class="text-2xl font-bold mb-6">Review & Publish Job</h1>
+  <div class="bg-white rounded-xl shadow p-6 space-y-4">
+    <div>
+      <h2 class="text-lg font-semibold">{{ job.title }}</h2>
+      <p class="text-sm text-gray-600">{{ job.company.name }} • {{ job.location }} • {{ job.get_job_type_display }}</p>
+    </div>
+    <div>
+      <h3 class="font-semibold">Description</h3>
+      <p class="text-gray-700 whitespace-pre-wrap">{{ job.description }}</p>
+    </div>
+    <div>
+      <h3 class="font-semibold">Requirements</h3>
+      <p class="text-gray-700 whitespace-pre-wrap">{{ job.requirements }}</p>
+    </div>
+    <div>
+      <h3 class="font-semibold">Quiz</h3>
+      {% if job_quiz %}
+        <p>Assigned quiz: <span class="font-medium">{{ job_quiz.quiz.title }}</span></p>
+        <a class="text-blue-600 hover:underline" href="{% url 'app:add_job_quiz' job.id %}">Change</a>
+      {% else %}
+        <p class="text-gray-600">No quiz assigned.</p>
+        <a class="text-blue-600 hover:underline" href="{% url 'app:add_job_quiz' job.id %}">Add a quiz</a>
+      {% endif %}
+    </div>
+    <form method="post" class="pt-2">
+      {% csrf_token %}
+      <button class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Publish Job</button>
+      <a href="{% url 'employee_view' %}" class="ml-3 px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Back to Dashboard</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
