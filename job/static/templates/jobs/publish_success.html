@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <div class="bg-white rounded-2xl shadow p-8 border border-slate-200">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-700 text-2xl">
+        ✓
+      </div>
+      <div class="flex-1">
+        <h1 class="text-2xl font-extrabold text-slate-900">Job Published Successfully</h1>
+        <p class="text-slate-600 mt-1">
+          Your job <span class="font-semibold">{{ job.title }}</span> is now live.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+      <p class="text-sm text-slate-600 mb-1">Job ID</p>
+      <p class="text-lg font-semibold text-slate-900">#{{ job.id }}</p>
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a href="{% url 'app:job_detail' job.id %}"
+         class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+        View Job
+      </a>
+
+      <a href="{% url 'app:employee_dashboard' %}"
+         class="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-semibold hover:bg-slate-200 transition">
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

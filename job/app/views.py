@@ -553,6 +553,11 @@ def create_job(request):
         form = JobForm()
     return render(request, 'jobs/job_form.html', { 'form': form })
 
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+# from django.contrib import messages  # keep if you still use it elsewhere
+
 @login_required
 def build_job_quiz(request, job_id):
     # Only employees/admins
@@ -562,12 +567,11 @@ def build_job_quiz(request, job_id):
     except CustomUser.DoesNotExist:
         user_type = 'user'
     if user_type not in ('employee', 'admin'):
-        messages.error(request, 'Access denied: Employee area.')
+        # messages.error(request, 'Access denied: Employee area.')
         return redirect('home')
 
     job = get_object_or_404(Job, id=job_id)
 
-    # On POST, create a new Quiz and its Questions/Choices based on the payload
     if request.method == 'POST':
         title = request.POST.get('quiz_title', '').strip() or f"Quiz for {job.title}"
         description = request.POST.get('quiz_description', '').strip()
@@ -588,7 +592,6 @@ def build_job_quiz(request, job_id):
         )
 
         # Parse dynamic questions
-        # Expected fields: q-<idx>-text, q-<idx>-type, q-<idx>-choice-<n>-text, q-<idx>-choice-<n>-correct
         q_indices = set()
         for key in request.POST.keys():
             if key.startswith('q-') and key.endswith('-text'):
@@ -596,12 +599,18 @@ def build_job_quiz(request, job_id):
                     q_indices.add(int(key.split('-')[1]))
                 except:
                     pass
+
         created_questions = 0
         for order_idx in sorted(q_indices):
             q_text = request.POST.get(f'q-{order_idx}-text', '').strip()
+
+            # Your current UI builder doesn't send q-<idx>-type anymore,
+            # so keep a safe default.
             q_type = request.POST.get(f'q-{order_idx}-type', 'multiple_choice')
+
             if not q_text:
                 continue
+
             question = Question.objects.create(
                 quiz=quiz,
                 question_text=q_text,
@@ -609,7 +618,8 @@ def build_job_quiz(request, job_id):
                 order=order_idx,
             )
             created_questions += 1
-            # choices for multiple_choice
+
+            # choices for multiple_choice (your old payload)
             c_idx = 1
             while True:
                 c_text = request.POST.get(f'q-{order_idx}-choice-{c_idx}-text')
@@ -626,20 +636,22 @@ def build_job_quiz(request, job_id):
                 c_idx += 1
 
         if created_questions == 0:
-            # No questions created; do not publish, send back to builder
             quiz.delete()
-            messages.error(request, 'Please add at least one question before saving the quiz.')
+            # messages.error(request, 'Please add at least one question before saving the quiz.')
             return redirect('app:build_job_quiz', job_id=job.id)
 
         # Link job -> quiz via JobQuiz relation
         JobQuiz.objects.update_or_create(job=job, defaults={'quiz': quiz})
-        # Auto-publish the job so it's visible to all users immediately
+
+        # Auto-publish job
         job.is_active = True
         job.posted_date = timezone.now()
         job.save()
-        return redirect('app:job_detail', job_id=job.id)
 
-    return render(request, 'jobs/quiz_builder.html', { 'job': job })
+        # ✅ IMPORTANT: NO POPUP + redirect to success page
+        return redirect('app:publish_success', job_id=job.id)
+
+    return render(request, 'jobs/quiz_builder.html', {'job': job})
 
 @login_required
 def add_job_quiz(request, job_id):
@@ -1078,19 +1090,12 @@ def employee_view(request):
 
     return render(request, 'employee/dashboard.html', context)
 
-from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+
+from .models import Job  # adjust if your model name/path is different
 
 @login_required
 def publish_success(request, job_id):
     job = get_object_or_404(Job, id=job_id)
-
-    if request.method == "POST":
-        job.is_published = True
-        job.save()
-
-        # ✅ Redirect to success page
-        return redirect('app:publish_success', job_id=job.id)
-
-    job_quiz = JobQuiz.objects.filter(job=job).select_related('quiz').first()
-    return render(request, "employee/publish_job.html", {"job": job, "job_quiz": job_quiz})
+    return render(request, "jobs/publish_success.html", {"job": job})

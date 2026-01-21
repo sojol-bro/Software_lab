@@ -6,11 +6,9 @@ from . import views
 from django.conf.urls.static import static
 from django.conf import settings
 from accounts.views import employee_view
+from django.urls import path, include
 
 app_name = 'app'
-
-
-
 
 
 urlpatterns = [
@@ -21,6 +19,7 @@ urlpatterns = [
     path('employee/jobs/<int:job_id>/quiz-builder/', views.build_job_quiz, name='build_job_quiz'),
     path('employee/jobs/<int:job_id>/quiz/', views.add_job_quiz, name='add_job_quiz'),
     path('employee/jobs/<int:job_id>/publish/', views.publish_job, name='publish_job'),
+    
 
     path('employee/jobs/<int:job_id>/published/', views.publish_success, name='publish_success'), #new added
 
