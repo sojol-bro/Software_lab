@@ -2,81 +2,520 @@
 {% load static %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-10">
-  <div class="flex items-center justify-between mb-8">
-    <h1 class="text-3xl font-bold">Employee Dashboard</h1>
-    <div class="space-x-3">
-      <a href="{% url 'app:create_job' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Post New Job</a>
-      <a href="/admin/app/quiz/add/" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Create Quiz</a>
-    </div>
-  </div>
+<div class="min-h-[calc(100vh-120px)] bg-gradient-to-b from-slate-50 via-white to-white">
+  <div class="container mx-auto px-4 py-10 max-w-7xl">
 
-  <!-- KPI Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-    <div class="bg-white rounded-xl shadow p-6">
-      <div class="text-sm text-gray-500">Total Jobs</div>
-      <div class="text-3xl font-semibold">{{ jobs_count }}</div>
-    </div>
-    <div class="bg-white rounded-xl shadow p-6">
-      <div class="text-sm text-gray-500">Active Jobs</div>
-      <div class="text-3xl font-semibold">{{ active_jobs_count }}</div>
-    </div>
-    <div class="bg-white rounded-xl shadow p-6">
-      <div class="text-sm text-gray-500">Active Quizzes</div>
-      <div class="text-3xl font-semibold">{{ quizzes_count }}</div>
-    </div>
-    <div class="bg-white rounded-xl shadow p-6">
-      <div class="text-sm text-gray-500">Active Courses</div>
-      <div class="text-3xl font-semibold">{{ courses_count }}</div>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Latest Jobs -->
-    <div class="bg-white rounded-xl shadow overflow-hidden">
-      <div class="px-6 py-4 border-b">
-        <h2 class="text-lg font-semibold">Latest Jobs</h2>
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-8">
+      <div>
+        <div class="inline-flex items-center gap-2 text-sm text-slate-600 bg-white/70 border border-slate-200 rounded-full px-3 py-1 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Hirer Panel</span>
+        </div>
+        <h1 class="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
+          Employee Dashboard
+        </h1>
+        <p class="mt-2 text-slate-600 max-w-2xl">
+          Track jobs, quizzes, courses, weekly performance, and recent applications — all in one place.
+        </p>
       </div>
-      <div class="divide-y">
-        {% for job in latest_jobs %}
-          <div class="px-6 py-4 flex items-center justify-between">
-            <div>
-              <div class="font-medium">{{ job.title }}</div>
-              <div class="text-sm text-gray-500">{{ job.company.name }} • {{ job.location }} • {{ job.get_job_type_display }}</div>
-            </div>
-            <a href="{% url 'app:job_detail' job.id %}" class="text-blue-600 hover:underline">View</a>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <a href="{% url 'app:create_job' %}"
+           class="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 text-white shadow-sm hover:shadow-md hover:bg-slate-800 transition">
+          <svg class="w-5 h-5 opacity-90 group-hover:opacity-100 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
+          </svg>
+          <span class="font-semibold">Post New Job</span>
+        </a>
+
+        <a href="/admin/app/quiz/add/"
+           class="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-indigo-600 text-white shadow-sm hover:shadow-md hover:bg-indigo-500 transition">
+          <svg class="w-5 h-5 opacity-95" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5zM19 7l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z"/>
+          </svg>
+          <span class="font-semibold">Create Quiz</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
+
+      <div class="relative overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition">
+        <div class="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-slate-100"></div>
+        <div class="p-6 flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-600">Total Jobs</p>
+            <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ jobs_count }}</p>
+            <p class="mt-1 text-xs text-slate-500">All job posts created</p>
           </div>
-        {% empty %}
-          <div class="px-6 py-6 text-gray-500">No jobs yet.</div>
-        {% endfor %}
+          <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M4 7h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7z"/>
+            </svg>
+          </div>
+        </div>
       </div>
-      <div class="px-6 py-3 bg-gray-50 text-right">
-        <a href="{% url 'app:job_list' %}" class="text-sm text-blue-600 hover:underline">View all jobs</a>
+
+      <div class="relative overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition">
+        <div class="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-emerald-50"></div>
+        <div class="p-6 flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-600">Active Jobs</p>
+            <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ active_jobs_count }}</p>
+            <p class="mt-1 text-xs text-slate-500">Currently visible to candidates</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition">
+        <div class="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-indigo-50"></div>
+        <div class="p-6 flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-600">Active Quizzes</p>
+            <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ quizzes_count }}</p>
+            <p class="mt-1 text-xs text-slate-500">Used for assessments</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 11l3 3L22 4M2 12l5 5L17 7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition">
+        <div class="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-purple-50"></div>
+        <div class="p-6 flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-600">Active Courses</p>
+            <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ courses_count }}</p>
+            <p class="mt-1 text-xs text-slate-500">Available for learners</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-sm">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 14l9-5-9-5-9 5 9 5z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 14l6.16-3.422A12.083 12.083 0 0112 20.944 12.083 12.083 0 015.84 10.578L12 14z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Charts + Applications Row -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-10">
+
+      <!-- Charts -->
+      <div class="xl:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-200">
+          <h2 class="text-lg font-bold text-slate-900">Performance</h2>
+          <p class="text-sm text-slate-600 mt-1">Jobs posted and quiz attempts (weekly)</p>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="rounded-3xl border border-slate-200 bg-slate-50/40 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <div class="text-sm font-semibold text-slate-900">Jobs posted / week</div>
+                <div class="text-xs text-slate-600">Last 8 weeks</div>
+              </div>
+              <span class="text-xs font-semibold px-2 py-1 rounded-full bg-slate-900 text-white">Jobs</span>
+            </div>
+            <div class="h-56">
+              <canvas id="jobsPostedChart"></canvas>
+            </div>
+          </div>
+
+          <div class="rounded-3xl border border-slate-200 bg-slate-50/40 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <div class="text-sm font-semibold text-slate-900">Quiz attempts / week</div>
+                <div class="text-xs text-slate-600">Last 8 weeks</div>
+              </div>
+              <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-600 text-white">Attempts</span>
+            </div>
+            <div class="h-56">
+              <canvas id="quizAttemptsChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Applications -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Recent Applications</h2>
+            <p class="text-sm text-slate-600 mt-1">Latest candidates applied</p>
+          </div>
+          {# Optional if you have a page #}
+          {# <a href="{% url 'app:applications_list' %}" class="text-sm font-semibold text-slate-900 hover:text-slate-700">View all</a> #}
+        </div>
+
+        <div class="divide-y divide-slate-100">
+          {% for app in recent_applications %}
+            <div class="px-6 py-5 hover:bg-slate-50 transition">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+                      <svg class="w-5 h-5 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M12 7a4 4 0 11-8 0 4 4 0 018 0zM20 8v6M23 11h-6"/>
+                      </svg>
+                    </div>
+
+                    <div class="min-w-0">
+                      {# ✅ Change app.applicant if your field is different (user/candidate/profile) #}
+                      <div class="font-bold text-slate-900 truncate">
+                        {{ app.applicant.get_full_name|default:app.applicant.username|default:"Applicant" }}
+                      </div>
+                      <div class="text-sm text-slate-600 truncate">
+                        Applied for <span class="font-semibold text-slate-900">{{ app.job.title }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full bg-slate-100 border border-slate-200">
+                      {{ app.created_at|date:"M d, Y" }}
+                    </span>
+
+                    {# ✅ Status pill (adjust if your status values differ) #}
+                    {% if app.status %}
+                      <span class="inline-flex items-center px-2 py-1 rounded-full border
+                        {% if app.status == 'pending' %} bg-amber-50 border-amber-200 text-amber-800
+                        {% elif app.status == 'accepted' %} bg-emerald-50 border-emerald-200 text-emerald-800
+                        {% elif app.status == 'rejected' %} bg-rose-50 border-rose-200 text-rose-800
+                        {% else %} bg-slate-50 border-slate-200 text-slate-700 {% endif %}">
+                        {{ app.status|title }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                {# Optional: detail link if you have it #}
+                {# <a href="{% url 'app:application_detail' app.id %}" class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-2xl border border-slate-200 text-slate-900 font-semibold hover:bg-slate-900 hover:text-white hover:border-slate-900 transition">
+                  View
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a> #}
+              </div>
+            </div>
+          {% empty %}
+            <div class="px-6 py-10 text-center">
+              <div class="mx-auto w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center">
+                <svg class="w-7 h-7 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <h3 class="mt-4 text-lg font-bold text-slate-900">No applications yet</h3>
+              <p class="mt-1 text-slate-600">Once candidates apply, they’ll show up here.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+      <!-- Latest Jobs -->
+      <div class="xl:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Latest Jobs</h2>
+            <p class="text-sm text-slate-600 mt-1">Recent posts and quick access to details</p>
+          </div>
+          <a href="{% url 'app:job_list' %}"
+             class="text-sm font-semibold text-slate-900 hover:text-slate-700 inline-flex items-center gap-2">
+            View all
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+
+        <div class="divide-y divide-slate-100">
+          {% for job in latest_jobs %}
+            <div class="px-6 py-5 flex items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200">
+                  <svg class="w-6 h-6 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M4 7h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-bold text-slate-900 leading-tight">{{ job.title }}</div>
+                  <div class="mt-1 text-sm text-slate-600">
+                    <span class="font-medium">{{ job.company.name }}</span>
+                    <span class="mx-2 text-slate-300">•</span>
+                    <span>{{ job.location }}</span>
+                    <span class="mx-2 text-slate-300">•</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                      {{ job.get_job_type_display }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <a href="{% url 'app:job_detail' job.id %}"
+                 class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 text-slate-900 font-semibold hover:bg-slate-900 hover:text-white hover:border-slate-900 transition">
+                View
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </a>
+            </div>
+          {% empty %}
+            <div class="px-6 py-10">
+              <div class="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                <div class="mx-auto w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                  <svg class="w-7 h-7 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
+                  </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-bold text-slate-900">No jobs yet</h3>
+                <p class="mt-1 text-slate-600">Create your first job post and start receiving applications.</p>
+                <a href="{% url 'app:create_job' %}"
+                   class="mt-5 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition">
+                  Post a Job
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="space-y-6">
+
+        <!-- Latest Quizzes -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Latest Quizzes</h2>
+              <p class="text-sm text-slate-600 mt-1">Your newest assessments</p>
+            </div>
+            <a href="{% url 'app:quiz_list' %}" class="text-sm font-semibold text-slate-900 hover:text-slate-700">
+              View all
+            </a>
+          </div>
+
+          <div class="divide-y divide-slate-100">
+            {% for quiz in latest_quizzes %}
+              <div class="px-6 py-5 hover:bg-slate-50 transition">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <div class="font-bold text-slate-900">{{ quiz.title }}</div>
+                    <div class="mt-1 text-sm text-slate-600">
+                      <span class="font-medium">{{ quiz.category.name }}</span>
+                      <span class="mx-2 text-slate-300">•</span>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        {{ quiz.get_difficulty_display }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <a href="{% url 'app:quiz_detail' quiz.id %}"
+                     class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 text-slate-900 font-semibold hover:bg-slate-900 hover:text-white hover:border-slate-900 transition">
+                    View
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            {% empty %}
+              <div class="px-6 py-10 text-center">
+                <div class="mx-auto w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                  <svg class="w-7 h-7 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 11l3 3L22 4M2 12l5 5L17 7"/>
+                  </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-bold text-slate-900">No quizzes yet</h3>
+                <p class="mt-1 text-slate-600">Create a quiz to assess applicants’ skills.</p>
+                <a href="/admin/app/quiz/add/"
+                   class="mt-5 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-500 transition">
+                  Create Quiz
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Quick Shortcuts -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+          <h3 class="text-lg font-bold text-slate-900">Quick Shortcuts</h3>
+          <p class="text-sm text-slate-600 mt-1">Fast actions for daily workflow</p>
+
+          <div class="mt-5 grid grid-cols-1 gap-3">
+            <a href="{% url 'app:create_job' %}"
+               class="flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-slate-900">Post a new job</div>
+                  <div class="text-xs text-slate-600">Create and publish in minutes</div>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+
+            <a href="{% url 'app:job_list' %}"
+               class="flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 7h16M4 12h10M4 17h16"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-slate-900">Manage jobs</div>
+                  <div class="text-xs text-slate-600">View, edit, and track posts</div>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+
+            <a href="{% url 'app:quiz_list' %}"
+               class="flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 11l3 3L22 4M2 12l5 5L17 7"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-slate-900">Browse quizzes</div>
+                  <div class="text-xs text-slate-600">Review categories & difficulty</div>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Latest Quizzes -->
-    <div class="bg-white rounded-xl shadow overflow-hidden">
-      <div class="px-6 py-4 border-b">
-        <h2 class="text-lg font-semibold">Latest Quizzes</h2>
-      </div>
-      <div class="divide-y">
-        {% for quiz in latest_quizzes %}
-          <div class="px-6 py-4 flex items-center justify-between">
-            <div>
-              <div class="font-medium">{{ quiz.title }}</div>
-              <div class="text-sm text-gray-500">{{ quiz.category.name }} • {{ quiz.get_difficulty_display }}</div>
-            </div>
-            <a href="{% url 'app:quiz_detail' quiz.id %}" class="text-blue-600 hover:underline">View</a>
-          </div>
-        {% empty %}
-          <div class="px-6 py-6 text-gray-500">No quizzes yet.</div>
-        {% endfor %}
-      </div>
-      <div class="px-6 py-3 bg-gray-50 text-right">
-        <a href="{% url 'app:quiz_list' %}" class="text-sm text-blue-600 hover:underline">View all quizzes</a>
-      </div>
-    </div>
+    {# ===== JSON for Charts (safe) ===== #}
+    <script id="jobsWeekLabels" type="application/json">{{ jobs_week_labels|default:"[]"|safe }}</script>
+    <script id="jobsWeekCounts" type="application/json">{{ jobs_week_counts|default:"[]"|safe }}</script>
+
+    <script id="attemptWeekLabels" type="application/json">{{ attempt_week_labels|default:"[]"|safe }}</script>
+    <script id="attemptWeekCounts" type="application/json">{{ attempt_week_counts|default:"[]"|safe }}</script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      function readJSON(id, fallback) {
+        const el = document.getElementById(id);
+        if (!el) return fallback;
+        try { return JSON.parse(el.textContent); } catch (e) { return fallback; }
+      }
+
+      const jobsLabels = readJSON("jobsWeekLabels", []);
+      const jobsCounts = readJSON("jobsWeekCounts", []);
+      const attemptLabels = readJSON("attemptWeekLabels", []);
+      const attemptCounts = readJSON("attemptWeekCounts", []);
+
+      // Jobs posted chart (Line)
+      const jobsCtx = document.getElementById("jobsPostedChart");
+      if (jobsCtx) {
+        new Chart(jobsCtx, {
+          type: "line",
+          data: {
+            labels: jobsLabels,
+            datasets: [{
+              label: "Jobs",
+              data: jobsCounts,
+              tension: 0.35,
+              fill: false,
+              borderWidth: 2,
+              pointRadius: 3,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true },
+            },
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      // Quiz attempts chart (Bar)
+      const attemptsCtx = document.getElementById("quizAttemptsChart");
+      if (attemptsCtx) {
+        new Chart(attemptsCtx, {
+          type: "bar",
+          data: {
+            labels: attemptLabels,
+            datasets: [{
+              label: "Attempts",
+              data: attemptCounts,
+              borderWidth: 1,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true },
+            },
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+    </script>
+
   </div>
 </div>
 {% endblock %}

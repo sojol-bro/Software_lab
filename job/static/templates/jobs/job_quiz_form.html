@@ -1,22 +1,211 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
-<div class="container mx-auto px-4 py-10 max-w-3xl">
-  <h1 class="text-2xl font-bold mb-6">Add Quiz (Optional)</h1>
-  <div class="bg-white rounded-xl shadow p-6">
-    <p class="text-sm text-gray-600 mb-4">Job: <span class="font-medium">{{ job.title }}</span></p>
-    <form method="post" class="space-y-4">
-      {% csrf_token %}
+
+<!-- Add Quiz (Optional) — calm, premium, not over-bold -->
+<section class="bg-gradient-to-b from-slate-50 via-white to-slate-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Quiz</label>
-        {{ form.quiz }}
-        <p class="text-xs text-gray-500 mt-1">You can create a quiz first under Quizzes, then select it here.</p>
+        <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 backdrop-blur px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
+          <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+          Step 2 of 3 • Optional
+        </div>
+
+        <h1 class="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+          Add a Quiz (optional)
+        </h1>
+
+        <p class="mt-1 text-sm text-slate-600 leading-relaxed max-w-2xl">
+          Attaching a quiz helps verify skills and reduces random applications — but you can skip for now.
+        </p>
       </div>
-      <div class="flex items-center gap-3">
-        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
-        <a href="{% url 'app:publish_job' job.id %}" class="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Skip</a>
+
+      <div class="flex gap-2">
+        <a href="{% url 'app:publish_job' job.id %}"
+           class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+          Skip → Review & Publish
+        </a>
       </div>
-    </form>
+    </div>
+
+    <!-- Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT: Form card -->
+      <div class="lg:col-span-7">
+        <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <!-- soft decor -->
+          <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute -top-28 -left-24 h-72 w-72 rounded-full bg-indigo-400/10 blur-3xl"></div>
+            <div class="absolute -bottom-28 -right-24 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl"></div>
+          </div>
+
+          <div class="relative p-6 sm:p-8">
+
+            <!-- Job mini summary -->
+            <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 mb-6">
+              <p class="text-xs text-slate-500">Job</p>
+              <p class="mt-1 text-sm font-medium text-slate-900">
+                {{ job.title }}
+              </p>
+            </div>
+
+            <form method="post" class="space-y-5">
+              {% csrf_token %}
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">
+                  Select quiz
+                </label>
+
+                <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                  {{ form.quiz }}
+                </div>
+
+                <p class="mt-2 text-xs text-slate-500 leading-relaxed">
+                  Create quizzes first under <span class="font-medium text-slate-700">Quizzes</span>, then pick one here.
+                </p>
+              </div>
+
+              <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button type="submit"
+                        class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-[0_14px_35px_rgba(15,23,42,0.16)] hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+                  Continue
+                </button>
+
+                <a href="{% url 'app:publish_job' job.id %}"
+                   class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+                  Skip
+                </a>
+
+                <span class="sm:ml-auto text-xs text-slate-500">
+                  You can change this later before publishing.
+                </span>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Benefits + stepper -->
+      <div class="lg:col-span-5 space-y-6">
+
+        <!-- Stepper -->
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+          <h2 class="text-sm font-semibold text-slate-900">Progress</h2>
+
+          <div class="mt-4 space-y-3">
+            <div class="flex items-start gap-3">
+              <div class="h-9 w-9 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-sm">✓</div>
+              <div>
+                <p class="text-sm font-medium text-slate-900">Create job</p>
+                <p class="text-xs text-slate-600">Completed</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="h-9 w-9 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-sm">2</div>
+              <div>
+                <p class="text-sm font-medium text-slate-900">Attach quiz</p>
+                <p class="text-xs text-slate-600">Optional</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 opacity-80">
+              <div class="h-9 w-9 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-sm">3</div>
+              <div>
+                <p class="text-sm font-medium text-slate-900">Review & publish</p>
+                <p class="text-xs text-slate-600">Next</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5 h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div class="h-2 w-2/3 rounded-full bg-gradient-to-r from-indigo-500/70 to-emerald-500/60"></div>
+          </div>
+        </div>
+
+        <!-- Why add a quiz -->
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-sm font-semibold text-slate-900">Why attach a quiz?</h2>
+              <p class="mt-1 text-sm text-slate-600 leading-relaxed">
+                Quick skill validation improves shortlist quality.
+              </p>
+            </div>
+            <div class="h-10 w-10 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center">
+              🧠
+            </div>
+          </div>
+
+          <ul class="mt-4 space-y-3 text-sm text-slate-700">
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-indigo-500"></span>
+              <span><span class="font-medium">Reduce spam</span> applications</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-indigo-500"></span>
+              <span>Filter by <span class="font-medium">verified skill signals</span></span>
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-indigo-500"></span>
+              <span>Faster, cleaner <span class="font-medium">shortlisting</span></span>
+            </li>
+          </ul>
+
+          <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-xs text-slate-600 leading-relaxed">
+              No quiz yet? Create one in the <span class="font-medium text-slate-700">Quizzes</span> section, then come back here.
+            </p>
+          </div>
+        </div>
+
+        <!-- Note -->
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex items-start gap-3">
+            <div class="h-10 w-10 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center">
+              🧾
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-900">Safe to skip</p>
+              <p class="mt-1 text-sm text-slate-600 leading-relaxed">
+                You can publish without a quiz and add it later for better filtering.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
-</div>
+</section>
+
+<!-- Scoped control polish -->
+<style>
+  .ui-field select,
+  .ui-field input,
+  .ui-field textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #0f172a;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    padding: 0.35rem 0.35rem;
+  }
+  .ui-field select { cursor: pointer; }
+
+  .ui-field:focus-within {
+    border-color: rgba(100, 116, 139, 0.55);
+    box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.06);
+    background: rgba(255,255,255,0.96);
+  }
+</style>
+
 {% endblock %}

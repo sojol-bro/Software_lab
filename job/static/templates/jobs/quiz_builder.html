@@ -1,102 +1,641 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
-<div class="container mx-auto px-4 py-10 max-w-4xl">
-  <h1 class="text-2xl font-bold mb-6">Build Quiz for: {{ job.title }}</h1>
 
-  <form id="quiz-form" method="post" class="space-y-6">
-    {% csrf_token %}
+<!-- Quiz Builder (UI v2 + FULL logic) -->
+<section class="bg-gradient-to-b from-slate-50 via-white to-slate-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-    <div class="bg-white rounded-xl shadow p-6 space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Quiz Title</label>
-          <input type="text" name="quiz_title" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" placeholder="e.g. Frontend Skills Quiz" />
+    <!-- Top Header -->
+    <div class="mb-8">
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+        <div class="min-w-0">
+          <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 backdrop-blur px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
+            <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+            Quiz Builder • For: {{ job.title }}
+          </div>
+
+          <h1 class="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+            Build a quiz
+          </h1>
+
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed max-w-3xl">
+            Create questions, set passing score and duration, and preview the candidate view in real-time.
+          </p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Passing Score (%)</label>
-          <input type="number" min="0" max="100" name="passing_score" value="70" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
-          <input type="number" min="1" name="duration_minutes" value="30" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
+
+        <!-- Header actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <a href="{% url 'app:publish_job' job.id %}"
+             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Skip → Review & Publish
+          </a>
+
+          <button type="button" id="preview-toggle"
+                  class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Toggle preview
+          </button>
         </div>
       </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
-        <textarea name="quiz_description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"></textarea>
+
+      <!-- Info strip -->
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-xs text-slate-500">Questions</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900"><span id="qCount">0</span></p>
+          <p class="mt-2 text-xs text-slate-500">Aim for 3–10 for best completion rate.</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-xs text-slate-500">Passing score</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900"><span id="miniPass">70</span>%</p>
+          <p class="mt-2 text-xs text-slate-500">Typical: 60–80 depending on role.</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-xs text-slate-500">Duration</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900"><span id="miniTime">30</span>m</p>
+          <p class="mt-2 text-xs text-slate-500">Short quizzes get more completions.</p>
+        </div>
       </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow p-6">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold">Questions</h2>
-        <button type="button" id="add-question" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add question</button>
-      </div>
-      <div id="questions" class="space-y-6"></div>
-    </div>
+    <form id="quiz-form" method="post" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {% csrf_token %}
 
-    <div class="flex items-center gap-3">
-      <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Quiz and Continue</button>
-      <a href="{% url 'app:publish_job' job.id %}" class="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Skip</a>
-    </div>
-  </form>
-</div>
+      <!-- LEFT: Builder -->
+      <div class="lg:col-span-8 space-y-6">
+
+        <!-- Quiz Meta -->
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.07)]">
+          <div class="p-6 sm:p-8">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-base font-semibold text-slate-900">Quiz settings</h2>
+                <p class="mt-1 text-sm text-slate-600">A clear title and sensible scoring improves trust.</p>
+              </div>
+
+              <div class="hidden sm:flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span class="text-xs font-medium text-slate-700">Draft</span>
+              </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Quiz Title</label>
+                <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                  <input id="quiz_title" type="text" name="quiz_title" placeholder="e.g. Frontend Skills Quiz" />
+                </div>
+                <p class="mt-2 text-xs text-slate-500">Keep it short and role-specific.</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Passing Score (%)</label>
+                <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                  <input id="passing_score" type="number" min="0" max="100" name="passing_score" value="70" />
+                </div>
+                <p class="mt-2 text-xs text-slate-500">Common range: 60–80.</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Duration (minutes)</label>
+                <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                  <input id="duration_minutes" type="number" min="1" name="duration_minutes" value="30" />
+                </div>
+                <p class="mt-2 text-xs text-slate-500">Typical: 15–45 minutes.</p>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Description (optional)</label>
+              <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                <textarea id="quiz_description" name="quiz_description" rows="3" placeholder="What does this quiz measure?"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Questions Panel -->
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.07)]">
+          <div class="p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div>
+                <h2 class="text-base font-semibold text-slate-900">Questions</h2>
+                <p class="mt-1 text-sm text-slate-600">Add questions and define scoring.</p>
+              </div>
+
+              <!-- Type pills -->
+              <div class="flex flex-wrap gap-2">
+                <button type="button" class="add-q-btn pill" data-type="multiple_choice">+ Multiple Choice</button>
+                <button type="button" class="add-q-btn pill" data-type="true_false">+ True/False</button>
+                <button type="button" class="add-q-btn pill" data-type="short_answer">+ Short Answer</button>
+                <button type="button" class="add-q-btn pill pill-primary" data-type="numeric">+ Numeric</button>
+              </div>
+            </div>
+
+            <div id="builderAlert" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 mb-4"></div>
+
+            <div id="questions" class="space-y-4"></div>
+
+            <div id="emptyState" class="mt-4 rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+              <p class="text-sm text-slate-700">No questions yet.</p>
+              <p class="mt-1 text-xs text-slate-500">Pick a question type above to start building.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <button type="submit" id="saveBtn"
+                  class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-medium text-white shadow-[0_14px_35px_rgba(15,23,42,0.16)] hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Save Quiz and Continue
+          </button>
+
+          <a href="{% url 'app:publish_job' job.id %}"
+             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Skip
+          </a>
+
+          <span class="sm:ml-auto text-xs text-slate-500">Validation runs before saving.</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Preview -->
+      <aside class="lg:col-span-4 space-y-6" id="previewPane">
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">Candidate preview</h3>
+              <p class="mt-1 text-sm text-slate-600">Live view while you edit.</p>
+            </div>
+            <div class="h-10 w-10 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center">👁️</div>
+          </div>
+
+          <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-xs text-slate-500">Title</p>
+            <p class="text-sm text-slate-900" id="pvTitle">—</p>
+
+            <div class="mt-3 grid grid-cols-3 gap-2">
+              <div class="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <p class="text-[11px] text-slate-500">Pass</p>
+                <p class="text-sm text-slate-900" id="pvPass">70%</p>
+              </div>
+              <div class="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <p class="text-[11px] text-slate-500">Time</p>
+                <p class="text-sm text-slate-900" id="pvTime">30m</p>
+              </div>
+              <div class="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <p class="text-[11px] text-slate-500">Qs</p>
+                <p class="text-sm text-slate-900" id="pvQs">0</p>
+              </div>
+            </div>
+
+            <p class="mt-3 text-xs text-slate-500">Description</p>
+            <p class="text-sm text-slate-700 leading-relaxed" id="pvDesc">—</p>
+          </div>
+
+          <div class="mt-4 space-y-3" id="pvQuestions"></div>
+        </div>
+
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+          <h3 class="text-sm font-semibold text-slate-900">Quality checklist</h3>
+          <ul class="mt-3 space-y-2 text-sm text-slate-700">
+            <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span><span>Keep questions short & specific</span></li>
+            <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span><span>Use MCQ for objective scoring</span></li>
+            <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span><span>Always set one correct answer</span></li>
+            <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span><span>Time limit should match difficulty</span></li>
+          </ul>
+        </div>
+      </aside>
+    </form>
+  </div>
+</section>
+
+<style>
+  .ui-field input,
+  .ui-field select,
+  .ui-field textarea{
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #0f172a;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    padding: 0.35rem 0.35rem;
+  }
+  .ui-field textarea{ min-height: 110px; resize: vertical; }
+  .ui-field select{ cursor:pointer; }
+  .ui-field:focus-within{
+    border-color: rgba(100,116,139,0.55);
+    box-shadow: 0 0 0 4px rgba(15,23,42,0.06);
+    background: rgba(255,255,255,0.96);
+  }
+
+  .pill{
+    border: 1px solid rgba(226,232,240,1);
+    background: white;
+    color: #334155;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    transition: 180ms;
+  }
+  .pill:hover{ background: #f8fafc; }
+  .pill-primary{
+    background: #0f172a;
+    color: white;
+    border-color: #0f172a;
+  }
+  .pill-primary:hover{ background: #111827; }
+
+  /* Small animation feel */
+  .q-card{ animation: fadeIn 180ms ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+</style>
 
 <script>
-let qIndex = 1;
-const questionsDiv = document.getElementById('questions');
-const addBtn = document.getElementById('add-question');
+  // ---------------------------
+  // COMPLETE QUIZ BUILDER LOGIC
+  // ---------------------------
 
-function addQuestion() {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'border rounded-lg p-4';
-  wrapper.innerHTML = `
-    <div class="flex items-start justify-between">
-      <div class="w-full">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Question</label>
-        <input type="text" name="q-${qIndex}-text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" placeholder="Enter question text" />
-        <div class="mt-3">
-          <label class="text-sm mr-2">Type:</label>
-          <select name="q-${qIndex}-type" class="px-3 py-2 border rounded">
-            <option value="multiple_choice">Multiple choice</option>
-          </select>
+  let qIndex = 1;
+
+  const questionsDiv = document.getElementById('questions');
+  const emptyState = document.getElementById('emptyState');
+  const builderAlert = document.getElementById('builderAlert');
+
+  const pvTitle = document.getElementById('pvTitle');
+  const pvPass = document.getElementById('pvPass');
+  const pvTime = document.getElementById('pvTime');
+  const pvQs = document.getElementById('pvQs');
+  const pvDesc = document.getElementById('pvDesc');
+  const pvQuestions = document.getElementById('pvQuestions');
+
+  const quizTitleEl = document.getElementById('quiz_title');
+  const passEl = document.getElementById('passing_score');
+  const timeEl = document.getElementById('duration_minutes');
+  const descEl = document.getElementById('quiz_description');
+  const qCountEl = document.getElementById('qCount');
+
+  const miniPass = document.getElementById('miniPass');
+  const miniTime = document.getElementById('miniTime');
+
+  const previewToggle = document.getElementById('preview-toggle');
+  const previewPane = document.getElementById('previewPane');
+
+  function showAlert(msg) {
+    builderAlert.textContent = msg;
+    builderAlert.classList.remove('hidden');
+    setTimeout(() => builderAlert.classList.add('hidden'), 3500);
+  }
+
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[m]));
+  }
+
+  function updateCounts() {
+    const count = questionsDiv.querySelectorAll('.q-card').length;
+    qCountEl.textContent = count;
+    pvQs.textContent = count;
+    emptyState.classList.toggle('hidden', count !== 0);
+  }
+
+  function refreshPreview() {
+    pvTitle.textContent = quizTitleEl.value.trim() || '—';
+    pvPass.textContent = (passEl.value || '0') + '%';
+    pvTime.textContent = (timeEl.value || '0') + 'm';
+    pvDesc.textContent = descEl.value.trim() || '—';
+
+    if (miniPass) miniPass.textContent = passEl.value || '0';
+    if (miniTime) miniTime.textContent = timeEl.value || '0';
+
+    const cards = [...questionsDiv.querySelectorAll('.q-card')];
+    pvQuestions.innerHTML = cards.map((card, i) => {
+      const type = card.dataset.type;
+      const text = card.querySelector(`[name="q-${card.dataset.qi}-text"]`)?.value || '';
+      let subtitle = '';
+      if (type === 'multiple_choice') subtitle = 'Multiple choice';
+      if (type === 'true_false') subtitle = 'True/False';
+      if (type === 'short_answer') subtitle = 'Short answer';
+      if (type === 'numeric') subtitle = 'Numeric';
+
+      return `
+        <div class="rounded-2xl border border-slate-200 bg-white p-4">
+          <p class="text-xs text-slate-500">Q${i+1} • ${subtitle}</p>
+          <p class="mt-1 text-sm text-slate-900">${escapeHtml(text || '—')}</p>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renumber() {
+    const cards = [...questionsDiv.querySelectorAll('.q-card')];
+    cards.forEach((card, idx) => {
+      card.querySelector('.q-num').textContent = `Question ${idx + 1}`;
+    });
+    updateCounts();
+    refreshPreview();
+  }
+
+  function makeBaseCard(qi, type) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'q-card rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm';
+    wrapper.dataset.qi = qi;
+    wrapper.dataset.type = type;
+
+    const typeLabel =
+      type === 'multiple_choice' ? 'Multiple Choice' :
+      type === 'true_false' ? 'True / False' :
+      type === 'short_answer' ? 'Short Answer' :
+      'Numeric';
+
+    wrapper.innerHTML = `
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div class="min-w-0">
+          <p class="q-num text-sm font-semibold text-slate-900">Question</p>
+          <p class="mt-1 text-xs text-slate-500">${typeLabel}</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="q-up rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">↑</button>
+          <button type="button" class="q-down rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">↓</button>
+          <button type="button" class="q-remove rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100 transition">Remove</button>
         </div>
       </div>
-      <button type="button" class="ml-4 text-red-600 hover:underline" onclick="this.closest('div.border').remove()">Remove</button>
-    </div>
 
-    <div class="mt-4 space-y-2" data-choices="${qIndex}">
-      <div class="flex items-center gap-2">
-        <input type="text" name="q-${qIndex}-choice-1-text" class="w-full px-4 py-2 border rounded-lg" placeholder="Choice 1" />
-        <label class="text-sm flex items-center gap-1"><input type="checkbox" name="q-${qIndex}-choice-1-correct"/> Correct</label>
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-slate-700 mb-2">Question text</label>
+        <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+          <input type="text" name="q-${qi}-text" placeholder="Enter question text" />
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <input type="text" name="q-${qIndex}-choice-2-text" class="w-full px-4 py-2 border rounded-lg" placeholder="Choice 2" />
-        <label class="text-sm flex items-center gap-1"><input type="checkbox" name="q-${qIndex}-choice-2-correct"/> Correct</label>
+
+      <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Points</label>
+          <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+            <input type="number" min="1" name="q-${qi}-points" value="1" />
+          </div>
+          <p class="mt-2 text-xs text-slate-500">Default scoring weight.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Required</label>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+              <input type="checkbox" name="q-${qi}-required" class="accent-slate-900" checked />
+              Candidates must answer this.
+            </label>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="mt-3">
-      <button type="button" class="text-blue-600 hover:underline" onclick="addChoice(${qIndex})">Add choice</button>
-    </div>
-  `;
-  questionsDiv.appendChild(wrapper);
-  qIndex += 1;
-}
+      <div class="mt-4 q-body"></div>
+    `;
 
-function addChoice(qi) {
-  const choicesContainer = document.querySelector(`[data-choices="${qi}"]`);
-  const count = choicesContainer.querySelectorAll('input[type="text"]').length + 1;
-  const row = document.createElement('div');
-  row.className = 'flex items-center gap-2 mt-2';
-  row.innerHTML = `
-    <input type="text" name="q-${qi}-choice-${count}-text" class="w-full px-4 py-2 border rounded-lg" placeholder="Choice ${count}" />
-    <label class="text-sm flex items-center gap-1"><input type="checkbox" name="q-${qi}-choice-${count}-correct"/> Correct</label>
-  `;
-  choicesContainer.appendChild(row);
-}
+    wrapper.querySelector('.q-remove').addEventListener('click', () => {
+      wrapper.remove();
+      renumber();
+    });
 
-addBtn.addEventListener('click', addQuestion);
+    wrapper.querySelector('.q-up').addEventListener('click', () => {
+      const prev = wrapper.previousElementSibling;
+      if (prev) questionsDiv.insertBefore(wrapper, prev);
+      renumber();
+    });
+
+    wrapper.querySelector('.q-down').addEventListener('click', () => {
+      const next = wrapper.nextElementSibling;
+      if (next) questionsDiv.insertBefore(next, wrapper);
+      renumber();
+    });
+
+    wrapper.addEventListener('input', refreshPreview);
+    return wrapper;
+  }
+
+  function addChoiceRow(qi, container, idx) {
+    const row = document.createElement('div');
+    row.className = 'choice-row flex items-start gap-2';
+    row.innerHTML = `
+      <div class="flex-1 ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+        <input type="text" name="q-${qi}-choice-${idx}-text" placeholder="Choice ${idx}" />
+      </div>
+
+      <label class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        <input type="radio" name="q-${qi}-correct" value="${idx}" class="accent-slate-900" />
+        Correct
+      </label>
+
+      <button type="button" class="remove-choice rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 transition">
+        ✕
+      </button>
+    `;
+    row.querySelector('.remove-choice').addEventListener('click', () => {
+      row.remove();
+      const rows = container.querySelectorAll('.choice-row');
+      if (rows.length === 0) {
+        addChoiceRow(qi, container, 1);
+        addChoiceRow(qi, container, 2);
+      }
+      refreshPreview();
+    });
+    container.appendChild(row);
+  }
+
+  function addQuestion(type) {
+    const qi = qIndex++;
+    const card = makeBaseCard(qi, type);
+    const body = card.querySelector('.q-body');
+
+    if (type === 'multiple_choice') {
+      body.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-medium text-slate-900">Choices</p>
+              <p class="mt-1 text-xs text-slate-500">Select exactly one correct answer.</p>
+            </div>
+            <button type="button" class="add-choice rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">
+              + Add choice
+            </button>
+          </div>
+
+          <div class="mt-4 space-y-2" data-choices="${qi}"></div>
+        </div>
+      `;
+      const choicesContainer = body.querySelector(`[data-choices="${qi}"]`);
+      addChoiceRow(qi, choicesContainer, 1);
+      addChoiceRow(qi, choicesContainer, 2);
+
+      body.querySelector('.add-choice').addEventListener('click', () => {
+        const count = choicesContainer.querySelectorAll('.choice-row').length + 1;
+        addChoiceRow(qi, choicesContainer, count);
+        refreshPreview();
+      });
+
+    } else if (type === 'true_false') {
+      body.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-sm font-medium text-slate-900">Correct answer</p>
+          <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <input type="radio" name="q-${qi}-correct_tf" value="true" class="accent-slate-900" />
+              True
+            </label>
+            <label class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <input type="radio" name="q-${qi}-correct_tf" value="false" class="accent-slate-900" />
+              False
+            </label>
+          </div>
+        </div>
+      `;
+
+    } else if (type === 'short_answer') {
+      body.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-sm font-medium text-slate-900">Short answer</p>
+          <p class="mt-1 text-xs text-slate-500">Optional keywords for reviewer guidance.</p>
+
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-slate-700 mb-2">Suggested keywords (optional)</label>
+            <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+              <input type="text" name="q-${qi}-keywords" placeholder="e.g. REST, status code, authentication" />
+            </div>
+            <p class="mt-2 text-xs text-slate-500">Comma-separated.</p>
+          </div>
+        </div>
+      `;
+
+    } else if (type === 'numeric') {
+      body.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-sm font-medium text-slate-900">Numeric answer</p>
+          <p class="mt-1 text-xs text-slate-500">Exact answer with optional tolerance.</p>
+
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Correct value</label>
+              <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                <input type="number" step="any" name="q-${qi}-correct_num" placeholder="e.g. 3.14" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Tolerance (optional)</label>
+              <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                <input type="number" step="any" name="q-${qi}-tolerance" placeholder="e.g. 0.01" />
+              </div>
+              <p class="mt-2 text-xs text-slate-500">If empty, exact match required.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    questionsDiv.appendChild(card);
+    renumber();
+    showAlert('Question added.');
+  }
+
+  // Add question buttons
+  document.querySelectorAll('.add-q-btn').forEach(btn => {
+    btn.addEventListener('click', () => addQuestion(btn.dataset.type));
+  });
+
+  // Toggle preview
+  previewToggle.addEventListener('click', () => {
+    previewPane.classList.toggle('hidden');
+  });
+
+  // Meta live preview
+  [quizTitleEl, passEl, timeEl, descEl].forEach(el => el.addEventListener('input', refreshPreview));
+
+  // Validation before submit
+  document.getElementById('quiz-form').addEventListener('submit', (e) => {
+    const title = quizTitleEl.value.trim();
+    const cards = [...questionsDiv.querySelectorAll('.q-card')];
+
+    if (!title) {
+      e.preventDefault();
+      showAlert('Please enter a quiz title.');
+      quizTitleEl.focus();
+      return;
+    }
+    if (cards.length === 0) {
+      e.preventDefault();
+      showAlert('Add at least 1 question (or click Skip).');
+      return;
+    }
+
+    for (const card of cards) {
+      const qi = card.dataset.qi;
+      const type = card.dataset.type;
+      const qText = card.querySelector(`[name="q-${qi}-text"]`)?.value.trim();
+
+      if (!qText) {
+        e.preventDefault();
+        showAlert('Each question must have text.');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.querySelector(`[name="q-${qi}-text"]`).focus();
+        return;
+      }
+
+      const points = parseInt(card.querySelector(`[name="q-${qi}-points"]`)?.value || '1', 10);
+      if (!points || points < 1) {
+        e.preventDefault();
+        showAlert('Points must be at least 1.');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      if (type === 'multiple_choice') {
+        const choices = [...card.querySelectorAll(`[name^="q-${qi}-choice-"][name$="-text"]`)];
+        const filled = choices.map(c => c.value.trim()).filter(Boolean);
+
+        if (filled.length < 2) {
+          e.preventDefault();
+          showAlert('Multiple choice needs at least 2 filled choices.');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        const correct = card.querySelector(`input[type="radio"][name="q-${qi}-correct"]:checked`);
+        if (!correct) {
+          e.preventDefault();
+          showAlert('Select one correct answer for each multiple choice question.');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+
+      if (type === 'true_false') {
+        const correct = card.querySelector(`input[type="radio"][name="q-${qi}-correct_tf"]:checked`);
+        if (!correct) {
+          e.preventDefault();
+          showAlert('Select True or False as the correct answer.');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+
+      if (type === 'numeric') {
+        const v = card.querySelector(`[name="q-${qi}-correct_num"]`)?.value;
+        if (v === '' || v === null || typeof v === 'undefined') {
+          e.preventDefault();
+          showAlert('Numeric questions need a correct value.');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+    }
+  });
+
+  // Init
+  updateCounts();
+  refreshPreview();
 </script>
+
 {% endblock %}

@@ -1,671 +1,411 @@
-{% extends 'base-admin.html' %} 
-{% load static %} 
+{% extends 'base-admin.html' %}
+{% load static %}
+
 {% block content_admin %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Courses</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(to bottom, #d4e7f1 0%, #b8d8e8 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+<div class="min-h-screen bg-slate-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    <!-- Hero / Header -->
+    <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+      <div class="pointer-events-none absolute inset-0">
+        <div class="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl"></div>
+        <div class="absolute -bottom-28 -left-24 h-80 w-80 rounded-full bg-indigo-200/35 blur-3xl"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.10),transparent_55%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,0.10),transparent_55%)]"></div>
+      </div>
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
+      <div class="relative px-5 sm:px-7 lg:px-8 py-6 sm:py-7">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0">
+            <div class="flex items-center gap-3">
+              <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md">
+                <span class="text-white text-lg">📚</span>
+              </div>
+              <div class="min-w-0">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 truncate">
+                  Online Courses
+                </h1>
+                <p class="mt-1 text-sm text-slate-600">
+                  Manage your course catalog — search, filter, edit, and publish.
+                </p>
+              </div>
+            </div>
 
-        h1 {
-            font-size: 2rem;
-            color: #1a1a1a;
-            margin-bottom: 10px;
-        }
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700">
+                <span class="text-slate-500">Total:</span> {{ courses|length }}
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700">
+                <span class="text-slate-500">Categories:</span> {{ categories|length }}
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                Admin Mode
+              </span>
+            </div>
+          </div>
 
-        .subtitle {
-            color: #555;
-            font-size: 0.95rem;
-            max-width: 500px;
-            margin: 0 auto 30px;
-        }
-
-        .tab-button {
-            background: transparent;
-            border: none;
-            color: #555;
-            font-size: 1rem;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            margin-bottom: 20px;
-        }
-
-        .tab-button.active {
-            border-bottom-color: #1a1a1a;
-            color: #1a1a1a;
-        }
-
-        .upload-btn {
-            background: #a8d5e2;
-            border: 2px solid #333;
-            border-radius: 25px;
-            padding: 12px 35px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 0 #333;
-            transition: all 0.2s;
-        }
-
-        .upload-btn:hover {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #333;
-        }
-
-        .search-section {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .search-box {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            background: #b8d8e8;
-            border-radius: 10px;
-            padding: 12px 20px;
-        }
-
-        .search-box i {
-            color: #555;
-            margin-right: 10px;
-        }
-
-        .search-box input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            outline: none;
-            color: #555;
-            font-size: 0.9rem;
-        }
-
-        .search-box input::placeholder {
-            color: #779;
-        }
-
-        .search-btn {
-            background: #4a90e2;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 30px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .filters {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 40px;
-        }
-
-        .filter-group {
-            display: flex;
-            gap: 20px;
-        }
-
-        .filter-select {
-            background: transparent;
-            border: none;
-            color: #333;
-            font-size: 0.9rem;
-            cursor: pointer;
-            padding: 5px 0;
-        }
-
-        .filter-btn {
-            background: #b8d8e8;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .courses-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .course-card {
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: 20px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            position: relative;
-        }
-
-        .course-image {
-            width: 100%;
-            height: 150px;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .course-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .menu-icon {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: 45px;
-            right: 10px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: none;
-            z-index: 100;
-            min-width: 120px;
-        }
-
-        .dropdown-menu.active {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            color: #333;
-            transition: background 0.2s;
-        }
-
-        .dropdown-item:first-child {
-            border-radius: 8px 8px 0 0;
-        }
-
-        .dropdown-item:last-child {
-            border-radius: 0 0 8px 8px;
-        }
-
-        .dropdown-item:hover {
-            background: #f5f5f5;
-        }
-
-        .dropdown-item.edit {
-            color: #4a90e2;
-        }
-
-        .dropdown-item.delete {
-            color: #e74c3c;
-        }
-
-        .course-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .badge-intermediate {
-            background: #5fa8d3;
-            color: white;
-        }
-
-        .badge-beginner {
-            background: #a8d5e2;
-            color: #333;
-        }
-
-        .badge-advance, .badge-advanced {
-            background: #7fb3d5;
-            color: white;
-        }
-
-        .course-category {
-            font-size: 0.8rem;
-            color: #666;
-            float: right;
-            margin-top: 5px;
-        }
-
-        .course-title {
-            font-size: 1rem;
-            color: #1a1a1a;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .instructor {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .instructor-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #7fb3d5;
-        }
-
-        .instructor-name {
-            font-size: 0.85rem;
-            color: #555;
-        }
-
-        .course-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
-            color: #555;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .price-tag {
-            background: #5fa8d3;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .cta-section {
-            background: linear-gradient(135deg, #7fb3d5 0%, #5f9ec9 100%);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .cta-section h2 {
-            color: white;
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-
-        .cta-section p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .notify-btn {
-            background: white;
-            color: #5f9ec9;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 35px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        footer {
-            background: linear-gradient(135deg, #2c5a8f 0%, #1e4070 100%);
-            border-radius: 20px;
-            padding: 40px;
-            color: white;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px;
-            margin-bottom: 30px;
-        }
-
-        .footer-section h3 {
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-        }
-
-        .footer-section p {
-            font-size: 0.85rem;
-            line-height: 1.6;
-            opacity: 0.9;
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 8px;
-        }
-
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
-
-        .help-center {
-            margin-top: 15px;
-            font-size: 0.85rem;
-            opacity: 0.9;
-        }
-
-        .social-icons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .social-icon {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .social-icon:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        @media (max-width: 768px) {
-            .courses-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .search-section {
-                flex-direction: column;
-            }
-            
-            .filters {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Online Courses</h1>
-            <p class="subtitle">Learn new skills and advance your career with our comprehensive course catalog taught by industry experts</p>
-            <button class="tab-button active">All Courses</button>
-            <br>
-            <a href="{% url 'app:create_course' %}">
-                <button class="upload-btn"> Upload Course</button>
+          <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <a href="{% url 'app:create_course' %}"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-blue-200">
+              <span>＋</span>
+              <span>Upload Course</span>
             </a>
-        </header>
 
-        <div class="search-section">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search courses, instructors or skills">
-            </div>
-            <button class="search-btn">
-                <i class="fas fa-search"></i> Search
+            <button id="exportBtn"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-extrabold text-slate-800 shadow-sm hover:shadow-md hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <span id="exportIcon">📥</span>
+              <span id="exportText">Export</span>
             </button>
+          </div>
         </div>
 
-        <div class="filters">
-            <div class="filter-group">
-                <select class="filter-select">
-                    <option>All categories</option>
-                    {% for category in categories %}
-                    <option value="{{ category.id }}">{{ category.name }}</option>
-                    {% endfor %}
-                </select>
-                <select class="filter-select">
-                    <option>All level</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                </select>
-                <select class="filter-select">
-                    <option>All prices</option>
-                    <option value="free">Free</option>
-                    <option value="paid">Paid</option>
-                </select>
+        <!-- Search + Filters -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-3">
+          <!-- Search -->
+          <div class="lg:col-span-6">
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+              <input id="searchInput" type="text"
+                placeholder="Search by title, instructor, or category…"
+                class="w-full rounded-2xl border border-slate-200 bg-white/90 px-10 py-3 text-sm font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100" />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">Ctrl K</span>
             </div>
-            <button class="filter-btn">
-                <i class="fas fa-sliders-h"></i> Filter
-            </button>
+          </div>
+
+          <!-- Category -->
+          <div class="lg:col-span-2">
+            <select id="categorySelect"
+              class="w-full rounded-2xl border border-slate-200 bg-white/90 px-3 py-3 text-sm font-extrabold text-slate-800 shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <option value="all">All categories</option>
+              {% for category in categories %}
+                <option value="{{ category.name|lower }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Level -->
+          <div class="lg:col-span-2">
+            <select id="levelSelect"
+              class="w-full rounded-2xl border border-slate-200 bg-white/90 px-3 py-3 text-sm font-extrabold text-slate-800 shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <option value="all">All levels</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+
+          <!-- Price -->
+          <div class="lg:col-span-2">
+            <select id="priceSelect"
+              class="w-full rounded-2xl border border-slate-200 bg-white/90 px-3 py-3 text-sm font-extrabold text-slate-800 shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <option value="all">All prices</option>
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
         </div>
 
-        <div class="courses-grid" id="coursesGrid">
-            {% for course in courses %}
-            <div class="course-card" data-course-id="{{ course.id }}">
-                <div class="course-image">
-                    {% if course.thumbnail %}
-                        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
-                    {% else %}
-                        <div style="width:100%; height:100%; background: linear-gradient(135deg, #5fa8d3 0%, #3d8ab8 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
-                            {{ course.title|slice:":3"|upper }}
-                        </div>
-                    {% endif %}
-                    <div class="menu-icon" onclick="toggleDropdown(event, {{ course.id }})">☰</div>
-                    <div class="dropdown-menu" id="dropdown-{{ course.id }}">
-                        <div class="dropdown-item edit" onclick="editCourse({{ course.id }})">
-                            <i class="fas fa-edit"></i> Edit
-                        </div>
-                        <div class="dropdown-item delete" onclick="deleteCourse({{ course.id }})">
-                            <i class="fas fa-trash"></i> Delete
-                        </div>
-                    </div>
-                </div>
-                <span class="course-badge badge-{{ course.difficulty|lower }}">{{ course.get_difficulty_display }}</span>
-                <span class="course-category">{{ course.category.name }}</span>
-                <h3 class="course-title">{{ course.title }}</h3>
-                <div class="instructor">
-                    <div class="instructor-avatar"></div>
-                    <span class="instructor-name">{{ course.instructor }}</span>
-                </div>
-                <div class="course-stats">
-                    <span class="stat"><i class="fas fa-star" style="color: gold;"></i> {{ course.rating }} ({{ course.rating_count }})</span>
-                    <span class="stat"><i class="fas fa-users"></i> {{ course.students_count }} Students</span>
-                </div>
-                <div class="course-stats">
-                    <span class="stat"><i class="fas fa-clock"></i> {{ course.duration_weeks }} Weeks</span>
-                    <span class="stat"><i class="fas fa-signal"></i> {{ course.lessons_count }} class</span>
-                </div>
-                <span class="price-tag"><i class="fas fa-tag"></i> {{ course.price }} Tk</span>
-            </div>
-            {% empty %}
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #555;">
-                No courses available.
-            </div>
-            {% endfor %}
+        <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <p class="text-xs text-slate-500">
+            Tip: search is instant. Filters work together.
+          </p>
+          <p class="text-xs font-extrabold text-slate-700" id="resultCount"></p>
         </div>
-
-        <div class="cta-section">
-            <h2>Never Miss Your Dream Job</h2>
-            <p>Set up job alerts and get notified when new positions matching your criteria are posted.</p>
-            <button class="notify-btn">Get Notified</button>
-        </div>
-
-        <footer>
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>SkillNet</h3>
-                    <p>The leading AI-powered job portal for coders, talents professionals with top companies career forward and empowering professional growth</p>
-                    <div class="social-icons">
-                        <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
-                        <div class="social-icon"><i class="fab fa-instagram"></i></div>
-                        <div class="social-icon"><i class="fab fa-linkedin-in"></i></div>
-                        <div class="social-icon"><i class="fab fa-twitter"></i></div>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h3>Quick Links</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">Browse Jobs</a></li>
-                        <li><a href="#">Online Courses</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">About Us</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Features</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">Post a Job</a></li>
-                        <li><a href="#">Post a Course</a></li>
-                        <li><a href="#">Talent Search</a></li>
-                        <li><a href="#">Credit System</a></li>
-                        <li><a href="#">Employer Resources</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Contact & Support</h3>
-                    <div class="contact-item">
-                        <i class="fas fa-envelope"></i>
-                        <span>SkillNet@gmail.com</span>
-                    </div>
-                    <div class="contact-item">
-                        <i class="fas fa-phone"></i>
-                        <span>01701234567</span>
-                    </div>
-                    <div class="contact-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>UIU,Dhaka, Bangladesh</span>
-                    </div>
-                    <div class="help-center">
-                        <strong>Help center</strong><br>
-                        <a href="#" style="color: white;">Contact Support</a>
-                    </div>
-                </div>
-            </div>
-        </footer>
+      </div>
     </div>
 
-    <script>
-        // Toggle dropdown menu
-        function toggleDropdown(event, courseId) {
-            event.stopPropagation();
-            
-            // Close all other dropdowns
-            document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                if (menu.id !== dropdown-${courseId}) {
-                    menu.classList.remove('active');
-                }
-            });
-            
-            // Toggle current dropdown
-            const dropdown = document.getElementById(dropdown-${courseId});
-            dropdown.classList.toggle('active');
-        }
+    <!-- Course Grid -->
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="coursesGrid">
+      {% for course in courses %}
+      <article
+        class="course-card group relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition"
+        data-title="{{ course.title|default:''|lower }}"
+        data-instructor="{{ course.instructor|default:''|lower }}"
+        data-category="{{ course.category.name|default:''|lower }}"
+        data-level="{{ course.difficulty|default:''|lower }}"
+        data-price="{% if course.price|default:0|floatformat:0 == '0' %}free{% else %}paid{% endif %}"
+        data-course-id="{{ course.id }}"
+      >
+        <!-- Thumbnail -->
+        <div class="relative h-44 w-full overflow-hidden">
+          {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}"
+              class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+          {% else %}
+            <div class="h-full w-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+              <span class="text-white text-3xl font-black tracking-tight">
+                {{ course.title|slice:":3"|upper }}
+              </span>
+            </div>
+          {% endif %}
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.menu-icon')) {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.remove('active');
-                });
-            }
-        });
+          <!-- top gradient -->
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/35 via-slate-950/0 to-slate-950/0"></div>
 
-        // Edit course function
-        function editCourse(courseId) {
-            window.location.href = /edit_course/${courseId}/;
-        }
+          <!-- Dropdown trigger -->
+          <button type="button"
+            class="dropdown-btn absolute top-3 right-3 inline-flex items-center justify-center h-10 w-10 rounded-2xl bg-white/90 border border-slate-200 shadow-sm hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+            aria-label="Course menu"
+            data-dropdown-btn="{{ course.id }}">
+            ⋯
+          </button>
 
-        // Delete course function
-        function deleteCourse(courseId) {
-            if (confirm('Are you sure you want to delete this course?')) {
-                fetch(/delete_course/${courseId}/, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        alert('Failed to delete course.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the course.');
-                });
-            }
+          <!-- Dropdown menu -->
+          <div
+            class="dropdown-menu hidden absolute top-14 right-3 z-20 w-40 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg"
+            id="dropdown-{{ course.id }}"
+          >
+            <button type="button"
+              class="w-full px-4 py-3 text-left text-sm font-extrabold text-blue-700 hover:bg-blue-50 transition flex items-center gap-2"
+              onclick="editCourse({{ course.id }})">
+              ✏️ <span>Edit</span>
+            </button>
+            <button type="button"
+              class="w-full px-4 py-3 text-left text-sm font-extrabold text-rose-700 hover:bg-rose-50 transition flex items-center gap-2"
+              onclick="deleteCourse({{ course.id }})">
+              🗑️ <span>Delete</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5">
+          <div class="flex items-center justify-between gap-2">
+            {% with level=course.difficulty|default:''|lower %}
+              {% if level == 'beginner' %}
+                <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-extrabold text-emerald-700">
+                  Beginner
+                </span>
+              {% elif level == 'intermediate' %}
+                <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-extrabold text-amber-800">
+                  Intermediate
+                </span>
+              {% else %}
+                <span class="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
+                  Advanced
+                </span>
+              {% endif %}
+            {% endwith %}
+
+            <span class="text-xs font-bold text-slate-500 truncate">
+              {{ course.category.name }}
+            </span>
+          </div>
+
+          <h3 class="mt-3 text-base font-extrabold tracking-tight text-slate-900 line-clamp-2">
+            {{ course.title }}
+          </h3>
+
+          <div class="mt-3 flex items-center gap-3">
+            <div class="h-9 w-9 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center font-black text-slate-700">
+              {{ course.instructor|default:"I"|slice:":1"|upper }}
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-extrabold text-slate-800 truncate">{{ course.instructor }}</p>
+              <p class="text-xs text-slate-500">Instructor</p>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p class="text-[11px] font-bold text-slate-500">Rating</p>
+              <p class="mt-1 font-extrabold text-slate-900">⭐ {{ course.rating }} <span class="text-slate-500 font-bold">({{ course.rating_count }})</span></p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p class="text-[11px] font-bold text-slate-500">Students</p>
+              <p class="mt-1 font-extrabold text-slate-900">👥 {{ course.students_count }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p class="text-[11px] font-bold text-slate-500">Duration</p>
+              <p class="mt-1 font-extrabold text-slate-900">⏱ {{ course.duration_weeks }} weeks</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p class="text-[11px] font-bold text-slate-500">Lessons</p>
+              <p class="mt-1 font-extrabold text-slate-900">📌 {{ course.lessons_count }} classes</p>
+            </div>
+          </div>
+
+          <div class="mt-5 flex items-center justify-between gap-3">
+            <span class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2 text-sm font-extrabold text-white shadow-sm">
+              🏷️ {{ course.price }} Tk
+            </span>
+
+            <a href="#"
+              class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              View
+            </a>
+          </div>
+        </div>
+      </article>
+      {% empty %}
+      <div class="col-span-full">
+        <div class="rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-sm">
+          <div class="text-4xl">📚</div>
+          <h3 class="mt-4 text-lg font-extrabold text-slate-900">No courses available</h3>
+          <p class="mt-1 text-sm text-slate-600">Create your first course to start building the catalog.</p>
+          <a href="{% url 'app:create_course' %}"
+            class="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-blue-200">
+            ＋ Upload Course
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- System OK badge only (footer removed) -->
+    <div class="mt-6 flex justify-end">
+      <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700 shadow-sm">
+        <span class="h-2 w-2 rounded-full bg-emerald-500"></span> System status: OK
+      </span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // --- Export micro-interaction (UI only) ---
+  (function () {
+    const btn = document.getElementById('exportBtn');
+    if (!btn) return;
+    const icon = document.getElementById('exportIcon');
+    const text = document.getElementById('exportText');
+
+    btn.addEventListener('click', () => {
+      icon.textContent = '✅';
+      text.textContent = 'Exported!';
+      btn.classList.add('opacity-90');
+      setTimeout(() => {
+        icon.textContent = '📥';
+        text.textContent = 'Export';
+        btn.classList.remove('opacity-90');
+      }, 1600);
+    });
+  })();
+
+  // --- Dropdown menu handling ---
+  (function () {
+    function closeAll() {
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden'));
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.dropdown-btn');
+      if (!btn) {
+        closeAll();
+        return;
+      }
+      e.stopPropagation();
+      const id = btn.getAttribute('data-dropdown-btn');
+      const menu = document.getElementById(`dropdown-${id}`);
+      if (!menu) return;
+
+      document.querySelectorAll('.dropdown-menu').forEach(m => {
+        if (m !== menu) m.classList.add('hidden');
+      });
+      menu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAll();
+    });
+  })();
+
+  // --- Search + filter ---
+  (function () {
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const levelSelect = document.getElementById('levelSelect');
+    const priceSelect = document.getElementById('priceSelect');
+    const grid = document.getElementById('coursesGrid');
+    const countEl = document.getElementById('resultCount');
+    if (!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll('.course-card'));
+
+    function apply() {
+      const q = (searchInput?.value || '').trim().toLowerCase();
+      const cat = (categorySelect?.value || 'all').toLowerCase();
+      const level = (levelSelect?.value || 'all').toLowerCase();
+      const price = (priceSelect?.value || 'all').toLowerCase();
+
+      let visible = 0;
+
+      cards.forEach(card => {
+        const title = card.dataset.title || '';
+        const instructor = card.dataset.instructor || '';
+        const category = card.dataset.category || '';
+        const lvl = card.dataset.level || '';
+        const pr = card.dataset.price || '';
+
+        const matchesQuery = !q || title.includes(q) || instructor.includes(q) || category.includes(q);
+        const matchesCat = cat === 'all' || category === cat;
+        const matchesLevel = level === 'all' || lvl === level;
+        const matchesPrice = price === 'all' || pr === price;
+
+        const show = matchesQuery && matchesCat && matchesLevel && matchesPrice;
+        card.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+
+      if (countEl) countEl.textContent = `${visible} result${visible === 1 ? '' : 's'}`;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInput?.focus();
+      }
+    });
+
+    searchInput?.addEventListener('input', apply);
+    categorySelect?.addEventListener('change', apply);
+    levelSelect?.addEventListener('change', apply);
+    priceSelect?.addEventListener('change', apply);
+
+    apply();
+  })();
+
+  // --- Edit / Delete hooks ---
+  function editCourse(courseId) {
+    window.location.href = `/edit_course/${courseId}/`;
+  }
+
+  function getCSRFToken() {
+    const name = 'csrftoken';
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+  }
+
+  function deleteCourse(courseId) {
+    if (!confirm('Are you sure you want to delete this course?')) return;
+
+    fetch(`/delete_course/${courseId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id: courseId })
+    })
+    .then(res => {
+      if (res.ok) {
+        const card = document.querySelector(`[data-course-id="${courseId}"]`);
+        if (card) card.remove();
+
+        const countEl = document.getElementById('resultCount');
+        if (countEl) {
+          const current = document.querySelectorAll('.course-card:not(.hidden)').length;
+          countEl.textContent = `${current} result${current === 1 ? '' : 's'}`;
         }
-    </script>
-</body>
-</html>
+      } else {
+        alert('Failed to delete course.');
+      }
+    })
+    .catch(() => alert('An error occurred while deleting the course.'));
+  }
+</script>
+
 {% endblock %}
