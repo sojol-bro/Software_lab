@@ -18,27 +18,36 @@
       {% csrf_token %}
 
       <!-- Username -->
-      <div class="relative">
+      <div>
+        <label for="username" class="block mb-1 text-sm font-medium text-gray-700">
+          Username
+        </label>
         <input id="username" name="username" type="text" required
-               class="peer w-full px-3 pt-5 pb-2 border border-gray-300 rounded-2xl shadow-sm placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all"
-               placeholder="Username" value="{{ form.username.value|default_if_none:'' }}">
-        <label for="username" class="absolute left-3 top-2 text-gray-400 text-sm transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-gray-700 peer-focus:text-sm">Username</label>
+               class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all"
+               placeholder="Enter username"
+               value="{{ form.username.value|default_if_none:'' }}">
         <p id="usernameError" class="mt-1 text-sm text-red-600 transition-opacity opacity-0"></p>
       </div>
 
       <!-- Email -->
-      <div class="relative">
+      <div>
+        <label for="email" class="block mb-1 text-sm font-medium text-gray-700">
+          Email Address
+        </label>
         <input id="email" name="email" type="email" required
-               class="peer w-full px-3 pt-5 pb-2 border border-gray-300 rounded-2xl shadow-sm placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all"
-               placeholder="Email" value="{{ form.email.value|default_if_none:'' }}">
-        <label for="email" class="absolute left-3 top-2 text-gray-400 text-sm transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-gray-700 peer-focus:text-sm">Email Address</label>
+               class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all"
+               placeholder="Enter email address"
+               value="{{ form.email.value|default_if_none:'' }}">
         <p id="emailError" class="mt-1 text-sm text-red-600 transition-opacity opacity-0"></p>
       </div>
 
       <!-- Account Type -->
-      <div class="relative">
+      <div>
+        <label for="user_type" class="block mb-1 text-sm font-medium text-gray-700">
+          Account Type
+        </label>
         <select id="user_type" name="user_type" required
-                class="w-full px-3 py-2 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all">
+                class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all">
           <option value="">Select Account Type</option>
           <option value="user" {% if form.user_type.value == 'user' %}selected{% endif %}>Regular User</option>
           <option value="employee" {% if form.user_type.value == 'employee' %}selected{% endif %}>Employee</option>
@@ -47,14 +56,15 @@
         <p id="userTypeError" class="mt-1 text-sm text-red-600 transition-opacity opacity-0"></p>
       </div>
 
-
-<!-- Password -->
+      <!-- Password -->
       <div class="relative">
+        <label for="password" class="block mb-1 text-sm font-medium text-gray-700">
+          Password
+        </label>
         <input id="password" name="password" type="password" required
-               class="peer w-full px-3 pt-5 pb-2 border border-gray-300 rounded-2xl shadow-sm placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all"
-               placeholder="Password">
-        <label for="password" class="absolute left-3 top-2 text-gray-400 text-sm transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-gray-700 peer-focus:text-sm">Password</label>
-        <button type="button" class="absolute right-3 top-3 text-gray-500 font-medium text-sm toggle-password" data-target="password">
+               class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all"
+               placeholder="Enter password">
+        <button type="button" class="absolute right-3 top-10 text-gray-500 font-medium text-sm toggle-password" data-target="password">
           <i class="fas fa-eye"></i>
         </button>
         <p id="passwordError" class="mt-1 text-sm text-red-600 transition-opacity opacity-0"></p>
@@ -62,19 +72,21 @@
 
       <!-- Confirm Password -->
       <div class="relative">
+        <label for="confirm_password" class="block mb-1 text-sm font-medium text-gray-700">
+          Confirm Password
+        </label>
         <input id="confirm_password" name="confirm_password" type="password" required
-               class="peer w-full px-3 pt-5 pb-2 border border-gray-300 rounded-2xl shadow-sm placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all"
-               placeholder="Confirm Password">
-        <label for="confirm_password" class="absolute left-3 top-2 text-gray-400 text-sm transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-gray-700 peer-focus:text-sm">Confirm Password</label>
-        <button type="button" class="absolute right-3 top-3 text-gray-500 font-medium text-sm toggle-password" data-target="confirm_password">
+               class="w-full px-4 py-3 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 sm:text-sm transition-all"
+               placeholder="Re-enter password">
+        <button type="button" class="absolute right-3 top-10 text-gray-500 font-medium text-sm toggle-password" data-target="confirm_password">
           <i class="fas fa-eye"></i>
         </button>
         <p id="confirmPasswordError" class="mt-1 text-sm text-red-600 transition-opacity opacity-0"></p>
       </div>
 
-      <!-- Terms & Conditions -->
+      <!-- Terms -->
       <div class="flex items-center">
-        <input id="terms" name="terms" type="checkbox" required 
+        <input id="terms" name="terms" type="checkbox" required
                class="h-4 w-4 text-blue-600 focus:ring-blue-400 border-gray-300 rounded transition-all">
         <label for="terms" class="ml-2 text-sm text-gray-700">
           I agree to the <a href="#" class="text-blue-600 hover:text-blue-500 font-medium">Terms and Conditions</a>
@@ -82,17 +94,17 @@
         <p id="termsError" class="mt-1 text-sm text-red-600 transition-opacity opacity-0"></p>
       </div>
 
-      <!-- Submit Button -->
+      <!-- Submit -->
       <div>
-        <button type="submit" class="w-full flex justify-center py-2 px-4 rounded-2xl shadow-lg text-white font-semibold text-sm bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400">
+        <button type="submit"
+                class="w-full flex justify-center py-2 px-4 rounded-2xl shadow-lg text-white font-semibold text-sm bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400">
           Create Account
         </button>
       </div>
     </form>
 
-    <!-- Already have account -->
     <p class="mt-6 text-center text-sm text-gray-600">
-      Already have an account? 
+      Already have an account?
       <a href="{% url 'login' %}" class="font-medium text-blue-600 hover:text-blue-500">Sign in</a>
     </p>
 
@@ -108,73 +120,64 @@
       </div>
     </div>
 
-
-<!-- Social Signups -->
+    <!-- Social -->
     <div class="mt-6 grid grid-cols-3 gap-3">
-      <div>
-        <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-2xl shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-blue-50 transition-all transform hover:scale-105">
-          <i class="fab fa-facebook-f text-blue-600"></i>
-        </a>
-      </div>
-      <div>
-        <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-2xl shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-red-50 transition-all transform hover:scale-105">
-          <i class="fab fa-google text-red-600"></i>
-        </a>
-      </div>
-      <div>
-        <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-2xl shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-blue-50 transition-all transform hover:scale-105">
-          <i class="fab fa-linkedin-in text-blue-500"></i>
-        </a>
-      </div>
+      <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-2xl shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-blue-50 transition-all transform hover:scale-105">
+        <i class="fab fa-facebook-f text-blue-600"></i>
+      </a>
+      <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-2xl shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-red-50 transition-all transform hover:scale-105">
+        <i class="fab fa-google text-red-600"></i>
+      </a>
+      <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-2xl shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-blue-50 transition-all transform hover:scale-105">
+        <i class="fab fa-linkedin-in text-blue-500"></i>
+      </a>
     </div>
   </div>
 </div>
 
 <script>
-  // Password toggle
   document.querySelectorAll('.toggle-password').forEach(btn => {
     btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-target');
-      const input = document.getElementById(targetId);
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-      } else {
-        input.type = 'password';
-        btn.innerHTML = '<i class="fas fa-eye"></i>';
-      }
+      const input = document.getElementById(btn.dataset.target);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      btn.innerHTML = input.type === 'password'
+        ? '<i class="fas fa-eye"></i>'
+        : '<i class="fas fa-eye-slash"></i>';
     });
   });
 
-  // Inline validation
   document.getElementById('signupForm').addEventListener('submit', function(e) {
     let valid = true;
-    ['username','email','userType','password','confirmPassword','terms'].forEach(id=>{
-      const el = document.getElementById(id+'Error');
-      if(el){ el.textContent=''; el.style.opacity='0'; }
-    });
 
-    const username = document.getElementById('username').value.trim();
-    if(!username){ document.getElementById('usernameError').textContent='Username is required'; document.getElementById('usernameError').style.opacity='1'; valid=false; }
+    const clear = id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = ''; el.style.opacity = '0'; }
+    };
+
+    ['usernameError','emailError','userTypeError','passwordError','confirmPasswordError','termsError'].forEach(clear);
+
+    const username = usernameEl = document.getElementById('username').value.trim();
+    if (!username) { usernameError.textContent = 'Username is required'; usernameError.style.opacity = '1'; valid = false; }
 
     const email = document.getElementById('email').value.trim();
-    if(!email){ document.getElementById('emailError').textContent='Email is required'; document.getElementById('emailError').style.opacity='1'; valid=false; }
-    else if(!/^\S+@\S+\.\S+$/.test(email)){ document.getElementById('emailError').textContent='Enter a valid email'; document.getElementById('emailError').style.opacity='1'; valid=false; }
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      emailError.textContent = 'Enter a valid email'; emailError.style.opacity = '1'; valid = false;
+    }
 
     const userType = document.getElementById('user_type').value;
-    if(!userType){ document.getElementById('userTypeError').textContent='Select account type'; document.getElementById('userTypeError').style.opacity='1'; valid=false; }
+    if (!userType) { userTypeError.textContent = 'Select account type'; userTypeError.style.opacity = '1'; valid = false; }
 
     const password = document.getElementById('password').value;
-    if(!password){ document.getElementById('passwordError').textContent='Password is required'; document.getElementById('passwordError').style.opacity='1'; valid=false; }
-    else if(password.length<6){ document.getElementById('passwordError').textContent='Password must be at least 6 characters'; document.getElementById('passwordError').style.opacity='1'; valid=false; }
+    if (password.length < 6) { passwordError.textContent = 'Password must be at least 6 characters'; passwordError.style.opacity = '1'; valid = false; }
 
     const confirmPassword = document.getElementById('confirm_password').value;
-    if(!confirmPassword){ document.getElementById('confirmPasswordError').textContent='Please confirm your password'; document.getElementById('confirmPasswordError').style.opacity='1'; valid=false; }
-    else if(confirmPassword!==password){ document.getElementById('confirmPasswordError').textContent='Passwords do not match'; document.getElementById('confirmPasswordError').style.opacity='1'; valid=false; }
+    if (confirmPassword !== password) { confirmPasswordError.textContent = 'Passwords do not match'; confirmPasswordError.style.opacity = '1'; valid = false; }
 
-    if(!document.getElementById('terms').checked){ document.getElementById('termsError').textContent='You must agree to the terms'; document.getElementById('termsError').style.opacity='1'; valid=false; }
+    if (!document.getElementById('terms').checked) {
+      termsError.textContent = 'You must agree to the terms'; termsError.style.opacity = '1'; valid = false;
+    }
 
-    if(!valid) e.preventDefault();
+    if (!valid) e.preventDefault();
   });
 </script>
 {% endblock %}

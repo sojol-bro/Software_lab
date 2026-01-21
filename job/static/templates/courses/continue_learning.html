@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="min-h-screen bg-slate-50 py-8">
+  <div class="container mx-auto px-4 max-w-6xl">
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 mb-6">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 class="text-3xl font-extrabold text-slate-900">Continue Learning</h1>
+          <p class="text-slate-600 mt-2">
+            <span class="font-semibold text-slate-900">{{ course.title }}</span>
+            • {{ progress_percentage }}% complete
+          </p>
+        </div>
+
+        <a href="{% url 'app:course_detail' course.id %}"
+           class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition font-semibold text-slate-800">
+          ← Back to Course
+        </a>
+      </div>
+
+      <div class="mt-5">
+        <div class="flex items-center justify-between text-xs text-slate-600 mb-2">
+          <span class="font-semibold">Progress</span>
+          <span class="font-semibold">{{ enrollment.get_completed_lessons_count }}/{{ course.lessons.count }}</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+          <div class="h-2.5 rounded-full bg-blue-600" style="width: {{ progress_percentage }}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-6">
+      <!-- LEFT: Next step card -->
+      <div class="lg:col-span-5">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-extrabold text-slate-900">Your Next Step</h2>
+          <p class="text-slate-600 mt-2">Continue from where you left off.</p>
+
+          {% if next_lesson %}
+            <div class="mt-5 rounded-2xl border border-slate-200 p-5 bg-slate-50">
+              <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Next Lesson</p>
+              <h3 class="text-lg font-extrabold text-slate-900 mt-1">{{ next_lesson.title }}</h3>
+              <p class="text-sm text-slate-600 mt-2">
+                <i class="fas fa-clock mr-1"></i>{{ next_lesson.duration_minutes }} minutes
+              </p>
+
+              <a href="{% url 'app:learn_lesson' course.id next_lesson.id %}"
+                 class="mt-5 inline-flex w-full justify-center px-5 py-3 rounded-xl bg-blue-600 text-white font-extrabold hover:bg-blue-700 transition shadow">
+                Start Lesson →
+              </a>
+            </div>
+          {% else %}
+            <div class="mt-5 rounded-2xl border border-emerald-200 p-5 bg-emerald-50">
+              <h3 class="text-lg font-extrabold text-emerald-900">You completed everything 🎉</h3>
+              <p class="text-emerald-800 mt-2">Go back to the course page for certificate / review.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- RIGHT: Curriculum list -->
+      <div class="lg:col-span-7">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-extrabold text-slate-900">Curriculum</h2>
+          <p class="text-slate-600 mt-2">Pick any lesson anytime.</p>
+
+          <div class="mt-5 space-y-3">
+            {% for item in lessons_with_completion %}
+            <div class="rounded-2xl border border-slate-200 p-4 flex items-center justify-between gap-4">
+              <div class="flex items-start gap-3 min-w-0">
+                {% if item.completion and item.completion.completed %}
+                  <span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <i class="fas fa-check"></i>
+                  </span>
+                {% else %}
+                  <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
+                    <i class="far fa-circle"></i>
+                  </span>
+                {% endif %}
+
+                <div class="min-w-0">
+                  <p class="font-extrabold text-slate-900 truncate">{{ item.lesson.title }}</p>
+                  <p class="text-sm text-slate-500 mt-1">{{ item.lesson.duration_minutes }} minutes</p>
+                </div>
+              </div>
+
+              <a href="{% url 'app:learn_lesson' course.id item.lesson.id %}"
+                 class="shrink-0 px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition">
+                Open
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

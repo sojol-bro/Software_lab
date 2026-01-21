@@ -54,11 +54,18 @@
       <a href="{% url 'app:edit_profile' %}" class="btn-primary">
         <i class="fas fa-edit mr-1"></i>Edit
       </a>
-      {% if profile.resume %}
-      <a href="{% url 'app:download_cv' %}" class="btn-secondary">
-        <i class="fas fa-download mr-1"></i>CV
-      </a>
-      {% endif %}
+
+      <!-- ✅ NEW: Create CV (PDF) - client-side, no backend needed -->
+      <button onclick="openCvModal()" class="btn-secondary">
+        <i class="fas fa-file-pdf mr-1"></i>Create CV
+      </button>
+
+      <!-- ✅ Download CV (PDF) - becomes available after generating once in this session -->
+      <button id="downloadCvBtn" onclick="downloadLastCv()" class="btn-secondary hidden">
+        <i class="fas fa-download mr-1"></i>Download CV
+      </button>
+
+      <!-- ✅ Completed Share -->
       <button onclick="shareProfile()" class="btn-secondary">
         <i class="fas fa-share-alt mr-1"></i>Share
       </button>
@@ -127,6 +134,8 @@
         <div class="h-2 bg-blue-600 rounded-full" style="width: {{ skill.percentage }}%"></div>
       </div>
     </div>
+    {% empty %}
+    <p class="text-gray-400">No skills added.</p>
     {% endfor %}
   </div>
 </div>
@@ -144,6 +153,8 @@
     </p>
     <p class="text-gray-600 text-sm mt-2">{{ experience.description }}</p>
   </div>
+  {% empty %}
+  <p class="text-gray-400">No experience added.</p>
   {% endfor %}
 </div>
 
@@ -159,6 +170,8 @@
       {% if education.current %}Present{% else %}{{ education.end_date|date:"M Y" }}{% endif %}
     </p>
   </div>
+  {% empty %}
+  <p class="text-gray-400">No education added.</p>
   {% endfor %}
 </div>
 
@@ -176,6 +189,8 @@
         <div class="h-3 bg-blue-600 rounded-full" style="width: {{ skill.percentage }}%"></div>
       </div>
     </div>
+    {% empty %}
+    <p class="text-gray-400">No skills added.</p>
     {% endfor %}
   </div>
 </div>
@@ -199,6 +214,8 @@
         {% endif %}
       </div>
     </div>
+    {% empty %}
+    <p class="text-gray-400">No projects added.</p>
     {% endfor %}
   </div>
 </div>
@@ -218,11 +235,57 @@
     </a>
     {% endif %}
   </div>
+  {% empty %}
+  <p class="text-gray-400">No certificates added.</p>
   {% endfor %}
 </div>
 {% endif %}
 </section>
 </main>
+
+<!-- ================= CV MODAL ================= -->
+<div id="cvModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">Create CV (PDF)</h3>
+      <button onclick="closeCvModal()" class="text-gray-500 hover:text-gray-900">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <p class="text-sm text-gray-600 mb-4">
+      Select what you want to include. Then click <b>Generate PDF</b>.
+    </p>
+
+    <div class="grid sm:grid-cols-2 gap-3 text-sm">
+      <label class="cv-check"><input type="checkbox" id="cv_about" checked> About</label>
+      <label class="cv-check"><input type="checkbox" id="cv_contact" checked> Contact</label>
+      <label class="cv-check"><input type="checkbox" id="cv_experience" checked> Experience</label>
+      <label class="cv-check"><input type="checkbox" id="cv_education" checked> Education</label>
+      <label class="cv-check"><input type="checkbox" id="cv_skills" checked> Skills</label>
+      <label class="cv-check"><input type="checkbox" id="cv_projects" checked> Projects</label>
+      <label class="cv-check"><input type="checkbox" id="cv_certificates" checked> Certificates</label>
+    </div>
+
+    <div class="flex gap-3 mt-6 justify-end">
+      <button onclick="closeCvModal()" class="btn-secondary">
+        Cancel
+      </button>
+      <button onclick="generateCvPdf()" class="btn-primary">
+        <i class="fas fa-file-pdf mr-1"></i>Generate PDF
+      </button>
+    </div>
+
+    <p class="text-xs text-gray-500 mt-4">
+      Note: This generates the PDF in your browser (no server changes).
+    </p>
+  </div>
+</div>
+
+<!-- ================= TOAST ================= -->
+<div id="toast"
+     class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-full shadow-xl opacity-0 pointer-events-none transition duration-300 z-50">
+</div>
 
 <!-- ================= STYLES ================= -->
 <style>
@@ -269,12 +332,418 @@
   padding: 0.6rem 1.2rem;
   border-radius: 999px;
 }
+
+/* ✅ Modal */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 18px;
+}
+.modal-card{
+  width: 100%;
+  max-width: 560px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+}
+.cv-check{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  background: rgba(243,244,246,0.9);
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+.hidden{ display:none; }
 </style>
 
+<!-- ✅ PDF Libraries (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
+
 <script>
-function shareProfile() {
-  navigator.clipboard.writeText(window.location.href);
-  alert("Profile link copied!");
+/* ================= TOAST ================= */
+function showToast(message) {
+  const t = document.getElementById("toast");
+  t.textContent = message;
+  t.classList.remove("opacity-0");
+  t.classList.add("opacity-100");
+  setTimeout(() => {
+    t.classList.remove("opacity-100");
+    t.classList.add("opacity-0");
+  }, 1800);
+}
+
+/* ================= SHARE (completed) ================= */
+async function shareProfile() {
+  const url = window.location.href;
+  const title = document.title || "Profile";
+  const text = "Check out this profile";
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, text, url });
+      showToast("Shared successfully!");
+      return;
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url);
+      showToast("Profile link copied!");
+      return;
+    }
+
+    const temp = document.createElement("input");
+    temp.value = url;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand("copy");
+    document.body.removeChild(temp);
+    showToast("Profile link copied!");
+  } catch (e) {
+    showToast("Could not share. Try copying the link.");
+  }
+}
+
+/* ================= CV MODAL ================= */
+function openCvModal() {
+  document.getElementById("cvModal").classList.remove("hidden");
+}
+function closeCvModal() {
+  document.getElementById("cvModal").classList.add("hidden");
+}
+
+/* ================= CV DATA (from Django template vars) ================= */
+const CV_DATA = {
+  name: `{{ profile_user.get_full_name|default:profile_user.username|escapejs }}`,
+  title: `{{ profile.title|default:"Professional Profile"|escapejs }}`,
+  location: `{{ profile.location|default:""|escapejs }}`,
+  email: `{{ profile_user.email|default:""|escapejs }}`,
+  phone: `{{ profile.phone|default:""|escapejs }}`,
+  bio: `{{ profile.bio|default:"No bio added yet."|escapejs }}`,
+
+  socials: {
+    github: `{{ profile.github|default:""|escapejs }}`,
+    linkedin: `{{ profile.linkedin|default:""|escapejs }}`,
+    website: `{{ profile.website|default:""|escapejs }}`
+  },
+
+  experiences: [
+    {% for experience in experiences %}
+    {
+      position: `{{ experience.position|default:""|escapejs }}`,
+      company: `{{ experience.company|default:""|escapejs }}`,
+      start: `{{ experience.start_date|date:"M Y"|default:""|escapejs }}`,
+      end: `{% if experience.current %}Present{% else %}{{ experience.end_date|date:"M Y"|default:""|escapejs }}{% endif %}`,
+      description: `{{ experience.description|default:""|escapejs }}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}
+    {% endfor %}
+  ],
+
+  educations: [
+    {% for education in educations %}
+    {
+      degree: `{{ education.degree|default:""|escapejs }}`,
+      institution: `{{ education.institution|default:""|escapejs }}`,
+      start: `{{ education.start_date|date:"M Y"|default:""|escapejs }}`,
+      end: `{% if education.current %}Present{% else %}{{ education.end_date|date:"M Y"|default:""|escapejs }}{% endif %}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}
+    {% endfor %}
+  ],
+
+  skills: [
+    {% for skill in skills %}
+    {
+      name: `{{ skill.name|default:""|escapejs }}`,
+      level: `{{ skill.get_proficiency_display|default:""|escapejs }}`,
+      percentage: `{{ skill.percentage|default:"0"|escapejs }}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}
+    {% endfor %}
+  ],
+
+  projects: [
+    {% for project in projects %}
+    {
+      title: `{{ project.title|default:""|escapejs }}`,
+      description: `{{ project.description|default:""|escapejs }}`,
+      live: `{{ project.project_url|default:""|escapejs }}`,
+      github: `{{ project.github_url|default:""|escapejs }}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}
+    {% endfor %}
+  ],
+
+  certificates: [
+    {% for certificate in certificates %}
+    {
+      title: `{{ certificate.title|default:""|escapejs }}`,
+      org: `{{ certificate.issuing_organization|default:""|escapejs }}`,
+      url: `{{ certificate.credential_url|default:""|escapejs }}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}
+    {% endfor %}
+  ]
+};
+
+let LAST_CV_BLOB = null;
+
+/* ================= CV PDF GENERATION ================= */
+function pick(id){ return document.getElementById(id).checked; }
+
+function addSectionTitle(doc, text, y) {
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text(text, 14, y);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+}
+
+async function generateCvPdf() {
+  try {
+    closeCvModal();
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("p", "mm", "a4");
+
+    // Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(CV_DATA.name || "CV", 14, 18);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text((CV_DATA.title || "").toString(), 14, 25);
+
+    let y = 34;
+
+    // Contact
+    if (pick("cv_contact")) {
+      const parts = [];
+      if (CV_DATA.location) parts.push(CV_DATA.location);
+      if (CV_DATA.email) parts.push(CV_DATA.email);
+      if (CV_DATA.phone) parts.push(CV_DATA.phone);
+
+      const socialParts = [];
+      if (CV_DATA.socials.github) socialParts.push(`GitHub: ${CV_DATA.socials.github}`);
+      if (CV_DATA.socials.linkedin) socialParts.push(`LinkedIn: ${CV_DATA.socials.linkedin}`);
+      if (CV_DATA.socials.website) socialParts.push(`Website: ${CV_DATA.socials.website}`);
+
+      if (parts.length || socialParts.length) {
+        addSectionTitle(doc, "CONTACT", y);
+        y += 6;
+        if (parts.length) {
+          doc.text(parts.join(" | "), 14, y);
+          y += 6;
+        }
+        if (socialParts.length) {
+          // Split long lines automatically
+          const lines = doc.splitTextToSize(socialParts.join(" | "), 180);
+          doc.text(lines, 14, y);
+          y += (lines.length * 5) + 2;
+        }
+        y += 3;
+      }
+    }
+
+    // About
+    if (pick("cv_about")) {
+      addSectionTitle(doc, "ABOUT", y);
+      y += 6;
+      const aboutLines = doc.splitTextToSize(CV_DATA.bio || "", 180);
+      doc.text(aboutLines, 14, y);
+      y += (aboutLines.length * 5) + 6;
+    }
+
+    // Experience
+    if (pick("cv_experience")) {
+      addSectionTitle(doc, "EXPERIENCE", y);
+      y += 4;
+
+      const rows = (CV_DATA.experiences || []).map(e => [
+        (e.position || "-"),
+        (e.company || "-"),
+        `${e.start || ""} - ${e.end || ""}`,
+        (e.description || "")
+      ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Position", "Company", "Duration", "Description"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235] }, // Tailwind blue-600
+          columnStyles: {
+            0: { cellWidth: 34 },
+            1: { cellWidth: 34 },
+            2: { cellWidth: 28 },
+            3: { cellWidth: 74 }
+          },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No experience added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    // Education
+    if (pick("cv_education")) {
+      addSectionTitle(doc, "EDUCATION", y);
+      y += 4;
+
+      const rows = (CV_DATA.educations || []).map(ed => [
+        (ed.degree || "-"),
+        (ed.institution || "-"),
+        `${ed.start || ""} - ${ed.end || ""}`
+      ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Degree", "Institution", "Duration"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [22, 163, 74] }, // green-ish
+          columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 70 }, 2: { cellWidth: 40 } },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No education added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    // Skills
+    if (pick("cv_skills")) {
+      addSectionTitle(doc, "SKILLS", y);
+      y += 4;
+
+      const rows = (CV_DATA.skills || []).map(s => [
+        (s.name || "-"),
+        (s.level || "-"),
+        `${s.percentage || "0"}%`
+      ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Skill", "Level", "Strength"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235] },
+          columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 70 }, 2: { cellWidth: 30 } },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No skills added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    // Projects
+    if (pick("cv_projects")) {
+      addSectionTitle(doc, "PROJECTS", y);
+      y += 4;
+
+      const rows = (CV_DATA.projects || []).map(p => [
+        (p.title || "-"),
+        (p.description || "-"),
+        (p.live ? "Live" : ""),
+        (p.github ? "GitHub" : "")
+      ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Title", "Description", "Live", "GitHub"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235] },
+          columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 90 }, 2: { cellWidth: 20 }, 3: { cellWidth: 20 } },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No projects added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    // Certificates
+    if (pick("cv_certificates")) {
+      addSectionTitle(doc, "CERTIFICATES", y);
+      y += 4;
+
+      const rows = (CV_DATA.certificates || []).map(c => [
+        (c.title || "-"),
+        (c.org || "-"),
+        (c.url ? "Link" : "")
+      ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Title", "Organization", "Credential"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235] },
+          columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 70 }, 2: { cellWidth: 30 } },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No certificates added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    // Save and store for "Download CV"
+    const filename = `CV_${(CV_DATA.name || "Profile").replace(/\s+/g, "_")}.pdf`;
+    const pdfBlob = doc.output("blob");
+    LAST_CV_BLOB = pdfBlob;
+
+    document.getElementById("downloadCvBtn").classList.remove("hidden");
+
+    // Direct download after generation
+    doc.save(filename);
+    showToast("CV generated & downloaded!");
+  } catch (err) {
+    console.error(err);
+    showToast("CV generation failed. Please try again.");
+  }
+}
+
+function downloadLastCv() {
+  if (!LAST_CV_BLOB) {
+    showToast("Please generate your CV first.");
+    return;
+  }
+  const url = URL.createObjectURL(LAST_CV_BLOB);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `CV_${(CV_DATA.name || "Profile").replace(/\s+/g, "_")}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast("CV downloaded!");
 }
 </script>
+
 {% endblock %}
