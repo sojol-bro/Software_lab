@@ -2,7 +2,23 @@
 {% load static %}
 
 {% block content_admin %}
-<div class="min-h-screen bg-slate-50">
+
+<!--
+  ✅ NEXT-LEVEL User Management (PRO UI/UX)
+  Keeps everything you already have + adds:
+  - Command Palette (Ctrl/⌘ K) for instant actions + search focus
+  - Bulk selection + bulk actions (UI only)
+  - Column sort (Username / Type / Date / Status) (client-side)
+  - Better table UX: sticky header, zebra rows, row hover highlight
+  - Slide-over user quick view (UI only)
+  - Confirm modal for delete (UI only)
+  - Toast system (success/warn/error)
+  - Smart result chips (Active/Inactive/Candidate/Employer counts)
+  - Keyboard shortcuts: / focuses search, Esc closes overlays
+  - Dark mode toggle (UI skin only, safe)
+-->
+
+<div id="userAdminRoot" class="min-h-screen bg-slate-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <!-- Header -->
@@ -33,7 +49,7 @@
             <!-- quick signals -->
             <div class="mt-4 flex flex-wrap items-center gap-2">
               <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700">
-                <span class="text-slate-500">Total:</span> {{ total_users|default:"0" }}
+                <span class="text-slate-500">Total:</span> <span id="chipTotal">{{ total_users|default:"0" }}</span>
               </span>
               <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700">
                 <span class="text-slate-500">Active jobs:</span> {{ total_active_jobs|default:"0" }}
@@ -41,14 +57,44 @@
               <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700">
                 <span class="text-slate-500">Courses:</span> {{ total_courses|default:"0" }}
               </span>
+
+              <!-- NEW: dynamic insight chips (computed client-side) -->
+              <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Active: <span id="chipActive">0</span>
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-extrabold text-rose-700">
+                <span class="h-2 w-2 rounded-full bg-rose-500"></span> Inactive: <span id="chipInactive">0</span>
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">
+                🎓 Candidates: <span id="chipCandidate">0</span>
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-extrabold text-indigo-700">
+                🏢 Employers: <span id="chipEmployer">0</span>
+              </span>
             </div>
           </div>
 
           <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <!-- NEW: Command -->
+            <button id="openCmd"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-extrabold text-slate-800 shadow-sm hover:shadow-md hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <span>⌘</span>
+              <span>Command</span>
+              <span class="ml-1 rounded-xl border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-extrabold text-slate-500">Ctrl K</span>
+            </button>
+
             <button id="exportBtn"
               class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-extrabold text-slate-800 shadow-sm hover:shadow-md hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100">
               <span id="exportIcon">📥</span>
               <span id="exportText">Export Data</span>
+            </button>
+
+            <!-- NEW: Theme toggle -->
+            <button id="themeBtn"
+              class="inline-flex items-center justify-center h-[46px] w-[46px] rounded-2xl border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:shadow-md hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+              aria-label="Toggle theme"
+              title="Toggle theme">
+              🌓
             </button>
 
             <a href="/admin_dashboard"
@@ -95,6 +141,7 @@
 
     <!-- Stat Cards -->
     <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <!-- (kept as-is, minor micro polish only) -->
       <div class="rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition p-4">
         <div class="flex items-center justify-between">
           <p class="text-xs font-extrabold text-slate-500">Total users</p>
@@ -105,7 +152,7 @@
           <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 12.3%</span>
         </div>
         <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600" style="width: 72%"></div>
+          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="72"></div>
         </div>
       </div>
 
@@ -119,7 +166,7 @@
           <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 22.9%</span>
         </div>
         <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600" style="width: 64%"></div>
+          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="64"></div>
         </div>
       </div>
 
@@ -133,7 +180,7 @@
           <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 17.5%</span>
         </div>
         <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600" style="width: 58%"></div>
+          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="58"></div>
         </div>
       </div>
 
@@ -147,7 +194,7 @@
           <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 35.8%</span>
         </div>
         <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600" style="width: 76%"></div>
+          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="76"></div>
         </div>
       </div>
 
@@ -161,7 +208,7 @@
           <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 12.3%</span>
         </div>
         <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600" style="width: 44%"></div>
+          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="44"></div>
         </div>
       </div>
 
@@ -175,7 +222,7 @@
           <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 0.3%</span>
         </div>
         <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600" style="width: 86%"></div>
+          <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="86"></div>
         </div>
       </div>
     </div>
@@ -205,6 +252,26 @@
               <option value="candidate">Candidates</option>
               <option value="employer">Employers</option>
             </select>
+
+            <!-- NEW: bulk actions (UI only) -->
+            <div id="bulkBar" class="hidden w-full sm:w-auto">
+              <div class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
+                <span class="text-xs font-extrabold text-slate-700"><span id="bulkCount">0</span> selected</span>
+                <button id="bulkActivate" type="button" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 hover:bg-emerald-100 transition">
+                  Activate
+                </button>
+                <button id="bulkDeactivate" type="button" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black text-rose-700 hover:bg-rose-100 transition">
+                  Deactivate
+                </button>
+                <button id="bulkDelete" type="button" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-black text-slate-700 hover:bg-white transition">
+                  Delete
+                </button>
+                <button id="bulkClear" type="button" class="rounded-xl border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-700 hover:bg-slate-50 transition">
+                  Clear
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -212,12 +279,37 @@
       <!-- Table -->
       <div class="overflow-x-auto">
         <table class="min-w-full">
-          <thead class="bg-slate-50">
+          <thead class="bg-slate-50 sticky top-0 z-10">
             <tr class="text-left">
-              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">User</th>
-              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">Type</th>
-              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">Join date</th>
-              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">Status</th>
+              <!-- NEW: checkbox -->
+              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500 w-[56px]">
+                <input id="checkAll" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200" aria-label="Select all" />
+              </th>
+
+              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                <button type="button" class="sortBtn inline-flex items-center gap-2" data-sort="username">
+                  User <span class="text-slate-400">⇅</span>
+                </button>
+              </th>
+
+              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                <button type="button" class="sortBtn inline-flex items-center gap-2" data-sort="type">
+                  Type <span class="text-slate-400">⇅</span>
+                </button>
+              </th>
+
+              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                <button type="button" class="sortBtn inline-flex items-center gap-2" data-sort="date">
+                  Join date <span class="text-slate-400">⇅</span>
+                </button>
+              </th>
+
+              <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                <button type="button" class="sortBtn inline-flex items-center gap-2" data-sort="status">
+                  Status <span class="text-slate-400">⇅</span>
+                </button>
+              </th>
+
               <th class="px-5 sm:px-7 py-4 text-xs font-extrabold uppercase tracking-wider text-slate-500">Actions</th>
             </tr>
           </thead>
@@ -228,12 +320,20 @@
                 data-username="{{ u.user.username|default:''|lower }}"
                 data-email="{{ u.user.email|default:''|lower }}"
                 data-status="{% if u.user.is_active %}active{% else %}inactive{% endif %}"
-                data-type="{{ u.get_user_type_display|default:''|lower }}">
+                data-type="{{ u.get_user_type_display|default:''|lower }}"
+                data-date="{{ u.created_at|date:'Y-m-d' }}"
+                data-id="{{ u.user.id|default:'' }}"
+            >
+              <!-- Select -->
+              <td class="px-5 sm:px-7 py-4">
+                <input type="checkbox" class="rowCheck h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200" aria-label="Select user" />
+              </td>
+
               <!-- User -->
               <td class="px-5 sm:px-7 py-4">
                 <div class="flex items-center gap-3 min-w-0">
                   <!-- Avatar -->
-                  <div class="relative shrink-0">
+                  <button type="button" class="openDrawer relative shrink-0" title="Quick view" aria-label="Quick view">
                     {% if u.profile_photo %}
                       <img src="{{ u.profile_photo.url }}" alt="{{ u.user.username }}"
                            class="h-11 w-11 rounded-2xl object-cover border border-slate-200" />
@@ -243,13 +343,13 @@
                       </div>
                     {% endif %}
                     <span class="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white {% if u.user.is_active %}bg-emerald-500{% else %}bg-slate-400{% endif %}"></span>
-                  </div>
+                  </button>
 
                   <div class="min-w-0">
-                    <div class="font-extrabold text-slate-900 truncate max-w-[16rem] sm:max-w-[22rem]">
+                    <div class="font-extrabold text-slate-900 truncate max-w-[16rem] sm:max-w-[22rem] usernameCell">
                       {{ u.user.username }}
                     </div>
-                    <div class="text-sm text-slate-600 truncate max-w-[16rem] sm:max-w-[22rem]">
+                    <div class="text-sm text-slate-600 truncate max-w-[16rem] sm:max-w-[22rem] emailCell">
                       {{ u.user.email|default:"No email" }}
                     </div>
                   </div>
@@ -258,13 +358,13 @@
 
               <!-- Type -->
               <td class="px-5 sm:px-7 py-4">
-                <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-extrabold text-slate-700">
+                <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-extrabold text-slate-700 typeCell">
                   {{ u.get_user_type_display }}
                 </span>
               </td>
 
               <!-- Date -->
-              <td class="px-5 sm:px-7 py-4 text-sm font-semibold text-slate-700">
+              <td class="px-5 sm:px-7 py-4 text-sm font-semibold text-slate-700 dateCell">
                 {{ u.created_at|date:"d-m-Y" }}
               </td>
 
@@ -289,13 +389,13 @@
               <td class="px-5 sm:px-7 py-4">
                 <div class="flex items-center gap-2">
                   <button type="button"
-                    class="inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100"
-                    title="View Profile" aria-label="View Profile">
+                    class="openDrawer inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    title="Quick View" aria-label="Quick View">
                     👁️
                   </button>
 
                   <button type="button"
-                    class="inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    class="deleteBtn inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-rose-50 transition focus:outline-none focus:ring-4 focus:ring-rose-100"
                     title="Delete User" aria-label="Delete User">
                     🗑️
                   </button>
@@ -304,7 +404,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="5" class="px-5 sm:px-7 py-10">
+              <td colspan="6" class="px-5 sm:px-7 py-10">
                 <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
                   <div class="text-3xl">👤</div>
                   <p class="mt-3 font-extrabold text-slate-900">No users found</p>
@@ -320,7 +420,7 @@
       <!-- Footer row -->
       <div class="px-5 sm:px-7 py-4 border-t border-slate-200 bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <p class="text-xs text-slate-500">
-          Tip: Use search + filter to quickly find users.
+          Tip: Press <span class="font-extrabold">/</span> to focus search, <span class="font-extrabold">Ctrl/⌘ K</span> for command.
         </p>
         <p class="text-xs font-bold text-slate-600" id="resultCount"></p>
       </div>
@@ -335,107 +435,658 @@
     </div>
 
   </div>
+
+  <!-- =================== Drawer: Quick View (UI only) =================== -->
+  <div id="drawerOverlay" class="hidden fixed inset-0 z-[70]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+
+    <div class="absolute right-0 top-0 h-full w-[min(520px,100%)] bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] border-l border-slate-200">
+      <div class="h-full flex flex-col">
+        <div class="px-6 py-5 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-sm font-extrabold text-slate-900">User Quick View</p>
+            <p class="text-xs text-slate-500">UI preview — connect real actions later</p>
+          </div>
+          <button id="drawerClose" class="h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+        </div>
+
+        <div class="p-6 space-y-4 overflow-y-auto">
+          <div class="flex items-center gap-3">
+            <div id="drawerAvatar" class="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black shadow-sm">
+              U
+            </div>
+            <div class="min-w-0">
+              <p id="drawerName" class="text-lg font-extrabold text-slate-900 truncate">Username</p>
+              <p id="drawerEmail" class="text-sm text-slate-600 truncate">email@example.com</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <p class="text-xs font-extrabold text-slate-500">Type</p>
+              <p id="drawerType" class="mt-1 font-extrabold text-slate-900">Candidate</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <p class="text-xs font-extrabold text-slate-500">Status</p>
+              <p id="drawerStatus" class="mt-1 font-extrabold text-slate-900">Active</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 col-span-2">
+              <p class="text-xs font-extrabold text-slate-500">Joined</p>
+              <p id="drawerDate" class="mt-1 font-extrabold text-slate-900">—</p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-sm font-extrabold text-slate-900">Suggested actions</p>
+            <p class="text-sm text-slate-600 mt-1">These are UI only. Hook them to your backend endpoints later.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button id="drawerMsg" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              ✉️ Message
+            </button>
+            <button id="drawerToggle" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              🔒 Toggle status
+            </button>
+            <button id="drawerDelete" type="button" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-black text-rose-700 hover:bg-rose-100 transition focus:outline-none focus:ring-4 focus:ring-rose-100 sm:col-span-2">
+              🗑️ Delete user
+            </button>
+          </div>
+        </div>
+
+        <div class="px-6 py-5 border-t border-slate-200 bg-white">
+          <button id="drawerDone" type="button" class="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-blue-200">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== Confirm Modal (Delete) =================== -->
+  <div id="confirmOverlay" class="hidden fixed inset-0 z-[80]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="relative mx-auto mt-24 w-[min(520px,calc(100%-24px))]">
+      <div class="rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-extrabold text-slate-900">Confirm delete</p>
+            <p class="text-xs text-slate-500">UI only — connect backend deletion endpoint</p>
+          </div>
+          <button id="confirmClose" class="h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p class="text-sm font-extrabold text-rose-800">You are about to delete:</p>
+            <p id="confirmUser" class="mt-1 text-sm font-black text-rose-900">—</p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button id="confirmYes" type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-rose-200">
+              🗑️ Delete (UI)
+            </button>
+            <button id="confirmNo" type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== Command Palette =================== -->
+  <div id="cmdOverlay" class="hidden fixed inset-0 z-[90]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="relative mx-auto mt-24 w-[min(720px,calc(100%-24px))]">
+      <div class="rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-extrabold text-slate-900">Command Center</p>
+              <p class="text-xs text-slate-500">Type to search & run actions</p>
+            </div>
+            <button id="cmdClose" class="h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+          </div>
+
+          <div class="mt-3 relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+            <input id="cmdInput" type="text" placeholder="Type: focus search, export, theme, clear filters..."
+                   class="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+          </div>
+        </div>
+
+        <div class="p-2">
+          <div class="px-3 py-2 text-[11px] font-extrabold text-slate-500">SUGGESTED</div>
+
+          <div id="cmdList" class="space-y-1 p-2">
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="focus-search">
+              <span class="font-extrabold text-slate-900">⌕ Focus search</span>
+              <span class="text-xs font-extrabold text-slate-400">/</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="clear-filters">
+              <span class="font-extrabold text-slate-900">🧹 Clear filters</span>
+              <span class="text-xs font-extrabold text-slate-400">Reset</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="export">
+              <span class="font-extrabold text-slate-900">📥 Export (UI)</span>
+              <span class="text-xs font-extrabold text-slate-400">Button</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="toggle-theme">
+              <span class="font-extrabold text-slate-900">🌓 Toggle theme</span>
+              <span class="text-xs font-extrabold text-slate-400">UI</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="go-dashboard">
+              <span class="font-extrabold text-slate-900">🏠 Back to dashboard</span>
+              <span class="text-xs font-extrabold text-slate-400">Navigate</span>
+            </button>
+          </div>
+
+          <div class="px-4 py-3 border-t border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-center justify-between">
+            <p class="text-xs text-slate-500">Press <span class="font-extrabold">Esc</span> to close</p>
+            <p class="text-xs text-slate-500">Enter to run • ↑↓ to move</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== Toast host =================== -->
+  <div id="toastHost" class="fixed bottom-4 right-4 z-[100] space-y-2 w-[min(360px,calc(100%-24px))]"></div>
 </div>
 
 <script>
-  // --- Export button micro-interaction (UI only) ---
-  (function () {
-    const btn = document.getElementById('exportBtn');
-    if (!btn) return;
-    const icon = document.getElementById('exportIcon');
-    const text = document.getElementById('exportText');
+(function () {
+  const root = document.getElementById('userAdminRoot');
 
+  // Elements
+  const exportBtn = document.getElementById('exportBtn');
+  const exportIcon = document.getElementById('exportIcon');
+  const exportText = document.getElementById('exportText');
+
+  const searchInput = document.getElementById('searchInput');
+  const filterSelect = document.getElementById('filterSelect');
+  const tbody = document.getElementById('userTbody');
+  const resultCount = document.getElementById('resultCount');
+
+  const rows = tbody ? Array.from(tbody.querySelectorAll('.user-row')) : [];
+  const checkAll = document.getElementById('checkAll');
+  const bulkBar = document.getElementById('bulkBar');
+  const bulkCount = document.getElementById('bulkCount');
+  const bulkActivate = document.getElementById('bulkActivate');
+  const bulkDeactivate = document.getElementById('bulkDeactivate');
+  const bulkDelete = document.getElementById('bulkDelete');
+  const bulkClear = document.getElementById('bulkClear');
+
+  const chipActive = document.getElementById('chipActive');
+  const chipInactive = document.getElementById('chipInactive');
+  const chipCandidate = document.getElementById('chipCandidate');
+  const chipEmployer = document.getElementById('chipEmployer');
+
+  // Drawer
+  const drawerOverlay = document.getElementById('drawerOverlay');
+  const drawerClose = document.getElementById('drawerClose');
+  const drawerDone = document.getElementById('drawerDone');
+  const drawerAvatar = document.getElementById('drawerAvatar');
+  const drawerName = document.getElementById('drawerName');
+  const drawerEmail = document.getElementById('drawerEmail');
+  const drawerType = document.getElementById('drawerType');
+  const drawerStatus = document.getElementById('drawerStatus');
+  const drawerDate = document.getElementById('drawerDate');
+  const drawerMsg = document.getElementById('drawerMsg');
+  const drawerToggle = document.getElementById('drawerToggle');
+  const drawerDelete = document.getElementById('drawerDelete');
+
+  // Confirm modal
+  const confirmOverlay = document.getElementById('confirmOverlay');
+  const confirmClose = document.getElementById('confirmClose');
+  const confirmNo = document.getElementById('confirmNo');
+  const confirmYes = document.getElementById('confirmYes');
+  const confirmUser = document.getElementById('confirmUser');
+
+  // Command palette
+  const openCmd = document.getElementById('openCmd');
+  const cmdOverlay = document.getElementById('cmdOverlay');
+  const cmdClose = document.getElementById('cmdClose');
+  const cmdInput = document.getElementById('cmdInput');
+  const cmdList = document.getElementById('cmdList');
+  const cmdItems = cmdList ? Array.from(cmdList.querySelectorAll('.cmdItem')) : [];
+
+  // Theme
+  const themeBtn = document.getElementById('themeBtn');
+
+  // Progress bars
+  const progressBars = Array.from(document.querySelectorAll('.progressBar'));
+
+  // Toast system
+  const toastHost = document.getElementById('toastHost');
+  function toast(message, type = 'info') {
+    const styles = {
+      info: 'border-slate-200 bg-white',
+      success: 'border-emerald-200 bg-emerald-50',
+      warn: 'border-amber-200 bg-amber-50',
+      danger: 'border-rose-200 bg-rose-50',
+    };
+    const t = document.createElement('div');
+    t.className = `rounded-3xl border ${styles[type] || styles.info} shadow-[0_18px_60px_rgba(15,23,42,0.12)] px-4 py-3`;
+    t.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-sm font-extrabold text-slate-900">Notification</p>
+          <p class="text-sm text-slate-700 mt-0.5">${message}</p>
+        </div>
+        <button class="h-9 w-9 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition" aria-label="Close">✕</button>
+      </div>
+    `;
+    t.querySelector('button').addEventListener('click', () => t.remove());
+    toastHost.appendChild(t);
+    setTimeout(() => { if (t && t.parentNode) t.remove(); }, 5200);
+  }
+
+  // Minimal dark-mode skin (safe)
+  const style = document.createElement('style');
+  style.textContent = `
+    .darkMode #userAdminRoot { background: #020617 !important; }
+    .darkMode #userAdminRoot .bg-white { background: rgba(15,23,42,0.86) !important; }
+    .darkMode #userAdminRoot .bg-white\\/70 { background: rgba(15,23,42,0.72) !important; }
+    .darkMode #userAdminRoot .bg-white\\/80 { background: rgba(15,23,42,0.80) !important; }
+    .darkMode #userAdminRoot .bg-slate-50 { background: rgba(15,23,42,0.55) !important; }
+    .darkMode #userAdminRoot .bg-slate-100 { background: rgba(148,163,184,0.18) !important; }
+    .darkMode #userAdminRoot .border-slate-200 { border-color: rgba(148,163,184,0.25) !important; }
+    .darkMode #userAdminRoot .text-slate-900 { color: #e2e8f0 !important; }
+    .darkMode #userAdminRoot .text-slate-800 { color: #e2e8f0 !important; }
+    .darkMode #userAdminRoot .text-slate-700 { color: #cbd5e1 !important; }
+    .darkMode #userAdminRoot .text-slate-600 { color: #94a3b8 !important; }
+    .darkMode #userAdminRoot .text-slate-500 { color: #94a3b8 !important; }
+    .darkMode #userAdminRoot .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(148,163,184,0.18) !important; }
+  `;
+  document.head.appendChild(style);
+
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('darkMode');
+    toast(isDark ? 'Dark mode enabled (UI only).' : 'Light mode enabled (UI only).', 'info');
+  }
+  themeBtn?.addEventListener('click', toggleTheme);
+
+  // Helpers
+  function normalizeType(t) {
+    if (!t) return '';
+    if (t.includes('candidate')) return 'candidate';
+    if (t.includes('employer')) return 'employer';
+    return t;
+  }
+
+  // Export button micro interaction
+  exportBtn?.addEventListener('click', () => {
+    exportIcon.textContent = '✅';
+    exportText.textContent = 'Exported!';
+    exportBtn.classList.add('opacity-90');
+    toast('Export completed (UI only). Hook to your backend export endpoint.', 'success');
+    setTimeout(() => {
+      exportIcon.textContent = '📥';
+      exportText.textContent = 'Export Data';
+      exportBtn.classList.remove('opacity-90');
+    }, 1600);
+  });
+
+  // Animate progress bars
+  function animateProgress() {
+    progressBars.forEach(bar => {
+      const w = Number(bar.dataset.width || 0);
+      bar.style.transition = 'width 900ms cubic-bezier(.2,.8,.2,1)';
+      requestAnimationFrame(() => bar.style.width = Math.max(0, Math.min(100, w)) + '%');
+    });
+  }
+  animateProgress();
+
+  // Chips (counts)
+  function updateChips() {
+    let a = 0, i = 0, c = 0, e = 0;
+    rows.forEach(r => {
+      if (r.classList.contains('hidden')) return;
+      const st = r.dataset.status || '';
+      const tp = normalizeType(r.dataset.type || '');
+      if (st === 'active') a++;
+      if (st === 'inactive') i++;
+      if (tp.includes('candidate')) c++;
+      if (tp.includes('employer')) e++;
+    });
+    if (chipActive) chipActive.textContent = a;
+    if (chipInactive) chipInactive.textContent = i;
+    if (chipCandidate) chipCandidate.textContent = c;
+    if (chipEmployer) chipEmployer.textContent = e;
+  }
+
+  // Search + filter
+  function applyFilters() {
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    const f = (filterSelect?.value || 'all').toLowerCase();
+    let visible = 0;
+
+    rows.forEach(row => {
+      const username = row.dataset.username || '';
+      const email = row.dataset.email || '';
+      const status = row.dataset.status || '';
+      const type = normalizeType(row.dataset.type || '');
+
+      const matchesSearch = !q || username.includes(q) || email.includes(q);
+      const matchesFilter =
+        f === 'all' ||
+        (f === 'active' && status === 'active') ||
+        (f === 'inactive' && status === 'inactive') ||
+        (f === 'candidate' && type.includes('candidate')) ||
+        (f === 'employer' && type.includes('employer'));
+
+      const show = matchesSearch && matchesFilter;
+      row.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+
+    if (resultCount) resultCount.textContent = visible + ' result' + (visible === 1 ? '' : 's');
+    updateChips();
+    syncBulkBar();
+  }
+
+  searchInput?.addEventListener('input', applyFilters);
+  filterSelect?.addEventListener('change', applyFilters);
+
+  // Status toggle (UI only)
+  function setStatusButton(btn, status) {
+    const row = btn.closest('tr');
+    if (!row) return;
+
+    if (status === 'active') {
+      btn.setAttribute('data-status', 'active');
+      row.dataset.status = 'active';
+      btn.className =
+        "status-btn inline-flex items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 hover:bg-emerald-100 transition focus:outline-none focus:ring-4 focus:ring-emerald-100";
+      btn.innerHTML = '<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Active';
+    } else {
+      btn.setAttribute('data-status', 'inactive');
+      row.dataset.status = 'inactive';
+      btn.className =
+        "status-btn inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black text-rose-700 hover:bg-rose-100 transition focus:outline-none focus:ring-4 focus:ring-rose-100";
+      btn.innerHTML = '<span class="h-2 w-2 rounded-full bg-rose-500"></span> Inactive';
+    }
+  }
+
+  document.querySelectorAll('.status-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      icon.textContent = '✅';
-      text.textContent = 'Exported!';
-      btn.classList.add('opacity-90');
-      setTimeout(() => {
-        icon.textContent = '📥';
-        text.textContent = 'Export Data';
-        btn.classList.remove('opacity-90');
-      }, 1600);
+      const current = btn.getAttribute('data-status');
+      setStatusButton(btn, current === 'active' ? 'inactive' : 'active');
+      toast('Status toggled (UI only).', 'info');
+      applyFilters();
     });
-  })();
+  });
 
-  // --- Search + Filter (client-side UI filtering) ---
-  (function () {
-    const searchInput = document.getElementById('searchInput');
-    const filterSelect = document.getElementById('filterSelect');
-    const tbody = document.getElementById('userTbody');
-    const resultCount = document.getElementById('resultCount');
-    if (!tbody) return;
+  // Bulk selection
+  function selectedRows() {
+    return rows.filter(r => !r.classList.contains('hidden') && r.querySelector('.rowCheck')?.checked);
+  }
 
-    const rows = Array.from(tbody.querySelectorAll('.user-row'));
+  function syncBulkBar() {
+    const count = selectedRows().length;
+    if (bulkCount) bulkCount.textContent = count;
+    if (bulkBar) bulkBar.classList.toggle('hidden', count === 0);
+  }
 
-    function normalizeType(t) {
-      // map display types to stable keys for filtering
-      // If your display values are exactly "Candidate"/"Employer" this will work.
-      // Otherwise tweak these mappings.
-      if (!t) return '';
-      if (t.includes('candidate')) return 'candidate';
-      if (t.includes('employer')) return 'employer';
-      return t;
-    }
+  checkAll?.addEventListener('change', () => {
+    const checked = checkAll.checked;
+    rows.forEach(r => {
+      if (r.classList.contains('hidden')) return;
+      const cb = r.querySelector('.rowCheck');
+      if (cb) cb.checked = checked;
+    });
+    syncBulkBar();
+  });
 
-    function applyFilters() {
-      const q = (searchInput?.value || '').trim().toLowerCase();
-      const f = (filterSelect?.value || 'all').toLowerCase();
+  document.querySelectorAll('.rowCheck').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const visible = rows.filter(r => !r.classList.contains('hidden'));
+      const allChecked = visible.length && visible.every(r => r.querySelector('.rowCheck')?.checked);
+      if (checkAll) checkAll.checked = !!allChecked;
+      syncBulkBar();
+    });
+  });
 
-      let visible = 0;
+  bulkClear?.addEventListener('click', () => {
+    rows.forEach(r => {
+      const cb = r.querySelector('.rowCheck');
+      if (cb) cb.checked = false;
+    });
+    if (checkAll) checkAll.checked = false;
+    syncBulkBar();
+  });
 
-      rows.forEach(row => {
-        const username = row.dataset.username || '';
-        const email = row.dataset.email || '';
-        const status = row.dataset.status || '';
-        const type = normalizeType(row.dataset.type || '');
-
-        const matchesSearch = !q || username.includes(q) || email.includes(q);
-        const matchesFilter =
-          f === 'all' ||
-          (f === 'active' && status === 'active') ||
-          (f === 'inactive' && status === 'inactive') ||
-          (f === 'candidate' && type.includes('candidate')) ||
-          (f === 'employer' && type.includes('employer'));
-
-        const show = matchesSearch && matchesFilter;
-        row.classList.toggle('hidden', !show);
-        if (show) visible++;
-      });
-
-      if (resultCount) {
-        resultCount.textContent = visible + ' result' + (visible === 1 ? '' : 's');
-      }
-    }
-
-    searchInput?.addEventListener('input', applyFilters);
-    filterSelect?.addEventListener('change', applyFilters);
+  bulkActivate?.addEventListener('click', () => {
+    selectedRows().forEach(r => {
+      const btn = r.querySelector('.status-btn');
+      if (btn) setStatusButton(btn, 'active');
+    });
+    toast('Bulk activate applied (UI only).', 'success');
     applyFilters();
-  })();
+  });
 
-  // --- Status toggle (UI only; does NOT change DB) ---
-  (function () {
-    document.querySelectorAll('.status-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const current = btn.getAttribute('data-status');
-        const row = btn.closest('tr');
-        if (!row) return;
-
-        if (current === 'active') {
-          btn.setAttribute('data-status', 'inactive');
-          row.dataset.status = 'inactive';
-          btn.className =
-            "status-btn inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black text-rose-700 hover:bg-rose-100 transition focus:outline-none focus:ring-4 focus:ring-rose-100";
-          btn.innerHTML = '<span class="h-2 w-2 rounded-full bg-rose-500"></span> Inactive';
-        } else {
-          btn.setAttribute('data-status', 'active');
-          row.dataset.status = 'active';
-          btn.className =
-            "status-btn inline-flex items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 hover:bg-emerald-100 transition focus:outline-none focus:ring-4 focus:ring-emerald-100";
-          btn.innerHTML = '<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Active';
-        }
-      });
+  bulkDeactivate?.addEventListener('click', () => {
+    selectedRows().forEach(r => {
+      const btn = r.querySelector('.status-btn');
+      if (btn) setStatusButton(btn, 'inactive');
     });
-  })();
+    toast('Bulk deactivate applied (UI only).', 'warn');
+    applyFilters();
+  });
+
+  // Delete confirm flow (UI only)
+  let pendingDeleteRow = null;
+  function openConfirm(row) {
+    pendingDeleteRow = row;
+    const uname = row?.querySelector('.usernameCell')?.textContent?.trim() || 'User';
+    const email = row?.querySelector('.emailCell')?.textContent?.trim() || '';
+    confirmUser.textContent = `${uname}${email ? ' — ' + email : ''}`;
+    confirmOverlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeConfirm() {
+    confirmOverlay.classList.add('hidden');
+    document.body.style.overflow = '';
+    pendingDeleteRow = null;
+  }
+
+  document.querySelectorAll('.deleteBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('tr');
+      if (row) openConfirm(row);
+    });
+  });
+
+  confirmClose?.addEventListener('click', closeConfirm);
+  confirmNo?.addEventListener('click', closeConfirm);
+  confirmOverlay?.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirm(); });
+
+  confirmYes?.addEventListener('click', () => {
+    if (pendingDeleteRow) {
+      pendingDeleteRow.remove(); // UI only
+      toast('User removed from table (UI only).', 'danger');
+    }
+    closeConfirm();
+    // refresh row cache
+    if (tbody) {
+      // rebuild rows list
+      const newRows = Array.from(tbody.querySelectorAll('.user-row'));
+      rows.length = 0;
+      newRows.forEach(r => rows.push(r));
+    }
+    applyFilters();
+  });
+
+  // Drawer (quick view)
+  function openDrawer(row) {
+    const uname = row.querySelector('.usernameCell')?.textContent?.trim() || 'User';
+    const email = row.querySelector('.emailCell')?.textContent?.trim() || 'No email';
+    const type = row.querySelector('.typeCell')?.textContent?.trim() || '—';
+    const date = row.querySelector('.dateCell')?.textContent?.trim() || '—';
+    const status = row.dataset.status || '—';
+    const avatarLetter = uname.slice(0, 1).toUpperCase();
+
+    drawerAvatar.textContent = avatarLetter;
+    drawerName.textContent = uname;
+    drawerEmail.textContent = email;
+    drawerType.textContent = type;
+    drawerDate.textContent = date;
+    drawerStatus.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+
+    drawerOverlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    drawerMsg.onclick = () => toast(`Message "${uname}" (UI only).`, 'info');
+    drawerToggle.onclick = () => {
+      const btn = row.querySelector('.status-btn');
+      if (btn) {
+        const current = btn.getAttribute('data-status');
+        setStatusButton(btn, current === 'active' ? 'inactive' : 'active');
+        toast('Status toggled (UI only).', 'info');
+        applyFilters();
+        drawerStatus.textContent = row.dataset.status.charAt(0).toUpperCase() + row.dataset.status.slice(1);
+      }
+    };
+    drawerDelete.onclick = () => {
+      drawerOverlay.classList.add('hidden');
+      document.body.style.overflow = '';
+      openConfirm(row);
+    };
+  }
+  function closeDrawer() {
+    drawerOverlay.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.openDrawer').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('tr');
+      if (row) openDrawer(row);
+    });
+  });
+  drawerClose?.addEventListener('click', closeDrawer);
+  drawerDone?.addEventListener('click', closeDrawer);
+  drawerOverlay?.addEventListener('click', (e) => { if (e.target === drawerOverlay) closeDrawer(); });
+
+  // Sorting
+  let sortState = { key: null, dir: 1 }; // dir: 1 asc, -1 desc
+  function sortRows(key) {
+    if (!tbody) return;
+    sortState.dir = (sortState.key === key) ? -sortState.dir : 1;
+    sortState.key = key;
+
+    const visible = rows.filter(r => !r.classList.contains('hidden'));
+    const hidden = rows.filter(r => r.classList.contains('hidden'));
+
+    const getVal = (r) => {
+      if (key === 'username') return (r.dataset.username || '');
+      if (key === 'type') return normalizeType(r.dataset.type || '');
+      if (key === 'status') return (r.dataset.status || '');
+      if (key === 'date') return (r.dataset.date || '');
+      return '';
+    };
+
+    visible.sort((a, b) => {
+      const va = getVal(a);
+      const vb = getVal(b);
+      if (va < vb) return -1 * sortState.dir;
+      if (va > vb) return  1 * sortState.dir;
+      return 0;
+    });
+
+    // re-append in new order (keep hidden at end, but still in DOM)
+    [...visible, ...hidden].forEach(r => tbody.appendChild(r));
+    toast(`Sorted by ${key} ${sortState.dir === 1 ? '↑' : '↓'}`, 'info');
+  }
+
+  document.querySelectorAll('.sortBtn').forEach(btn => {
+    btn.addEventListener('click', () => sortRows(btn.dataset.sort));
+  });
+
+  // Command palette
+  function openCmdPalette() {
+    cmdOverlay.classList.remove('hidden');
+    setTimeout(() => cmdInput?.focus(), 0);
+  }
+  function closeCmdPalette() {
+    cmdOverlay.classList.add('hidden');
+  }
+
+  openCmd?.addEventListener('click', openCmdPalette);
+  cmdClose?.addEventListener('click', closeCmdPalette);
+  cmdOverlay?.addEventListener('click', (e) => { if (e.target === cmdOverlay) closeCmdPalette(); });
+
+  function runCmd(action) {
+    if (action === 'focus-search') {
+      closeCmdPalette();
+      searchInput?.focus();
+      return;
+    }
+    if (action === 'clear-filters') {
+      closeCmdPalette();
+      if (searchInput) searchInput.value = '';
+      if (filterSelect) filterSelect.value = 'all';
+      applyFilters();
+      toast('Filters cleared.', 'success');
+      return;
+    }
+    if (action === 'export') {
+      closeCmdPalette();
+      exportBtn?.click();
+      return;
+    }
+    if (action === 'toggle-theme') {
+      closeCmdPalette();
+      toggleTheme();
+      return;
+    }
+    if (action === 'go-dashboard') {
+      window.location.href = '/admin_dashboard';
+      return;
+    }
+  }
+
+  cmdItems.forEach(b => b.addEventListener('click', () => runCmd(b.dataset.action)));
+
+  cmdInput?.addEventListener('input', () => {
+    const q = (cmdInput.value || '').trim().toLowerCase();
+    cmdItems.forEach(item => {
+      const t = item.textContent.toLowerCase();
+      item.classList.toggle('hidden', q && !t.includes(q));
+    });
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    const key = (e.key || '').toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && key === 'k') {
+      e.preventDefault();
+      if (cmdOverlay.classList.contains('hidden')) openCmdPalette();
+      else closeCmdPalette();
+    }
+    if (key === '/' && document.activeElement !== searchInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      searchInput?.focus();
+    }
+    if (e.key === 'Escape') {
+      closeCmdPalette();
+      closeDrawer();
+      closeConfirm();
+    }
+  });
+
+  // Theme toggle helper used by command
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('darkMode');
+    toast(isDark ? 'Dark mode enabled (UI only).' : 'Light mode enabled (UI only).', 'info');
+  }
+
+  // Init
+  applyFilters();
+  syncBulkBar();
+  toast('User management loaded.', 'success');
+})();
 </script>
 
 {% endblock %}

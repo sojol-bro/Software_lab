@@ -1,102 +1,1360 @@
 {% extends 'base-admin.html' %}
+{% load static %}
 
 {% block content_admin %}
-<div class="container mx-auto px-4 py-10 max-w-4xl">
-  <h1 class="text-2xl font-bold mb-6">Build Quiz for: {{ job.title }}</h1>
+<div class="min-h-[70vh] bg-gradient-to-b from-slate-50 via-white to-slate-50">
+  <div class="container mx-auto px-4 py-10 max-w-6xl">
 
-  <form id="quiz-form" method="post" class="space-y-6">
-    {% csrf_token %}
+    <!-- Header -->
+    <div class="mb-8 rounded-3xl border border-slate-200 bg-white/80 backdrop-blur shadow-[0_18px_60px_rgba(15,23,42,0.08)] overflow-hidden">
+      <div class="px-6 md:px-8 py-7 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+        <div class="min-w-0">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-3 py-1 text-xs font-semibold">
+              Quiz Builder
+            </span>
+            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 px-3 py-1 text-xs font-semibold">
+              Admin
+            </span>
+          </div>
+          <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900 truncate">
+            Build Quiz for: <span class="text-slate-700">{{ job.title }}</span>
+          </h1>
+          <p class="mt-1 text-sm text-slate-600">
+            Create questions, set rules, and preview how candidates will see it.
+          </p>
+        </div>
 
-    <div class="bg-white rounded-xl shadow p-6 space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Quiz Title</label>
-          <input type="text" name="quiz_title" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" placeholder="e.g. Frontend Skills Quiz" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Passing Score (%)</label>
-          <input type="number" min="0" max="100" name="passing_score" value="70" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
-          <input type="number" min="1" name="duration_minutes" value="30" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
+        <!-- Sticky actions (desktop) -->
+        <div class="flex flex-wrap items-center gap-2 md:justify-end">
+          <button type="button" id="btn-preview" class="inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold ring-1 ring-slate-200 bg-white hover:bg-slate-50 transition">
+            Preview
+          </button>
+          <button type="button" id="btn-add-question-top" class="inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 transition">
+            + Add Question
+          </button>
         </div>
       </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
-        <textarea name="quiz_description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"></textarea>
+
+      <!-- Progress strip -->
+      <div class="px-6 md:px-8 py-4 border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="rounded-2xl bg-white ring-1 ring-slate-200 px-4 py-3">
+            <p class="text-xs font-semibold text-slate-500">Questions</p>
+            <p class="text-lg font-extrabold text-slate-900"><span id="stat-qcount">0</span></p>
+          </div>
+          <div class="rounded-2xl bg-white ring-1 ring-slate-200 px-4 py-3">
+            <p class="text-xs font-semibold text-slate-500">Total Points</p>
+            <p class="text-lg font-extrabold text-slate-900"><span id="stat-totalpoints">0</span></p>
+          </div>
+          <div class="rounded-2xl bg-white ring-1 ring-slate-200 px-4 py-3">
+            <p class="text-xs font-semibold text-slate-500">Passing</p>
+            <p class="text-lg font-extrabold text-slate-900"><span id="stat-pass">70</span>%</p>
+          </div>
+          <div class="rounded-2xl bg-white ring-1 ring-slate-200 px-4 py-3">
+            <p class="text-xs font-semibold text-slate-500">Duration</p>
+            <p class="text-lg font-extrabold text-slate-900"><span id="stat-duration">30</span> min</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow p-6">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold">Questions</h2>
-        <button type="button" id="add-question" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add question</button>
-      </div>
-      <div id="questions" class="space-y-6"></div>
-    </div>
+    <form id="quiz-form" method="post" class="space-y-6">
+      {% csrf_token %}
 
-    <div class="flex items-center gap-3">
-      <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Quiz and Continue</button>
-      
-    </div>
-  </form>
+      <!-- Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left column: Builder -->
+        <div class="lg:col-span-8 space-y-6">
+
+          <!-- Quiz meta -->
+          <section class="rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+            <div class="px-6 md:px-8 py-6 border-b border-slate-200 bg-white/80">
+              <h2 class="text-base font-extrabold text-slate-900">Quiz Details</h2>
+              <p class="text-sm text-slate-600 mt-1">Title, scoring rules, and duration.</p>
+            </div>
+
+            <div class="p-6 md:p-8 space-y-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-1">Quiz Title <span class="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    name="quiz_title"
+                    required
+                    class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+                    placeholder="e.g. Frontend Skills Quiz"
+                  />
+                  <p class="mt-2 text-xs text-slate-500">Shown to candidates before they start.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Passing Score (%)</label>
+                    <input
+                      id="passing_score"
+                      type="number"
+                      min="0"
+                      max="100"
+                      name="passing_score"
+                      value="70"
+                      class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Duration (min)</label>
+                    <input
+                      id="duration_minutes"
+                      type="number"
+                      min="1"
+                      name="duration_minutes"
+                      value="30"
+                      class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+                    />
+                  </div>
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-semibold text-slate-700 mb-1">Description (optional)</label>
+                  <textarea
+                    name="quiz_description"
+                    rows="3"
+                    class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+                    placeholder="Short instructions, topics covered, any rules..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Rules -->
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-extrabold text-slate-900">Quiz Rules</p>
+                    <p class="text-xs text-slate-600 mt-1">These are front-end helper flags (save them if your backend supports).</p>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <label class="flex items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" class="mt-1" id="rule_shuffle_questions" name="rule_shuffle_questions" />
+                    <div>
+                      <p class="text-sm font-semibold text-slate-900">Shuffle questions</p>
+                      <p class="text-xs text-slate-600">Candidates see questions in random order.</p>
+                    </div>
+                  </label>
+
+                  <label class="flex items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" class="mt-1" id="rule_shuffle_choices" name="rule_shuffle_choices" />
+                    <div>
+                      <p class="text-sm font-semibold text-slate-900">Shuffle choices</p>
+                      <p class="text-xs text-slate-600">Randomize options for MCQ.</p>
+                    </div>
+                  </label>
+
+                  <label class="flex items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" class="mt-1" id="rule_one_correct" name="rule_one_correct" checked />
+                    <div>
+                      <p class="text-sm font-semibold text-slate-900">Single correct answer by default</p>
+                      <p class="text-xs text-slate-600">For MCQ, allow only one correct option unless toggled per question.</p>
+                    </div>
+                  </label>
+
+                  <label class="flex items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" class="mt-1" id="rule_require_all" name="rule_require_all" />
+                    <div>
+                      <p class="text-sm font-semibold text-slate-900">Require all questions answered</p>
+                      <p class="text-xs text-slate-600">Block submit if any is empty (client-side).</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Questions builder -->
+          <section class="rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+            <div class="px-6 md:px-8 py-6 border-b border-slate-200 bg-white/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h2 class="text-base font-extrabold text-slate-900">Questions</h2>
+                <p class="text-sm text-slate-600 mt-1">Add, reorder, and assign points.</p>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="relative">
+                  <input
+                    id="searchQuestions"
+                    type="text"
+                    class="w-full md:w-72 px-4 py-2.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+                    placeholder="Search questions..."
+                  />
+                  <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌘K</div>
+                </div>
+
+                <button type="button" id="add-question" class="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 transition">
+                  + Add
+                </button>
+
+                <button type="button" id="btn-expand-all" class="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 bg-white hover:bg-slate-50 transition">
+                  Expand all
+                </button>
+                <button type="button" id="btn-collapse-all" class="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 bg-white hover:bg-slate-50 transition">
+                  Collapse all
+                </button>
+              </div>
+            </div>
+
+            <div class="p-6 md:p-8">
+              <div id="emptyState" class="hidden rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+                <p class="text-base font-extrabold text-slate-900">No questions yet</p>
+                <p class="text-sm text-slate-600 mt-2">Add your first question to start building the quiz.</p>
+                <button type="button" id="btn-empty-add" class="mt-5 inline-flex items-center justify-center rounded-2xl px-5 py-2.5 text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 transition">
+                  + Add first question
+                </button>
+              </div>
+
+              <div id="questions" class="space-y-4"></div>
+
+              <div class="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <p class="text-xs text-slate-500">
+                  Tip: drag the handle to reorder. Use “Duplicate” to quickly create similar questions.
+                </p>
+                <div class="flex items-center gap-2">
+                  <button type="button" id="btn-add-mcq" class="rounded-2xl px-4 py-2 text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                    + MCQ
+                  </button>
+                  <button type="button" id="btn-add-truefalse" class="rounded-2xl px-4 py-2 text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition">
+                    + True/False
+                  </button>
+                  <button type="button" id="btn-add-short" class="rounded-2xl px-4 py-2 text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 transition">
+                    + Short Answer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right column: Summary / Actions -->
+        <aside class="lg:col-span-4 space-y-6 lg:sticky lg:top-24 self-start">
+          <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+            <div class="px-6 py-6 border-b border-slate-200 bg-white/80">
+              <h3 class="text-base font-extrabold text-slate-900">Summary</h3>
+              <p class="text-sm text-slate-600 mt-1">Quick checks before saving.</p>
+            </div>
+
+            <div class="p-6 space-y-4">
+              <div class="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                <div class="flex items-center justify-between">
+                  <p class="text-sm font-semibold text-slate-700">Validity</p>
+                  <span id="validBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 ring-1 ring-rose-200">Needs work</span>
+                </div>
+                <ul class="mt-3 space-y-2 text-sm text-slate-700" id="validationList">
+                  <!-- filled by JS -->
+                </ul>
+              </div>
+
+              <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-4">
+                <p class="text-xs font-semibold text-slate-500">Total points</p>
+                <p class="text-2xl font-extrabold text-slate-900 mt-1"><span id="sumTotalPoints">0</span></p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-4">
+                  <p class="text-xs font-semibold text-slate-500">Questions</p>
+                  <p class="text-xl font-extrabold text-slate-900 mt-1"><span id="sumQuestions">0</span></p>
+                </div>
+                <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-4">
+                  <p class="text-xs font-semibold text-slate-500">Avg. points</p>
+                  <p class="text-xl font-extrabold text-slate-900 mt-1"><span id="sumAvgPoints">0</span></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6 border-t border-slate-200 bg-slate-50">
+              <div class="flex flex-col gap-3">
+                <button
+                  type="submit"
+                  class="w-full inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-extrabold bg-slate-900 text-white hover:bg-slate-800 transition"
+                >
+                  Save Quiz and Continue
+                </button>
+
+                <button
+                  type="button"
+                  id="btn-save-draft"
+                  class="w-full inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-extrabold ring-1 ring-slate-200 bg-white hover:bg-slate-50 transition"
+                >
+                  Save as Draft (client only)
+                </button>
+
+                <p class="text-[11px] text-slate-500">
+                  Draft is stored in your browser (localStorage). It won’t affect backend until you submit.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Keyboard shortcuts -->
+          <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+            <div class="px-6 py-6 border-b border-slate-200 bg-white/80">
+              <h3 class="text-base font-extrabold text-slate-900">Shortcuts</h3>
+            </div>
+            <div class="p-6 text-sm text-slate-700 space-y-2">
+              <div class="flex items-center justify-between"><span>Add question</span><kbd class="px-2 py-1 rounded-lg bg-slate-100 ring-1 ring-slate-200 text-xs font-bold">Ctrl</kbd> + <kbd class="px-2 py-1 rounded-lg bg-slate-100 ring-1 ring-slate-200 text-xs font-bold">Enter</kbd></div>
+              <div class="flex items-center justify-between"><span>Preview</span><kbd class="px-2 py-1 rounded-lg bg-slate-100 ring-1 ring-slate-200 text-xs font-bold">Ctrl</kbd> + <kbd class="px-2 py-1 rounded-lg bg-slate-100 ring-1 ring-slate-200 text-xs font-bold">P</kbd></div>
+              <div class="flex items-center justify-between"><span>Search</span><kbd class="px-2 py-1 rounded-lg bg-slate-100 ring-1 ring-slate-200 text-xs font-bold">Ctrl</kbd> + <kbd class="px-2 py-1 rounded-lg bg-slate-100 ring-1 ring-slate-200 text-xs font-bold">K</kbd></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </form>
+  </div>
 </div>
 
-<script>
-let qIndex = 1;
-const questionsDiv = document.getElementById('questions');
-const addBtn = document.getElementById('add-question');
-
-function addQuestion() {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'border rounded-lg p-4';
-  wrapper.innerHTML = `
-    <div class="flex items-start justify-between">
-      <div class="w-full">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Question</label>
-        <input type="text" name="q-${qIndex}-text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" placeholder="Enter question text" />
-        <div class="mt-3">
-          <label class="text-sm mr-2">Type:</label>
-          <select name="q-${qIndex}-type" class="px-3 py-2 border rounded">
-            <option value="multiple_choice">Multiple choice</option>
-          </select>
+<!-- Preview Modal -->
+<div id="previewModal" class="fixed inset-0 z-[999] hidden">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+  <div class="relative h-full w-full flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl rounded-3xl bg-white shadow-[0_30px_120px_rgba(0,0,0,0.35)] overflow-hidden">
+      <div class="px-6 md:px-8 py-5 border-b border-slate-200 flex items-center justify-between">
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-slate-500">Candidate Preview</p>
+          <h3 class="text-lg md:text-xl font-extrabold text-slate-900 truncate" id="previewTitle">Quiz Preview</h3>
         </div>
+        <button id="closePreview" class="rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-slate-200 hover:bg-slate-50 transition">Close</button>
       </div>
-      <button type="button" class="ml-4 text-red-600 hover:underline" onclick="this.closest('div.border').remove()">Remove</button>
-    </div>
+      <div class="p-6 md:p-8 max-h-[75vh] overflow-auto">
+        <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-4 mb-6">
+          <div class="flex flex-wrap items-center gap-2 text-sm">
+            <span class="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-slate-200 px-3 py-1">
+              ⏱ <span class="font-semibold" id="previewDuration">30</span> min
+            </span>
+            <span class="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-slate-200 px-3 py-1">
+              ✅ Pass <span class="font-semibold" id="previewPass">70</span>%
+            </span>
+            <span class="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-slate-200 px-3 py-1">
+              ⭐ Points <span class="font-semibold" id="previewPoints">0</span>
+            </span>
+          </div>
+          <p class="text-sm text-slate-600 mt-3" id="previewDesc"></p>
+        </div>
 
-    <div class="mt-4 space-y-2" data-choices="${qIndex}">
-      <div class="flex items-center gap-2">
-        <input type="text" name="q-${qIndex}-choice-1-text" class="w-full px-4 py-2 border rounded-lg" placeholder="Choice 1" />
-        <label class="text-sm flex items-center gap-1"><input type="checkbox" name="q-${qIndex}-choice-1-correct"/> Correct</label>
-      </div>
-      <div class="flex items-center gap-2">
-        <input type="text" name="q-${qIndex}-choice-2-text" class="w-full px-4 py-2 border rounded-lg" placeholder="Choice 2" />
-        <label class="text-sm flex items-center gap-1"><input type="checkbox" name="q-${qIndex}-choice-2-correct"/> Correct</label>
+        <div id="previewBody" class="space-y-6"></div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div class="mt-3">
-      <button type="button" class="text-blue-600 hover:underline" onclick="addChoice(${qIndex})">Add choice</button>
-    </div>
-  `;
-  questionsDiv.appendChild(wrapper);
-  qIndex += 1;
+<style>
+  /* nicer native number input on some browsers */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+</style>
+
+<script>
+/* ==========================================================
+  NEXT-LEVEL QUIZ BUILDER (Vanilla JS)
+  Features:
+  - MCQ / True-False / Short Answer
+  - Points per question
+  - Single vs multiple correct per question
+  - Add/remove choices, mark correct
+  - Drag to reorder (HTML5 DnD)
+  - Duplicate question
+  - Collapse/Expand
+  - Search filter
+  - Preview modal
+  - Local draft save/load
+  - Client-side validation
+========================================================== */
+
+const qs = (s, p=document) => p.querySelector(s);
+const qsa = (s, p=document) => Array.from(p.querySelectorAll(s));
+const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+const form = qs('#quiz-form');
+const questionsDiv = qs('#questions');
+const emptyState = qs('#emptyState');
+
+const addBtn = qs('#add-question');
+const addTop = qs('#btn-add-question-top');
+const addEmpty = qs('#btn-empty-add');
+
+const btnAddMcq = qs('#btn-add-mcq');
+const btnAddTf = qs('#btn-add-truefalse');
+const btnAddShort = qs('#btn-add-short');
+
+const btnExpandAll = qs('#btn-expand-all');
+const btnCollapseAll = qs('#btn-collapse-all');
+
+const inputPassing = qs('#passing_score');
+const inputDuration = qs('#duration_minutes');
+
+const statQ = qs('#stat-qcount');
+const statPts = qs('#stat-totalpoints');
+const statPass = qs('#stat-pass');
+const statDur = qs('#stat-duration');
+
+const sumQ = qs('#sumQuestions');
+const sumPts = qs('#sumTotalPoints');
+const sumAvg = qs('#sumAvgPoints');
+const validBadge = qs('#validBadge');
+const validationList = qs('#validationList');
+
+const searchBox = qs('#searchQuestions');
+
+const previewModal = qs('#previewModal');
+const btnPreview = qs('#btn-preview');
+const closePreview = qs('#closePreview');
+const previewTitle = qs('#previewTitle');
+const previewDuration = qs('#previewDuration');
+const previewPass = qs('#previewPass');
+const previewPoints = qs('#previewPoints');
+const previewDesc = qs('#previewDesc');
+const previewBody = qs('#previewBody');
+
+const btnSaveDraft = qs('#btn-save-draft');
+
+let qIndex = 1;
+
+/* ---------- helpers ---------- */
+function setEmptyState() {
+  const hasQuestions = qsa('[data-qid]', questionsDiv).length > 0;
+  emptyState.classList.toggle('hidden', hasQuestions);
+}
+function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+function toast(msg) {
+  let t = qs('#_toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '_toast';
+    t.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] px-4 py-3 rounded-2xl bg-slate-900 text-white text-sm font-semibold shadow-[0_18px_70px_rgba(0,0,0,0.25)] opacity-0 pointer-events-none transition';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=> t.style.opacity='0', 1800);
 }
 
-function addChoice(qi) {
-  const choicesContainer = document.querySelector(`[data-choices="${qi}"]`);
-  const count = choicesContainer.querySelectorAll('input[type="text"]').length + 1;
-  const row = document.createElement('div');
-  row.className = 'flex items-center gap-2 mt-2';
-  row.innerHTML = `
-    <input type="text" name="q-${qi}-choice-${count}-text" class="w-full px-4 py-2 border rounded-lg" placeholder="Choice ${count}" />
-    <label class="text-sm flex items-center gap-1"><input type="checkbox" name="q-${qi}-choice-${count}-correct"/> Correct</label>
+/* ---------- question templates ---------- */
+function questionShell({type='multiple_choice'} = {}) {
+  const qid = uid();
+  const number = qIndex;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'group rounded-3xl border border-slate-200 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)] overflow-hidden';
+  wrapper.setAttribute('data-qid', qid);
+  wrapper.setAttribute('draggable', 'true');
+
+  wrapper.innerHTML = `
+    <!-- Header -->
+    <div class="px-5 md:px-6 py-4 border-b border-slate-200 bg-white/80 flex items-start justify-between gap-3">
+      <div class="flex items-start gap-3 min-w-0">
+        <button type="button" class="mt-1.5 cursor-grab active:cursor-grabbing select-none text-slate-400 hover:text-slate-600 transition" title="Drag to reorder" data-drag>
+          ☰
+        </button>
+
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center rounded-full bg-slate-900 text-white px-2.5 py-1 text-xs font-bold">
+              Q<span class="q-number">${number}</span>
+            </span>
+            <span class="inline-flex items-center rounded-full bg-slate-50 text-slate-700 ring-1 ring-slate-200 px-2.5 py-1 text-xs font-bold q-type-badge">
+              ${typeLabel(type)}
+            </span>
+            <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-800 ring-1 ring-amber-200 px-2.5 py-1 text-xs font-bold">
+              <span class="q-points-label">1</span> pt
+            </span>
+          </div>
+          <p class="mt-1 text-sm text-slate-600 truncate q-summary">Untitled question</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="button" class="rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-slate-200 hover:bg-slate-50 transition" data-collapse>
+          Collapse
+        </button>
+        <div class="relative">
+          <button type="button" class="rounded-2xl px-3 py-2 text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 transition" data-menu>
+            Actions ▾
+          </button>
+          <div class="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden hidden z-10" data-menu-panel>
+            <button type="button" class="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition" data-duplicate>Duplicate</button>
+            <button type="button" class="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition" data-move-up>Move up</button>
+            <button type="button" class="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition" data-move-down>Move down</button>
+            <button type="button" class="w-full text-left px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition" data-remove>Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="p-5 md:p-6 space-y-4" data-body>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-8">
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Question text <span class="text-rose-500">*</span></label>
+          <input
+            type="text"
+            name="q-${qIndex}-text"
+            required
+            class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+            placeholder="Enter question"
+            data-qtext
+          />
+          <p class="mt-2 text-xs text-slate-500">Keep it clear and specific.</p>
+        </div>
+
+        <div class="md:col-span-4 space-y-3">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Question type</label>
+            <select
+              name="q-${qIndex}-type"
+              class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+              data-qtype
+            >
+              <option value="multiple_choice" ${type==='multiple_choice'?'selected':''}>Multiple Choice</option>
+              <option value="true_false" ${type==='true_false'?'selected':''}>True / False</option>
+              <option value="short_answer" ${type==='short_answer'?'selected':''}>Short Answer</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Points</label>
+            <input
+              type="number"
+              min="1"
+              value="1"
+              name="q-${qIndex}-points"
+              class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+              data-qpoints
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <p class="text-sm font-extrabold text-slate-900">Answer settings</p>
+            <p class="text-xs text-slate-600 mt-1">Define correct answers for auto-grading.</p>
+          </div>
+
+          <label class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 select-none">
+            <input type="checkbox" class="rounded" data-multi-correct />
+            Allow multiple correct answers (MCQ)
+          </label>
+        </div>
+
+        <div class="mt-4 space-y-3" data-answer-panel></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-8">
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Explanation (optional)</label>
+          <textarea
+            name="q-${qIndex}-explanation"
+            rows="2"
+            class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+            placeholder="Shown after the quiz (if your candidate UI supports it)."
+            data-qexp
+          ></textarea>
+        </div>
+        <div class="md:col-span-4">
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Difficulty</label>
+          <select
+            name="q-${qIndex}-difficulty"
+            class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+          >
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+          <p class="mt-2 text-xs text-slate-500">Metadata for analytics later.</p>
+        </div>
+      </div>
+    </div>
   `;
+
+  // create default answer panel for type
+  const answerPanel = qs('[data-answer-panel]', wrapper);
+  renderAnswerPanel(wrapper, type);
+
+  // menu logic
+  const menuBtn = qs('[data-menu]', wrapper);
+  const menuPanel = qs('[data-menu-panel]', wrapper);
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menuPanel.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => menuPanel.classList.add('hidden'));
+
+  // collapse
+  const collapseBtn = qs('[data-collapse]', wrapper);
+  collapseBtn.addEventListener('click', () => toggleCollapse(wrapper));
+
+  // remove
+  qs('[data-remove]', wrapper).addEventListener('click', () => {
+    wrapper.remove();
+    renumberQuestions();
+    computeStats();
+    validateQuiz();
+    setEmptyState();
+    toast('Question deleted');
+  });
+
+  // duplicate
+  qs('[data-duplicate]', wrapper).addEventListener('click', () => {
+    const clone = cloneQuestion(wrapper);
+    wrapper.after(clone);
+    renumberQuestions();
+    computeStats();
+    validateQuiz();
+    toast('Question duplicated');
+  });
+
+  // move up/down
+  qs('[data-move-up]', wrapper).addEventListener('click', () => {
+    const prev = wrapper.previousElementSibling;
+    if (prev) questionsDiv.insertBefore(wrapper, prev);
+    renumberQuestions(); computeStats(); validateQuiz();
+  });
+  qs('[data-move-down]', wrapper).addEventListener('click', () => {
+    const next = wrapper.nextElementSibling;
+    if (next) questionsDiv.insertBefore(next, wrapper);
+    renumberQuestions(); computeStats(); validateQuiz();
+  });
+
+  // live summary updates
+  const qTextInput = qs('[data-qtext]', wrapper);
+  const qSummary = qs('.q-summary', wrapper);
+  qTextInput.addEventListener('input', () => {
+    qSummary.textContent = qTextInput.value.trim() ? qTextInput.value.trim() : 'Untitled question';
+    computeStats();
+    validateQuiz();
+  });
+
+  // points updates
+  const ptsInput = qs('[data-qpoints]', wrapper);
+  ptsInput.addEventListener('input', () => {
+    const v = clamp(parseInt(ptsInput.value || '1', 10), 1, 999);
+    ptsInput.value = v;
+    qs('.q-points-label', wrapper).textContent = v;
+    computeStats();
+    validateQuiz();
+  });
+
+  // type change
+  const typeSelect = qs('[data-qtype]', wrapper);
+  typeSelect.addEventListener('change', () => {
+    const t = typeSelect.value;
+    qs('.q-type-badge', wrapper).textContent = typeLabel(t);
+    renderAnswerPanel(wrapper, t);
+    computeStats();
+    validateQuiz();
+  });
+
+  // multi-correct for MCQ
+  const multi = qs('[data-multi-correct]', wrapper);
+  multi.addEventListener('change', () => {
+    enforceCorrectRule(wrapper);
+    validateQuiz();
+  });
+
+  // drag and drop
+  initDrag(wrapper);
+
+  qIndex += 1;
+  return wrapper;
+}
+
+function typeLabel(t) {
+  if (t === 'true_false') return 'True/False';
+  if (t === 'short_answer') return 'Short Answer';
+  return 'Multiple Choice';
+}
+
+function renderAnswerPanel(wrapper, type) {
+  const panel = qs('[data-answer-panel]', wrapper);
+  panel.innerHTML = '';
+
+  const idx = getQuestionIndexFromNames(wrapper) || 0;
+
+  const multiToggle = qs('[data-multi-correct]', wrapper);
+  multiToggle.disabled = (type !== 'multiple_choice');
+  multiToggle.checked = (type === 'multiple_choice') ? multiToggle.checked : false;
+
+  if (type === 'multiple_choice') {
+    panel.innerHTML = `
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-sm font-semibold text-slate-800">Choices</p>
+        <button type="button" class="text-sm font-bold text-indigo-700 hover:text-indigo-900" data-add-choice>+ Add choice</button>
+      </div>
+      <div class="space-y-2" data-choices></div>
+      <p class="text-xs text-slate-500">Mark the correct choice(s). If “multiple correct” is off, only one can be selected.</p>
+    `;
+
+    const choices = qs('[data-choices]', panel);
+    // default 4 choices
+    for (let i=1; i<=4; i++) addChoiceRow(wrapper, choices, i);
+
+    qs('[data-add-choice]', panel).addEventListener('click', () => {
+      const count = qsa('input[type="text"]', choices).length + 1;
+      addChoiceRow(wrapper, choices, count);
+      validateQuiz();
+      computeStats();
+    });
+
+    enforceCorrectRule(wrapper);
+    return;
+  }
+
+  if (type === 'true_false') {
+    panel.innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label class="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition">
+          <input type="radio" name="q-${idx}-tf-correct" value="true" required data-tf />
+          <div>
+            <p class="text-sm font-semibold text-slate-900">True</p>
+            <p class="text-xs text-slate-600">Mark “True” as correct.</p>
+          </div>
+        </label>
+        <label class="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition">
+          <input type="radio" name="q-${idx}-tf-correct" value="false" required data-tf />
+          <div>
+            <p class="text-sm font-semibold text-slate-900">False</p>
+            <p class="text-xs text-slate-600">Mark “False” as correct.</p>
+          </div>
+        </label>
+      </div>
+    `;
+    return;
+  }
+
+  if (type === 'short_answer') {
+    panel.innerHTML = `
+      <div class="grid grid-cols-1 gap-3">
+        <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-4">
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Expected answer (optional)</label>
+          <input type="text" name="q-${idx}-short-expected" class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400" placeholder="e.g. O(n log n)" />
+          <p class="mt-2 text-xs text-slate-600">If your backend supports auto-checking, use this as a hint. Otherwise this is for reviewers.</p>
+        </div>
+        <label class="flex items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition">
+          <input type="checkbox" name="q-${idx}-short-manual" class="mt-1" />
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Require manual review</p>
+            <p class="text-xs text-slate-600">Use when answers can vary and need human evaluation.</p>
+          </div>
+        </label>
+      </div>
+    `;
+    return;
+  }
+}
+
+function addChoiceRow(wrapper, choicesContainer, count) {
+  const idx = getQuestionIndexFromNames(wrapper);
+  const row = document.createElement('div');
+  row.className = 'flex items-center gap-2';
+
+  row.innerHTML = `
+    <div class="flex-1">
+      <input
+        type="text"
+        name="q-${idx}-choice-${count}-text"
+        class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 focus:border-slate-400"
+        placeholder="Choice ${count}"
+        required
+        data-choice-text
+      />
+    </div>
+
+    <label class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 whitespace-nowrap">
+      <input type="checkbox" name="q-${idx}-choice-${count}-correct" data-correct />
+      Correct
+    </label>
+
+    <button type="button" class="rounded-2xl px-3 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50 transition" title="Remove choice" data-remove-choice>
+      ✕
+    </button>
+  `;
+
+  // remove choice
+  qs('[data-remove-choice]', row).addEventListener('click', () => {
+    row.remove();
+    enforceCorrectRule(wrapper);
+    validateQuiz();
+    computeStats();
+  });
+
+  // typing triggers validation
+  qs('[data-choice-text]', row).addEventListener('input', () => {
+    validateQuiz();
+  });
+
+  // correct toggle rule
+  qs('[data-correct]', row).addEventListener('change', (e) => {
+    enforceCorrectRule(wrapper, e.target);
+    validateQuiz();
+  });
+
   choicesContainer.appendChild(row);
 }
 
-addBtn.addEventListener('click', addQuestion);
+function enforceCorrectRule(wrapper, changedEl=null) {
+  const typeSelect = qs('[data-qtype]', wrapper);
+  if (typeSelect.value !== 'multiple_choice') return;
+
+  const allowMulti = qs('[data-multi-correct]', wrapper).checked;
+  const correctChecks = qsa('[data-correct]', wrapper);
+
+  if (!allowMulti && changedEl && changedEl.checked) {
+    correctChecks.forEach(cb => { if (cb !== changedEl) cb.checked = false; });
+  }
+}
+
+/* ---------- renumbering (keeps backend names consistent-ish) ---------- */
+function renumberQuestions() {
+  const blocks = qsa('[data-qid]', questionsDiv);
+
+  blocks.forEach((block, i) => {
+    const newIndex = i + 1;
+
+    // header number
+    qs('.q-number', block).textContent = newIndex;
+
+    // update "name" attributes inside block to q-{index}-...
+    qsa('[name]', block).forEach(el => {
+      const n = el.getAttribute('name');
+      if (!n) return;
+      // Replace leading q-<number>-
+      const updated = n.replace(/^q-\d+-/, `q-${newIndex}-`);
+      el.setAttribute('name', updated);
+    });
+
+    // update any TF radio group name if present (already handled by regex above)
+  });
+
+  // keep qIndex aligned
+  qIndex = blocks.length + 1;
+}
+
+function getQuestionIndexFromNames(wrapper) {
+  const any = qs('[name^="q-"]', wrapper);
+  if (!any) return null;
+  const m = any.getAttribute('name').match(/^q-(\d+)-/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+/* ---------- collapse ---------- */
+function toggleCollapse(wrapper, forceState=null) {
+  const body = qs('[data-body]', wrapper);
+  const btn = qs('[data-collapse]', wrapper);
+  const isCollapsed = body.classList.contains('hidden');
+  const next = (forceState === null) ? !isCollapsed : forceState;
+
+  body.classList.toggle('hidden', next);
+  btn.textContent = next ? 'Expand' : 'Collapse';
+}
+
+/* ---------- drag & drop ---------- */
+let dragEl = null;
+
+function initDrag(wrapper) {
+  wrapper.addEventListener('dragstart', (e) => {
+    dragEl = wrapper;
+    wrapper.classList.add('ring-4','ring-slate-200');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  wrapper.addEventListener('dragend', () => {
+    wrapper.classList.remove('ring-4','ring-slate-200');
+    dragEl = null;
+  });
+  wrapper.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const target = wrapper;
+    if (!dragEl || dragEl === target) return;
+
+    const rect = target.getBoundingClientRect();
+    const isAfter = (e.clientY - rect.top) > (rect.height / 2);
+
+    if (isAfter) {
+      target.after(dragEl);
+    } else {
+      target.before(dragEl);
+    }
+  });
+}
+
+/* ---------- cloning ---------- */
+function cloneQuestion(wrapper) {
+  // Build a new shell from current type, then copy values.
+  const type = qs('[data-qtype]', wrapper).value;
+  const clone = questionShell({type});
+
+  // copy values
+  qs('[data-qtext]', clone).value = qs('[data-qtext]', wrapper).value;
+  qs('.q-summary', clone).textContent = qs('.q-summary', wrapper).textContent;
+
+  qs('[data-qpoints]', clone).value = qs('[data-qpoints]', wrapper).value;
+  qs('.q-points-label', clone).textContent = qs('.q-points-label', wrapper).textContent;
+
+  qs('[data-qexp]', clone).value = qs('[data-qexp]', wrapper).value;
+
+  // multi correct
+  const mcw = qs('[data-multi-correct]', wrapper);
+  const mcc = qs('[data-multi-correct]', clone);
+  if (!mcc.disabled) mcc.checked = mcw.checked;
+
+  // answers
+  if (type === 'multiple_choice') {
+    const srcChoices = qsa('[data-choices] [data-choice-text]', wrapper).map((i, idx) => ({
+      text: i.value,
+      correct: qsa('[data-choices] [data-correct]', wrapper)[idx]?.checked || false
+    }));
+
+    const dstContainer = qs('[data-choices]', clone);
+    dstContainer.innerHTML = '';
+    srcChoices.forEach((c, i) => {
+      addChoiceRow(clone, dstContainer, i+1);
+      const rowText = qsa('[data-choice-text]', dstContainer)[i];
+      const rowCorrect = qsa('[data-correct]', dstContainer)[i];
+      rowText.value = c.text;
+      rowCorrect.checked = c.correct;
+    });
+
+    enforceCorrectRule(clone);
+  }
+
+  if (type === 'true_false') {
+    const src = qsa('[data-tf]', wrapper).find(r => r.checked);
+    if (src) {
+      const dst = qsa('[data-tf]', clone).find(r => r.value === src.value);
+      if (dst) dst.checked = true;
+    }
+  }
+
+  if (type === 'short_answer') {
+    const srcExpected = qs('[name^="q-"][name$="-short-expected"]', wrapper);
+    const dstExpected = qs('[name^="q-"][name$="-short-expected"]', clone);
+    if (srcExpected && dstExpected) dstExpected.value = srcExpected.value;
+
+    const srcManual = qs('[name^="q-"][name$="-short-manual"]', wrapper);
+    const dstManual = qs('[name^="q-"][name$="-short-manual"]', clone);
+    if (srcManual && dstManual) dstManual.checked = srcManual.checked;
+  }
+
+  // keep collapse state same
+  const collapsed = qs('[data-body]', wrapper).classList.contains('hidden');
+  toggleCollapse(clone, collapsed);
+
+  return clone;
+}
+
+/* ---------- stats & validation ---------- */
+function computeStats() {
+  const blocks = qsa('[data-qid]', questionsDiv);
+  const passing = clamp(parseInt(inputPassing.value || '0', 10), 0, 100);
+  const duration = clamp(parseInt(inputDuration.value || '1', 10), 1, 999);
+
+  const points = blocks.reduce((acc, b) => {
+    const p = parseInt(qs('[data-qpoints]', b)?.value || '1', 10);
+    return acc + (isNaN(p) ? 0 : p);
+  }, 0);
+
+  statQ.textContent = blocks.length;
+  statPts.textContent = points;
+  statPass.textContent = passing;
+  statDur.textContent = duration;
+
+  sumQ.textContent = blocks.length;
+  sumPts.textContent = points;
+  sumAvg.textContent = blocks.length ? Math.round((points / blocks.length) * 10) / 10 : 0;
+
+  setEmptyState();
+}
+
+function validateQuiz() {
+  const issues = [];
+  const blocks = qsa('[data-qid]', questionsDiv);
+
+  // quiz title required
+  const quizTitle = qs('[name="quiz_title"]', form)?.value?.trim() || '';
+  if (!quizTitle) issues.push('Quiz title is required.');
+
+  if (blocks.length === 0) issues.push('Add at least one question.');
+
+  blocks.forEach((b, i) => {
+    const idx = i + 1;
+    const text = qs('[data-qtext]', b)?.value?.trim() || '';
+    if (!text) issues.push(`Q${idx}: Question text is required.`);
+
+    const type = qs('[data-qtype]', b)?.value || 'multiple_choice';
+    const pts = parseInt(qs('[data-qpoints]', b)?.value || '1', 10);
+    if (!pts || pts < 1) issues.push(`Q${idx}: Points must be at least 1.`);
+
+    if (type === 'multiple_choice') {
+      const choices = qsa('[data-choices] [data-choice-text]', b);
+      const corrects = qsa('[data-choices] [data-correct]', b);
+      if (choices.length < 2) issues.push(`Q${idx}: Provide at least 2 choices.`);
+      const emptyChoice = choices.some(c => !c.value.trim());
+      if (emptyChoice) issues.push(`Q${idx}: All choices must have text.`);
+      const correctCount = corrects.filter(c => c.checked).length;
+      if (correctCount === 0) issues.push(`Q${idx}: Mark at least one correct choice.`);
+    }
+
+    if (type === 'true_false') {
+      const chosen = qsa('[data-tf]', b).some(r => r.checked);
+      if (!chosen) issues.push(`Q${idx}: Select whether True or False is correct.`);
+    }
+
+    // short answer: optional expected, so no strict validation needed
+  });
+
+  validationList.innerHTML = '';
+  if (issues.length === 0) {
+    validBadge.textContent = 'Looks good';
+    validBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
+    validationList.innerHTML = `<li class="text-emerald-700 font-semibold">Ready to save ✅</li>`;
+  } else {
+    validBadge.textContent = 'Needs work';
+    validBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 ring-1 ring-rose-200';
+    issues.slice(0, 6).forEach(msg => {
+      const li = document.createElement('li');
+      li.className = 'flex items-start gap-2';
+      li.innerHTML = `<span class="text-rose-600 font-black">•</span><span>${escapeHtml(msg)}</span>`;
+      validationList.appendChild(li);
+    });
+    if (issues.length > 6) {
+      const li = document.createElement('li');
+      li.className = 'text-xs text-slate-500 mt-1';
+      li.textContent = `+ ${issues.length - 6} more...`;
+      validationList.appendChild(li);
+    }
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, (m) => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+/* ---------- search filter ---------- */
+function filterQuestions(query) {
+  const q = query.trim().toLowerCase();
+  const blocks = qsa('[data-qid]', questionsDiv);
+
+  blocks.forEach(b => {
+    const text = (qs('[data-qtext]', b)?.value || '').toLowerCase();
+    const summary = (qs('.q-summary', b)?.textContent || '').toLowerCase();
+    const match = !q || text.includes(q) || summary.includes(q);
+    b.classList.toggle('hidden', !match);
+  });
+}
+
+/* ---------- preview ---------- */
+function openPreview() {
+  // pull quiz meta from form
+  const title = qs('[name="quiz_title"]')?.value?.trim() || 'Quiz Preview';
+  const desc = qs('[name="quiz_description"]')?.value?.trim() || '';
+  const passing = clamp(parseInt(inputPassing.value || '0', 10), 0, 100);
+  const duration = clamp(parseInt(inputDuration.value || '1', 10), 1, 999);
+
+  const blocks = qsa('[data-qid]', questionsDiv);
+  const totalPoints = blocks.reduce((acc, b) => acc + parseInt(qs('[data-qpoints]', b)?.value || '1', 10), 0);
+
+  previewTitle.textContent = title;
+  previewDesc.textContent = desc || 'No description provided.';
+  previewPass.textContent = passing;
+  previewDuration.textContent = duration;
+  previewPoints.textContent = totalPoints;
+
+  previewBody.innerHTML = '';
+
+  blocks.forEach((b, i) => {
+    const idx = i + 1;
+    const qText = qs('[data-qtext]', b)?.value?.trim() || `Question ${idx}`;
+    const type = qs('[data-qtype]', b)?.value || 'multiple_choice';
+    const pts = qs('[data-qpoints]', b)?.value || '1';
+
+    const card = document.createElement('div');
+    card.className = 'rounded-3xl border border-slate-200 bg-white p-5 md:p-6';
+
+    let body = '';
+    if (type === 'multiple_choice') {
+      const choices = qsa('[data-choices] [data-choice-text]', b).map(c => c.value.trim()).filter(Boolean);
+      body = `
+        <div class="mt-4 space-y-2">
+          ${choices.map((c) => `
+            <label class="flex items-center gap-3 rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3 cursor-pointer hover:bg-slate-100 transition">
+              <input type="radio" disabled />
+              <span class="text-sm text-slate-800">${escapeHtml(c)}</span>
+            </label>
+          `).join('')}
+        </div>
+      `;
+    } else if (type === 'true_false') {
+      body = `
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="flex items-center gap-3 rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3">
+            <input type="radio" disabled /> <span class="text-sm font-semibold text-slate-800">True</span>
+          </label>
+          <label class="flex items-center gap-3 rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3">
+            <input type="radio" disabled /> <span class="text-sm font-semibold text-slate-800">False</span>
+          </label>
+        </div>
+      `;
+    } else {
+      body = `
+        <div class="mt-4">
+          <input type="text" disabled class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" placeholder="Type your answer..." />
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-bold text-slate-500">Question ${idx}</p>
+          <h4 class="text-base md:text-lg font-extrabold text-slate-900 mt-1">${escapeHtml(qText)}</h4>
+        </div>
+        <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-800 ring-1 ring-amber-200 px-3 py-1 text-xs font-bold">${pts} pt</span>
+      </div>
+      ${body}
+    `;
+    previewBody.appendChild(card);
+  });
+
+  previewModal.classList.remove('hidden');
+  document.body.classList.add('overflow-hidden');
+}
+function closePreviewModal() {
+  previewModal.classList.add('hidden');
+  document.body.classList.remove('overflow-hidden');
+}
+
+/* ---------- local draft ---------- */
+const DRAFT_KEY = 'skillnet_quiz_builder_draft_v1';
+
+function serializeDraft() {
+  const data = {
+    quiz_title: qs('[name="quiz_title"]')?.value || '',
+    passing_score: inputPassing.value || '70',
+    duration_minutes: inputDuration.value || '30',
+    quiz_description: qs('[name="quiz_description"]')?.value || '',
+    rules: {
+      shuffle_questions: qs('#rule_shuffle_questions')?.checked || false,
+      shuffle_choices: qs('#rule_shuffle_choices')?.checked || false,
+      one_correct: qs('#rule_one_correct')?.checked || false,
+      require_all: qs('#rule_require_all')?.checked || false,
+    },
+    questions: qsa('[data-qid]', questionsDiv).map(b => {
+      const type = qs('[data-qtype]', b)?.value || 'multiple_choice';
+      const obj = {
+        text: qs('[data-qtext]', b)?.value || '',
+        type,
+        points: qs('[data-qpoints]', b)?.value || '1',
+        explanation: qs('[data-qexp]', b)?.value || '',
+        multiCorrect: qs('[data-multi-correct]', b)?.checked || false,
+      };
+
+      if (type === 'multiple_choice') {
+        obj.choices = qsa('[data-choices] .flex', b).map(row => ({
+          text: qs('[data-choice-text]', row)?.value || '',
+          correct: qs('[data-correct]', row)?.checked || false
+        }));
+      } else if (type === 'true_false') {
+        const picked = qsa('[data-tf]', b).find(r => r.checked);
+        obj.tfCorrect = picked ? picked.value : '';
+      } else if (type === 'short_answer') {
+        const expected = qs('[name^="q-"][name$="-short-expected"]', b);
+        const manual = qs('[name^="q-"][name$="-short-manual"]', b);
+        obj.shortExpected = expected ? expected.value : '';
+        obj.shortManual = manual ? manual.checked : false;
+      }
+      return obj;
+    })
+  };
+  return data;
+}
+
+function saveDraft() {
+  const data = serializeDraft();
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+  toast('Draft saved locally');
+}
+
+function loadDraft() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (!raw) return;
+
+  try {
+    const data = JSON.parse(raw);
+
+    qs('[name="quiz_title"]').value = data.quiz_title || '';
+    inputPassing.value = data.passing_score || '70';
+    inputDuration.value = data.duration_minutes || '30';
+    qs('[name="quiz_description"]').value = data.quiz_description || '';
+
+    qs('#rule_shuffle_questions').checked = !!data.rules?.shuffle_questions;
+    qs('#rule_shuffle_choices').checked = !!data.rules?.shuffle_choices;
+    qs('#rule_one_correct').checked = !!data.rules?.one_correct;
+    qs('#rule_require_all').checked = !!data.rules?.require_all;
+
+    // rebuild questions
+    questionsDiv.innerHTML = '';
+    qIndex = 1;
+
+    (data.questions || []).forEach(q => {
+      const w = questionShell({type: q.type || 'multiple_choice'});
+      questionsDiv.appendChild(w);
+
+      qs('[data-qtext]', w).value = q.text || '';
+      qs('.q-summary', w).textContent = (q.text || '').trim() ? q.text.trim() : 'Untitled question';
+
+      qs('[data-qpoints]', w).value = q.points || '1';
+      qs('.q-points-label', w).textContent = q.points || '1';
+
+      qs('[data-qexp]', w).value = q.explanation || '';
+
+      const m = qs('[data-multi-correct]', w);
+      if (!m.disabled) m.checked = !!q.multiCorrect;
+
+      if ((q.type || 'multiple_choice') === 'multiple_choice') {
+        const container = qs('[data-choices]', w);
+        container.innerHTML = '';
+        (q.choices || []).forEach((c, i) => {
+          addChoiceRow(w, container, i+1);
+          qsa('[data-choice-text]', container)[i].value = c.text || '';
+          qsa('[data-correct]', container)[i].checked = !!c.correct;
+        });
+        if ((q.choices || []).length === 0) {
+          for (let i=1;i<=4;i++) addChoiceRow(w, container, i);
+        }
+        enforceCorrectRule(w);
+      }
+
+      if ((q.type || '') === 'true_false') {
+        const dst = qsa('[data-tf]', w).find(r => r.value === q.tfCorrect);
+        if (dst) dst.checked = true;
+      }
+
+      if ((q.type || '') === 'short_answer') {
+        const expected = qs('[name^="q-"][name$="-short-expected"]', w);
+        const manual = qs('[name^="q-"][name$="-short-manual"]', w);
+        if (expected) expected.value = q.shortExpected || '';
+        if (manual) manual.checked = !!q.shortManual;
+      }
+    });
+
+    renumberQuestions();
+    computeStats();
+    validateQuiz();
+    toast('Draft loaded');
+  } catch (e) {
+    console.warn(e);
+  }
+}
+
+/* ---------- events ---------- */
+function addQuestion(type='multiple_choice') {
+  const w = questionShell({type});
+  questionsDiv.appendChild(w);
+  renumberQuestions();
+  computeStats();
+  validateQuiz();
+  setEmptyState();
+  // focus
+  setTimeout(() => qs('[data-qtext]', w)?.focus(), 50);
+}
+
+addBtn.addEventListener('click', () => addQuestion('multiple_choice'));
+addTop.addEventListener('click', () => addQuestion('multiple_choice'));
+addEmpty?.addEventListener('click', () => addQuestion('multiple_choice'));
+
+btnAddMcq.addEventListener('click', () => addQuestion('multiple_choice'));
+btnAddTf.addEventListener('click', () => addQuestion('true_false'));
+btnAddShort.addEventListener('click', () => addQuestion('short_answer'));
+
+btnExpandAll.addEventListener('click', () => qsa('[data-qid]', questionsDiv).forEach(b => toggleCollapse(b, false)));
+btnCollapseAll.addEventListener('click', () => qsa('[data-qid]', questionsDiv).forEach(b => toggleCollapse(b, true)));
+
+searchBox.addEventListener('input', (e) => filterQuestions(e.target.value));
+
+inputPassing.addEventListener('input', () => { computeStats(); validateQuiz(); });
+inputDuration.addEventListener('input', () => { computeStats(); validateQuiz(); });
+
+btnPreview.addEventListener('click', () => { computeStats(); validateQuiz(); openPreview(); });
+closePreview.addEventListener('click', closePreviewModal);
+previewModal.addEventListener('click', (e) => { if (e.target === previewModal) closePreviewModal(); });
+
+btnSaveDraft.addEventListener('click', saveDraft);
+
+// keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  const isMac = navigator.platform.toUpperCase().includes('MAC');
+  const ctrl = isMac ? e.metaKey : e.ctrlKey;
+
+  if (ctrl && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    searchBox.focus();
+  }
+  if (ctrl && e.key.toLowerCase() === 'p') {
+    e.preventDefault();
+    computeStats(); validateQuiz(); openPreview();
+  }
+  if (ctrl && e.key === 'Enter') {
+    e.preventDefault();
+    addQuestion('multiple_choice');
+  }
+});
+
+// form submit hard validation (client-side)
+form.addEventListener('submit', (e) => {
+  validateQuiz();
+
+  // require all answered rule
+  const requireAll = qs('#rule_require_all')?.checked;
+  if (requireAll) {
+    const blocks = qsa('[data-qid]', questionsDiv);
+    for (const b of blocks) {
+      const type = qs('[data-qtype]', b)?.value || 'multiple_choice';
+      if (type === 'multiple_choice') {
+        const anyChecked = qsa('[data-correct]', b).some(cb => cb.checked);
+        const choicesOk = qsa('[data-choice-text]', b).every(t => t.value.trim());
+        if (!choicesOk || !anyChecked) { e.preventDefault(); toast('Please complete all questions before saving'); return; }
+      }
+      if (type === 'true_false') {
+        const picked = qsa('[data-tf]', b).some(r => r.checked);
+        if (!picked) { e.preventDefault(); toast('Please complete all questions before saving'); return; }
+      }
+    }
+  }
+
+  // if invalid, block submit
+  const badgeText = validBadge.textContent.trim().toLowerCase();
+  if (badgeText !== 'looks good') {
+    e.preventDefault();
+    toast('Fix the issues in Summary before saving');
+  }
+});
+
+/* ---------- init ---------- */
+(function init() {
+  // stats from defaults
+  computeStats();
+  validateQuiz();
+  setEmptyState();
+
+  // Try load draft automatically
+  loadDraft();
+
+  // keep top stats reactive even without questions
+  computeStats();
+  validateQuiz();
+})();
 </script>
 {% endblock %}

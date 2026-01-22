@@ -3,7 +3,23 @@
 
 {% block content_admin %}
 
-<div class="min-h-screen bg-slate-50">
+<!--
+  ✅ NEXT-LEVEL "Online Courses" Admin (PRO UI/UX)
+  Keeps EVERYTHING you have + adds:
+  - Command Palette (Ctrl/⌘ K): focus search, clear filters, export, toggle view, toggle theme
+  - View switch: Grid ⇄ List (client-side)
+  - Sort: Newest, Oldest, Rating, Students, Price
+  - Bulk select + bulk actions (Publish/Unpublish/Delete) (UI only, safe)
+  - Course Quick View drawer (no navigation needed)
+  - Toast notifications
+  - Better dropdown: closes on outside click + positions safe
+  - Animated skeleton loading (tiny) + entry animations
+  - Optional "Pinned" badge (UI only) + quick pin
+  - Keyboard shortcuts: / search, Esc close overlays, Ctrl K palette
+  - Dark mode skin (UI only)
+-->
+
+<div id="coursesAdminRoot" class="min-h-screen bg-slate-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <!-- Hero / Header -->
@@ -33,7 +49,7 @@
 
             <div class="mt-4 flex flex-wrap items-center gap-2">
               <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700">
-                <span class="text-slate-500">Total:</span> {{ courses|length }}
+                <span class="text-slate-500">Total:</span> <span id="chipTotal">{{ courses|length }}</span>
               </span>
               <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700">
                 <span class="text-slate-500">Categories:</span> {{ categories|length }}
@@ -42,10 +58,29 @@
                 <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
                 Admin Mode
               </span>
+
+              <!-- NEW: computed chips -->
+              <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">
+                🆓 Free: <span id="chipFree">0</span>
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-extrabold text-indigo-700">
+                💳 Paid: <span id="chipPaid">0</span>
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-800">
+                ⭐ Avg rating: <span id="chipAvg">—</span>
+              </span>
             </div>
           </div>
 
           <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <!-- NEW: Command Palette -->
+            <button id="openCmd"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-extrabold text-slate-800 shadow-sm hover:shadow-md hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <span>⌘</span>
+              <span>Command</span>
+              <span class="ml-1 rounded-xl border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-extrabold text-slate-500">Ctrl K</span>
+            </button>
+
             <a href="{% url 'app:create_course' %}"
               class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-blue-200">
               <span>＋</span>
@@ -57,19 +92,26 @@
               <span id="exportIcon">📥</span>
               <span id="exportText">Export</span>
             </button>
+
+            <!-- NEW: Theme toggle -->
+            <button id="themeBtn"
+              class="inline-flex items-center justify-center h-[46px] w-[46px] rounded-2xl border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:shadow-md hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+              aria-label="Toggle theme" title="Toggle theme">
+              🌓
+            </button>
           </div>
         </div>
 
-        <!-- Search + Filters -->
+        <!-- Search + Filters + Controls -->
         <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-3">
           <!-- Search -->
-          <div class="lg:col-span-6">
+          <div class="lg:col-span-5">
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
               <input id="searchInput" type="text"
                 placeholder="Search by title, instructor, or category…"
                 class="w-full rounded-2xl border border-slate-200 bg-white/90 px-10 py-3 text-sm font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100" />
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">Ctrl K</span>
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">/</span>
             </div>
           </div>
 
@@ -104,14 +146,80 @@
               <option value="paid">Paid</option>
             </select>
           </div>
+
+          <!-- NEW: View toggle -->
+          <div class="lg:col-span-1">
+            <button id="viewToggle"
+              class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-3 py-3 text-sm font-extrabold text-slate-800 shadow-sm hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+              title="Toggle view" aria-label="Toggle view">
+              🧱
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-3 grid grid-cols-1 lg:grid-cols-12 gap-3">
+          <!-- NEW: Sort -->
+          <div class="lg:col-span-3">
+            <select id="sortSelect"
+              class="w-full rounded-2xl border border-slate-200 bg-white/90 px-3 py-3 text-sm font-extrabold text-slate-800 shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <option value="default">Sort: Default</option>
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="rating_desc">Rating (High → Low)</option>
+              <option value="students_desc">Students (High → Low)</option>
+              <option value="price_asc">Price (Low → High)</option>
+              <option value="price_desc">Price (High → Low)</option>
+            </select>
+          </div>
+
+          <!-- NEW: Bulk bar -->
+          <div class="lg:col-span-9">
+            <div id="bulkBar" class="hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur px-4 py-3 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-extrabold text-slate-700"><span id="bulkCount">0</span> selected</span>
+                <span class="text-xs text-slate-500">• UI only bulk actions</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="bulkPublish" type="button"
+                  class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-700 hover:bg-emerald-100 transition">
+                  ✅ Publish
+                </button>
+                <button id="bulkUnpublish" type="button"
+                  class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-black text-amber-800 hover:bg-amber-100 transition">
+                  🕒 Unpublish
+                </button>
+                <button id="bulkDelete" type="button"
+                  class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-black text-rose-700 hover:bg-rose-100 transition">
+                  🗑️ Delete
+                </button>
+                <button id="bulkClear" type="button"
+                  class="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 transition">
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <p class="text-xs text-slate-500">
-            Tip: search is instant. Filters work together.
+            Tip: search is instant. Filters work together. Press <span class="font-extrabold">Ctrl/⌘ K</span> for command.
           </p>
           <p class="text-xs font-extrabold text-slate-700" id="resultCount"></p>
         </div>
+      </div>
+    </div>
+
+    <!-- List header (only when list view is active) -->
+    <div id="listHeader" class="hidden mt-6 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div class="grid grid-cols-12 gap-2 px-5 py-4 bg-slate-50 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+        <div class="col-span-1 flex items-center">
+          <input id="checkAll" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200" aria-label="Select all" />
+        </div>
+        <div class="col-span-5">Course</div>
+        <div class="col-span-2">Category</div>
+        <div class="col-span-2">Stats</div>
+        <div class="col-span-2 text-right">Actions</div>
       </div>
     </div>
 
@@ -126,7 +234,20 @@
         data-level="{{ course.difficulty|default:''|lower }}"
         data-price="{% if course.price|default:0|floatformat:0 == '0' %}free{% else %}paid{% endif %}"
         data-course-id="{{ course.id }}"
+        data-rating="{{ course.rating|default:0 }}"
+        data-students="{{ course.students_count|default:0 }}"
+        data-lessons="{{ course.lessons_count|default:0 }}"
+        data-duration="{{ course.duration_weeks|default:0 }}"
+        data-created="{{ course.created_at|date:'Y-m-d'|default:'' }}"
+        data-published="true"
+        data-pinned="false"
       >
+        <!-- NEW: selection checkbox (appears on hover + for list view) -->
+        <div class="absolute left-3 top-3 z-30 hidden lg:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+          <input type="checkbox" class="cardCheck h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200" aria-label="Select course" />
+          <span class="text-[11px] font-extrabold text-white bg-slate-900/60 rounded-full px-2 py-1">Select</span>
+        </div>
+
         <!-- Thumbnail -->
         <div class="relative h-44 w-full overflow-hidden">
           {% if course.thumbnail %}
@@ -143,6 +264,16 @@
           <!-- top gradient -->
           <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/35 via-slate-950/0 to-slate-950/0"></div>
 
+          <!-- NEW: badges -->
+          <div class="absolute left-3 bottom-3 flex flex-wrap items-center gap-2">
+            <span class="publishBadge inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-extrabold text-emerald-700 shadow-sm">
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Published
+            </span>
+            <span class="pinBadge hidden items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-extrabold text-amber-800 shadow-sm">
+              📌 Pinned
+            </span>
+          </div>
+
           <!-- Dropdown trigger -->
           <button type="button"
             class="dropdown-btn absolute top-3 right-3 inline-flex items-center justify-center h-10 w-10 rounded-2xl bg-white/90 border border-slate-200 shadow-sm hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
@@ -153,17 +284,42 @@
 
           <!-- Dropdown menu -->
           <div
-            class="dropdown-menu hidden absolute top-14 right-3 z-20 w-40 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg"
+            class="dropdown-menu hidden absolute top-14 right-3 z-40 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg"
             id="dropdown-{{ course.id }}"
           >
+            <button type="button"
+              class="quickViewBtn w-full px-4 py-3 text-left text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition flex items-center gap-2"
+              data-course="{{ course.id }}">
+              👁️ <span>Quick view</span>
+            </button>
+
+            <button type="button"
+              class="pinBtn w-full px-4 py-3 text-left text-sm font-extrabold text-amber-800 hover:bg-amber-50 transition flex items-center gap-2"
+              data-course="{{ course.id }}">
+              📌 <span>Pin</span>
+            </button>
+
+            <button type="button"
+              class="publishBtn w-full px-4 py-3 text-left text-sm font-extrabold text-emerald-700 hover:bg-emerald-50 transition flex items-center gap-2"
+              data-course="{{ course.id }}">
+              ✅ <span>Publish</span>
+            </button>
+
+            <button type="button"
+              class="unpublishBtn w-full px-4 py-3 text-left text-sm font-extrabold text-amber-800 hover:bg-amber-50 transition flex items-center gap-2"
+              data-course="{{ course.id }}">
+              🕒 <span>Unpublish</span>
+            </button>
+
             <button type="button"
               class="w-full px-4 py-3 text-left text-sm font-extrabold text-blue-700 hover:bg-blue-50 transition flex items-center gap-2"
               onclick="editCourse({{ course.id }})">
               ✏️ <span>Edit</span>
             </button>
+
             <button type="button"
-              class="w-full px-4 py-3 text-left text-sm font-extrabold text-rose-700 hover:bg-rose-50 transition flex items-center gap-2"
-              onclick="deleteCourse({{ course.id }})">
+              class="dangerDelete w-full px-4 py-3 text-left text-sm font-extrabold text-rose-700 hover:bg-rose-50 transition flex items-center gap-2"
+              data-course="{{ course.id }}">
               🗑️ <span>Delete</span>
             </button>
           </div>
@@ -193,7 +349,7 @@
             </span>
           </div>
 
-          <h3 class="mt-3 text-base font-extrabold tracking-tight text-slate-900 line-clamp-2">
+          <h3 class="mt-3 text-base font-extrabold tracking-tight text-slate-900 line-clamp-2 courseTitle">
             {{ course.title }}
           </h3>
 
@@ -202,7 +358,7 @@
               {{ course.instructor|default:"I"|slice:":1"|upper }}
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-extrabold text-slate-800 truncate">{{ course.instructor }}</p>
+              <p class="text-sm font-extrabold text-slate-800 truncate courseInstructor">{{ course.instructor }}</p>
               <p class="text-xs text-slate-500">Instructor</p>
             </div>
           </div>
@@ -227,14 +383,15 @@
           </div>
 
           <div class="mt-5 flex items-center justify-between gap-3">
-            <span class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2 text-sm font-extrabold text-white shadow-sm">
+            <span class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2 text-sm font-extrabold text-white shadow-sm coursePrice">
               🏷️ {{ course.price }} Tk
             </span>
 
-            <a href="#"
-              class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+            <button type="button"
+              class="quickViewBtn inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+              data-course="{{ course.id }}">
               View
-            </a>
+            </button>
           </div>
         </div>
       </article>
@@ -253,7 +410,7 @@
       {% endfor %}
     </div>
 
-    <!-- System OK badge only (footer removed) -->
+    <!-- System OK badge only -->
     <div class="mt-6 flex justify-end">
       <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700 shadow-sm">
         <span class="h-2 w-2 rounded-full bg-emerald-500"></span> System status: OK
@@ -261,69 +418,375 @@
     </div>
 
   </div>
+
+  <!-- =================== Quick View Drawer =================== -->
+  <div id="drawerOverlay" class="hidden fixed inset-0 z-[70]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="absolute right-0 top-0 h-full w-[min(560px,100%)] bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] border-l border-slate-200">
+      <div class="h-full flex flex-col">
+        <div class="px-6 py-5 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-sm font-extrabold text-slate-900">Course Quick View</p>
+            <p class="text-xs text-slate-500">Preview actions (UI first). Connect real endpoints later.</p>
+          </div>
+          <button id="drawerClose" class="h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+        </div>
+
+        <div class="p-6 space-y-4 overflow-y-auto">
+          <div class="rounded-3xl border border-slate-200 overflow-hidden bg-white">
+            <div id="drawerThumb" class="h-44 w-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+              <span class="text-white text-3xl font-black">COURSE</span>
+            </div>
+            <div class="p-5">
+              <p id="drawerTitle" class="text-lg font-extrabold text-slate-900">Title</p>
+              <p id="drawerMeta" class="text-sm text-slate-600 mt-1">Category • Level</p>
+
+              <div class="mt-4 grid grid-cols-2 gap-2">
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p class="text-[11px] font-bold text-slate-500">Rating</p>
+                  <p id="drawerRating" class="mt-1 font-extrabold text-slate-900">—</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p class="text-[11px] font-bold text-slate-500">Students</p>
+                  <p id="drawerStudents" class="mt-1 font-extrabold text-slate-900">—</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p class="text-[11px] font-bold text-slate-500">Duration</p>
+                  <p id="drawerDuration" class="mt-1 font-extrabold text-slate-900">—</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p class="text-[11px] font-bold text-slate-500">Lessons</p>
+                  <p id="drawerLessons" class="mt-1 font-extrabold text-slate-900">—</p>
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between">
+                <span id="drawerPrice" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2 text-sm font-extrabold text-white shadow-sm">
+                  🏷️ —
+                </span>
+                <span id="drawerPublished" class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Published
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button id="drawerEdit" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              ✏️ Edit
+            </button>
+            <button id="drawerPin" type="button" class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 hover:bg-amber-100 transition focus:outline-none focus:ring-4 focus:ring-amber-100">
+              📌 Pin
+            </button>
+            <button id="drawerPublish" type="button" class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-700 hover:bg-emerald-100 transition focus:outline-none focus:ring-4 focus:ring-emerald-100">
+              ✅ Publish
+            </button>
+            <button id="drawerUnpublish" type="button" class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 hover:bg-amber-100 transition focus:outline-none focus:ring-4 focus:ring-amber-100">
+              🕒 Unpublish
+            </button>
+            <button id="drawerDelete" type="button" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-black text-rose-700 hover:bg-rose-100 transition focus:outline-none focus:ring-4 focus:ring-rose-100 sm:col-span-2">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+
+        <div class="px-6 py-5 border-t border-slate-200 bg-white">
+          <button id="drawerDone" type="button"
+            class="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-blue-200">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== Confirm Modal (Delete) =================== -->
+  <div id="confirmOverlay" class="hidden fixed inset-0 z-[80]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="relative mx-auto mt-24 w-[min(520px,calc(100%-24px))]">
+      <div class="rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-extrabold text-slate-900">Confirm delete</p>
+            <p class="text-xs text-slate-500">This uses your existing delete endpoint.</p>
+          </div>
+          <button id="confirmClose" class="h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p class="text-sm font-extrabold text-rose-800">You are about to delete:</p>
+            <p id="confirmCourse" class="mt-1 text-sm font-black text-rose-900">—</p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button id="confirmYes" type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-rose-200">
+              🗑️ Delete
+            </button>
+            <button id="confirmNo" type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== Command Palette =================== -->
+  <div id="cmdOverlay" class="hidden fixed inset-0 z-[90]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="relative mx-auto mt-24 w-[min(760px,calc(100%-24px))]">
+      <div class="rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-extrabold text-slate-900">Command Center</p>
+              <p class="text-xs text-slate-500">Type to search & run actions</p>
+            </div>
+            <button id="cmdClose" class="h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+          </div>
+
+          <div class="mt-3 relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+            <input id="cmdInput" type="text" placeholder="focus search, clear filters, export, toggle view, theme…"
+                   class="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+          </div>
+        </div>
+
+        <div class="p-2">
+          <div class="px-3 py-2 text-[11px] font-extrabold text-slate-500">SUGGESTED</div>
+
+          <div id="cmdList" class="space-y-1 p-2">
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="focus-search">
+              <span class="font-extrabold text-slate-900">⌕ Focus search</span>
+              <span class="text-xs font-extrabold text-slate-400">/</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="clear-filters">
+              <span class="font-extrabold text-slate-900">🧹 Clear filters</span>
+              <span class="text-xs font-extrabold text-slate-400">Reset</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="export">
+              <span class="font-extrabold text-slate-900">📥 Export</span>
+              <span class="text-xs font-extrabold text-slate-400">Button</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="toggle-view">
+              <span class="font-extrabold text-slate-900">🧱 Toggle view (Grid/List)</span>
+              <span class="text-xs font-extrabold text-slate-400">UI</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="toggle-theme">
+              <span class="font-extrabold text-slate-900">🌓 Toggle theme</span>
+              <span class="text-xs font-extrabold text-slate-400">UI</span>
+            </button>
+          </div>
+
+          <div class="px-4 py-3 border-t border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-center justify-between">
+            <p class="text-xs text-slate-500">Press <span class="font-extrabold">Esc</span> to close</p>
+            <p class="text-xs text-slate-500">Enter to run</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== Toast host =================== -->
+  <div id="toastHost" class="fixed bottom-4 right-4 z-[100] space-y-2 w-[min(380px,calc(100%-24px))]"></div>
 </div>
 
 <script>
-  // --- Export micro-interaction (UI only) ---
+  // =========================
+  // Existing hooks (kept)
+  // =========================
+  function editCourse(courseId) {
+    window.location.href = `/edit_course/${courseId}/`;
+  }
+
+  function getCSRFToken() {
+    const name = 'csrftoken';
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+  }
+
+  // =========================
+  // Pro UI Logic
+  // =========================
   (function () {
-    const btn = document.getElementById('exportBtn');
-    if (!btn) return;
-    const icon = document.getElementById('exportIcon');
-    const text = document.getElementById('exportText');
+    const root = document.getElementById('coursesAdminRoot');
 
-    btn.addEventListener('click', () => {
-      icon.textContent = '✅';
-      text.textContent = 'Exported!';
-      btn.classList.add('opacity-90');
-      setTimeout(() => {
-        icon.textContent = '📥';
-        text.textContent = 'Export';
-        btn.classList.remove('opacity-90');
-      }, 1600);
-    });
-  })();
+    // --- Tiny dark-mode skin (UI only) ---
+    const style = document.createElement('style');
+    style.textContent = `
+      .darkMode #coursesAdminRoot { background: #020617 !important; }
+      .darkMode #coursesAdminRoot .bg-white { background: rgba(15,23,42,0.86) !important; }
+      .darkMode #coursesAdminRoot .bg-white\\/70 { background: rgba(15,23,42,0.72) !important; }
+      .darkMode #coursesAdminRoot .bg-white\\/80 { background: rgba(15,23,42,0.80) !important; }
+      .darkMode #coursesAdminRoot .bg-white\\/90 { background: rgba(15,23,42,0.88) !important; }
+      .darkMode #coursesAdminRoot .bg-slate-50 { background: rgba(15,23,42,0.55) !important; }
+      .darkMode #coursesAdminRoot .bg-slate-100 { background: rgba(148,163,184,0.18) !important; }
+      .darkMode #coursesAdminRoot .border-slate-200 { border-color: rgba(148,163,184,0.25) !important; }
+      .darkMode #coursesAdminRoot .text-slate-900 { color: #e2e8f0 !important; }
+      .darkMode #coursesAdminRoot .text-slate-800 { color: #e2e8f0 !important; }
+      .darkMode #coursesAdminRoot .text-slate-700 { color: #cbd5e1 !important; }
+      .darkMode #coursesAdminRoot .text-slate-600 { color: #94a3b8 !important; }
+      .darkMode #coursesAdminRoot .text-slate-500 { color: #94a3b8 !important; }
+    `;
+    document.head.appendChild(style);
 
-  // --- Dropdown menu handling ---
-  (function () {
-    function closeAll() {
-      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden'));
-    }
+    // Elements
+    const exportBtn = document.getElementById('exportBtn');
+    const exportIcon = document.getElementById('exportIcon');
+    const exportText = document.getElementById('exportText');
 
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.dropdown-btn');
-      if (!btn) {
-        closeAll();
-        return;
-      }
-      e.stopPropagation();
-      const id = btn.getAttribute('data-dropdown-btn');
-      const menu = document.getElementById(`dropdown-${id}`);
-      if (!menu) return;
+    const themeBtn = document.getElementById('themeBtn');
 
-      document.querySelectorAll('.dropdown-menu').forEach(m => {
-        if (m !== menu) m.classList.add('hidden');
-      });
-      menu.classList.toggle('hidden');
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeAll();
-    });
-  })();
-
-  // --- Search + filter ---
-  (function () {
     const searchInput = document.getElementById('searchInput');
     const categorySelect = document.getElementById('categorySelect');
     const levelSelect = document.getElementById('levelSelect');
     const priceSelect = document.getElementById('priceSelect');
+    const sortSelect = document.getElementById('sortSelect');
+
     const grid = document.getElementById('coursesGrid');
     const countEl = document.getElementById('resultCount');
+
+    const viewToggle = document.getElementById('viewToggle');
+    const listHeader = document.getElementById('listHeader');
+    const checkAll = document.getElementById('checkAll');
+
+    const bulkBar = document.getElementById('bulkBar');
+    const bulkCount = document.getElementById('bulkCount');
+    const bulkPublish = document.getElementById('bulkPublish');
+    const bulkUnpublish = document.getElementById('bulkUnpublish');
+    const bulkDelete = document.getElementById('bulkDelete');
+    const bulkClear = document.getElementById('bulkClear');
+
+    const chipFree = document.getElementById('chipFree');
+    const chipPaid = document.getElementById('chipPaid');
+    const chipAvg = document.getElementById('chipAvg');
+
+    // Drawer
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const drawerClose = document.getElementById('drawerClose');
+    const drawerDone = document.getElementById('drawerDone');
+    const drawerThumb = document.getElementById('drawerThumb');
+    const drawerTitle = document.getElementById('drawerTitle');
+    const drawerMeta = document.getElementById('drawerMeta');
+    const drawerRating = document.getElementById('drawerRating');
+    const drawerStudents = document.getElementById('drawerStudents');
+    const drawerDuration = document.getElementById('drawerDuration');
+    const drawerLessons = document.getElementById('drawerLessons');
+    const drawerPrice = document.getElementById('drawerPrice');
+    const drawerPublished = document.getElementById('drawerPublished');
+    const drawerEdit = document.getElementById('drawerEdit');
+    const drawerPin = document.getElementById('drawerPin');
+    const drawerPublish = document.getElementById('drawerPublish');
+    const drawerUnpublish = document.getElementById('drawerUnpublish');
+    const drawerDelete = document.getElementById('drawerDelete');
+
+    // Confirm
+    const confirmOverlay = document.getElementById('confirmOverlay');
+    const confirmClose = document.getElementById('confirmClose');
+    const confirmNo = document.getElementById('confirmNo');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmCourse = document.getElementById('confirmCourse');
+
+    // Command
+    const openCmd = document.getElementById('openCmd');
+    const cmdOverlay = document.getElementById('cmdOverlay');
+    const cmdClose = document.getElementById('cmdClose');
+    const cmdInput = document.getElementById('cmdInput');
+    const cmdList = document.getElementById('cmdList');
+    const cmdItems = cmdList ? Array.from(cmdList.querySelectorAll('.cmdItem')) : [];
+
+    // Toast
+    const toastHost = document.getElementById('toastHost');
+    function toast(message, type = 'info') {
+      const styles = {
+        info: 'border-slate-200 bg-white',
+        success: 'border-emerald-200 bg-emerald-50',
+        warn: 'border-amber-200 bg-amber-50',
+        danger: 'border-rose-200 bg-rose-50',
+      };
+      const t = document.createElement('div');
+      t.className = `rounded-3xl border ${styles[type] || styles.info} shadow-[0_18px_60px_rgba(15,23,42,0.12)] px-4 py-3`;
+      t.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-sm font-extrabold text-slate-900">Notification</p>
+            <p class="text-sm text-slate-700 mt-0.5">${message}</p>
+          </div>
+          <button class="h-9 w-9 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition" aria-label="Close">✕</button>
+        </div>
+      `;
+      t.querySelector('button').addEventListener('click', () => t.remove());
+      toastHost.appendChild(t);
+      setTimeout(() => { if (t && t.parentNode) t.remove(); }, 5200);
+    }
+
+    // Cards
     if (!grid) return;
+    let cards = Array.from(grid.querySelectorAll('.course-card'));
 
-    const cards = Array.from(grid.querySelectorAll('.course-card'));
+    // Export micro-interaction (kept, enhanced with toast)
+    exportBtn?.addEventListener('click', () => {
+      exportIcon.textContent = '✅';
+      exportText.textContent = 'Exported!';
+      exportBtn.classList.add('opacity-90');
+      toast('Export done (UI only). Connect your real export logic.', 'success');
+      setTimeout(() => {
+        exportIcon.textContent = '📥';
+        exportText.textContent = 'Export';
+        exportBtn.classList.remove('opacity-90');
+      }, 1600);
+    });
 
-    function apply() {
+    // Theme
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('darkMode');
+      toast(isDark ? 'Dark mode enabled (UI only).' : 'Light mode enabled (UI only).', 'info');
+    }
+    themeBtn?.addEventListener('click', toggleTheme);
+
+    // Dropdown handling (kept but stronger)
+    function closeAllDropdowns() {
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden'));
+    }
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.dropdown-btn');
+      if (!btn) { closeAllDropdowns(); return; }
+      e.stopPropagation();
+      const id = btn.getAttribute('data-dropdown-btn');
+      const menu = document.getElementById(`dropdown-${id}`);
+      if (!menu) return;
+      document.querySelectorAll('.dropdown-menu').forEach(m => { if (m !== menu) m.classList.add('hidden'); });
+      menu.classList.toggle('hidden');
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllDropdowns(); });
+
+    // Helper: parse number safe
+    function num(v) {
+      const n = Number(String(v ?? '').replace(/[^\d.-]/g, ''));
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    // Chips
+    function updateChips() {
+      let free = 0, paid = 0;
+      let sum = 0, cnt = 0;
+      cards.forEach(c => {
+        if (c.classList.contains('hidden')) return;
+        const pr = c.dataset.price;
+        if (pr === 'free') free++;
+        if (pr === 'paid') paid++;
+        const r = num(c.dataset.rating);
+        if (r > 0) { sum += r; cnt++; }
+      });
+      if (chipFree) chipFree.textContent = free;
+      if (chipPaid) chipPaid.textContent = paid;
+      if (chipAvg) chipAvg.textContent = cnt ? (sum / cnt).toFixed(1) : '—';
+    }
+
+    // Apply filtering
+    function applyFilter() {
       const q = (searchInput?.value || '').trim().toLowerCase();
       const cat = (categorySelect?.value || 'all').toLowerCase();
       const level = (levelSelect?.value || 'all').toLowerCase();
@@ -349,63 +812,431 @@
       });
 
       if (countEl) countEl.textContent = `${visible} result${visible === 1 ? '' : 's'}`;
+      updateChips();
+      syncBulkBar();
     }
 
+    // Sorting
+    function sortCards(mode) {
+      if (!mode || mode === 'default') return;
+      const parent = grid;
+
+      const visible = cards.filter(c => !c.classList.contains('hidden'));
+      const hidden = cards.filter(c => c.classList.contains('hidden'));
+
+      const by = (c) => {
+        if (mode === 'newest') return c.dataset.created || '';
+        if (mode === 'oldest') return c.dataset.created || '';
+        if (mode === 'rating_desc') return num(c.dataset.rating);
+        if (mode === 'students_desc') return num(c.dataset.students);
+        if (mode === 'price_asc' || mode === 'price_desc') {
+          // use numeric price from the rendered text if needed:
+          const priceText = c.querySelector('.coursePrice')?.textContent || '';
+          return num(priceText);
+        }
+        return '';
+      };
+
+      visible.sort((a, b) => {
+        if (mode === 'newest') return (by(b)).localeCompare(by(a));
+        if (mode === 'oldest') return (by(a)).localeCompare(by(b));
+        if (mode === 'price_desc') return by(b) - by(a);
+        if (mode === 'price_asc') return by(a) - by(b);
+        return by(b) - by(a); // rating/students desc
+      });
+
+      [...visible, ...hidden].forEach(c => parent.appendChild(c));
+      toast(`Sorted: ${mode.replaceAll('_', ' ')}`, 'info');
+    }
+
+    // View toggle (Grid ⇄ List)
+    let view = 'grid';
+    function setView(next) {
+      view = next;
+      if (view === 'list') {
+        grid.className = "mt-6 grid grid-cols-1 gap-3";
+        listHeader.classList.remove('hidden');
+        viewToggle.textContent = '📋';
+        toast('List view enabled.', 'info');
+
+        // In list view, show checkboxes (desktop only already) + force card layout changes
+        cards.forEach(card => {
+          card.classList.add('flex', 'md:flex-row');
+          // compact thumbnail
+          const thumb = card.querySelector(':scope > div.relative.h-44');
+          if (thumb) {
+            thumb.classList.remove('h-44');
+            thumb.classList.add('h-32', 'md:h-full', 'md:w-64', 'shrink-0');
+          }
+        });
+      } else {
+        grid.className = "mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4";
+        listHeader.classList.add('hidden');
+        viewToggle.textContent = '🧱';
+        toast('Grid view enabled.', 'info');
+
+        cards.forEach(card => {
+          card.classList.remove('flex', 'md:flex-row');
+          const thumb = card.querySelector(':scope > div.relative');
+          if (thumb) {
+            thumb.classList.add('h-44');
+            thumb.classList.remove('h-32', 'md:h-full', 'md:w-64', 'shrink-0');
+          }
+        });
+      }
+    }
+    viewToggle?.addEventListener('click', () => setView(view === 'grid' ? 'list' : 'grid'));
+
+    // Bulk selection helpers
+    function selectedCards() {
+      return cards.filter(c => !c.classList.contains('hidden') && c.querySelector('.cardCheck')?.checked);
+    }
+
+    function syncBulkBar() {
+      const n = selectedCards().length;
+      if (bulkCount) bulkCount.textContent = n;
+      if (bulkBar) bulkBar.classList.toggle('hidden', n === 0);
+      if (checkAll) {
+        const visible = cards.filter(c => !c.classList.contains('hidden'));
+        const all = visible.length && visible.every(c => c.querySelector('.cardCheck')?.checked);
+        checkAll.checked = !!all;
+      }
+    }
+
+    // Attach checkbox listeners
+    function attachCheckboxListeners() {
+      cards.forEach(c => {
+        const cb = c.querySelector('.cardCheck');
+        if (!cb) return;
+        cb.addEventListener('change', syncBulkBar);
+      });
+    }
+    attachCheckboxListeners();
+
+    checkAll?.addEventListener('change', () => {
+      const checked = checkAll.checked;
+      cards.forEach(c => {
+        if (c.classList.contains('hidden')) return;
+        const cb = c.querySelector('.cardCheck');
+        if (cb) cb.checked = checked;
+      });
+      syncBulkBar();
+    });
+
+    bulkClear?.addEventListener('click', () => {
+      cards.forEach(c => {
+        const cb = c.querySelector('.cardCheck');
+        if (cb) cb.checked = false;
+      });
+      if (checkAll) checkAll.checked = false;
+      syncBulkBar();
+    });
+
+    // Publish/Unpublish UI
+    function setPublished(card, published) {
+      card.dataset.published = published ? 'true' : 'false';
+      const badge = card.querySelector('.publishBadge');
+      if (!badge) return;
+
+      if (published) {
+        badge.className = "publishBadge inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-extrabold text-emerald-700 shadow-sm";
+        badge.innerHTML = '<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Published';
+      } else {
+        badge.className = "publishBadge inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-extrabold text-amber-800 shadow-sm";
+        badge.innerHTML = '<span class="h-2 w-2 rounded-full bg-amber-500"></span> Draft';
+      }
+    }
+
+    function setPinned(card, pinned) {
+      card.dataset.pinned = pinned ? 'true' : 'false';
+      const pinBadge = card.querySelector('.pinBadge');
+      if (!pinBadge) return;
+      pinBadge.classList.toggle('hidden', !pinned);
+      if (pinned) pinBadge.classList.add('inline-flex');
+      else pinBadge.classList.remove('inline-flex');
+    }
+
+    bulkPublish?.addEventListener('click', () => {
+      selectedCards().forEach(c => setPublished(c, true));
+      toast('Bulk publish applied (UI only).', 'success');
+      syncBulkBar();
+    });
+
+    bulkUnpublish?.addEventListener('click', () => {
+      selectedCards().forEach(c => setPublished(c, false));
+      toast('Bulk unpublish applied (UI only).', 'warn');
+      syncBulkBar();
+    });
+
+    bulkDelete?.addEventListener('click', () => {
+      const n = selectedCards().length;
+      if (!n) return;
+      if (!confirm(`Delete ${n} course(s)? This will call delete for each.`)) return;
+      selectedCards().forEach(c => {
+        const id = c.dataset.courseId;
+        if (id) deleteCourse(id, true);
+      });
+      toast('Bulk delete requested.', 'danger');
+      syncBulkBar();
+    });
+
+    // Quick view drawer
+    let activeCard = null;
+
+    function openDrawer(card) {
+      activeCard = card;
+      const title = card.querySelector('.courseTitle')?.textContent?.trim() || 'Course';
+      const instructor = card.querySelector('.courseInstructor')?.textContent?.trim() || 'Instructor';
+      const category = (card.dataset.category || '—');
+      const level = (card.dataset.level || '—');
+      const rating = card.dataset.rating || '0';
+      const students = card.dataset.students || '0';
+      const lessons = card.dataset.lessons || '0';
+      const duration = card.dataset.duration || '0';
+      const priceText = card.querySelector('.coursePrice')?.textContent?.trim() || '—';
+      const published = card.dataset.published === 'true';
+      const pinned = card.dataset.pinned === 'true';
+
+      drawerTitle.textContent = title;
+      drawerMeta.textContent = `${category} • ${level} • ${instructor}`;
+      drawerRating.textContent = `⭐ ${rating}`;
+      drawerStudents.textContent = `👥 ${students}`;
+      drawerLessons.textContent = `📌 ${lessons}`;
+      drawerDuration.textContent = `⏱ ${duration} weeks`;
+      drawerPrice.textContent = priceText;
+
+      drawerPublished.className = published
+        ? "inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700"
+        : "inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-800";
+
+      drawerPublished.innerHTML = published
+        ? '<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Published'
+        : '<span class="h-2 w-2 rounded-full bg-amber-500"></span> Draft';
+
+      drawerPin.textContent = pinned ? '📌 Unpin' : '📌 Pin';
+
+      // Thumbnail mirror (if image exists)
+      const img = card.querySelector('img');
+      if (img) {
+        drawerThumb.innerHTML = `<img src="${img.src}" alt="${title}" class="h-full w-full object-cover" />`;
+      } else {
+        drawerThumb.className = "h-44 w-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center";
+        drawerThumb.innerHTML = `<span class="text-white text-3xl font-black">${title.slice(0,3).toUpperCase()}</span>`;
+      }
+
+      drawerOverlay.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      closeAllDropdowns();
+    }
+
+    function closeDrawer() {
+      drawerOverlay.classList.add('hidden');
+      document.body.style.overflow = '';
+      activeCard = null;
+    }
+
+    document.addEventListener('click', (e) => {
+      const quickBtn = e.target.closest('.quickViewBtn');
+      if (!quickBtn) return;
+      const id = quickBtn.getAttribute('data-course');
+      const card = cards.find(c => String(c.dataset.courseId) === String(id));
+      if (card) openDrawer(card);
+    });
+
+    drawerClose?.addEventListener('click', closeDrawer);
+    drawerDone?.addEventListener('click', closeDrawer);
+    drawerOverlay?.addEventListener('click', (e) => { if (e.target === drawerOverlay) closeDrawer(); });
+
+    drawerEdit?.addEventListener('click', () => {
+      if (!activeCard) return;
+      editCourse(activeCard.dataset.courseId);
+    });
+
+    drawerPin?.addEventListener('click', () => {
+      if (!activeCard) return;
+      const next = !(activeCard.dataset.pinned === 'true');
+      setPinned(activeCard, next);
+      drawerPin.textContent = next ? '📌 Unpin' : '📌 Pin';
+      toast(next ? 'Pinned (UI only).' : 'Unpinned (UI only).', 'info');
+    });
+
+    drawerPublish?.addEventListener('click', () => {
+      if (!activeCard) return;
+      setPublished(activeCard, true);
+      toast('Published (UI only).', 'success');
+      openDrawer(activeCard); // refresh
+    });
+
+    drawerUnpublish?.addEventListener('click', () => {
+      if (!activeCard) return;
+      setPublished(activeCard, false);
+      toast('Unpublished (UI only).', 'warn');
+      openDrawer(activeCard); // refresh
+    });
+
+    drawerDelete?.addEventListener('click', () => {
+      if (!activeCard) return;
+      closeDrawer();
+      openConfirm(activeCard);
+    });
+
+    // Pin/Publish/Unpublish buttons in dropdown
+    document.addEventListener('click', (e) => {
+      const pin = e.target.closest('.pinBtn');
+      const pub = e.target.closest('.publishBtn');
+      const unp = e.target.closest('.unpublishBtn');
+      if (!pin && !pub && !unp) return;
+
+      const id = (pin || pub || unp).getAttribute('data-course');
+      const card = cards.find(c => String(c.dataset.courseId) === String(id));
+      if (!card) return;
+
+      if (pin) {
+        const next = !(card.dataset.pinned === 'true');
+        setPinned(card, next);
+        toast(next ? 'Pinned (UI only).' : 'Unpinned (UI only).', 'info');
+      }
+      if (pub) {
+        setPublished(card, true);
+        toast('Published (UI only).', 'success');
+      }
+      if (unp) {
+        setPublished(card, false);
+        toast('Unpublished (UI only).', 'warn');
+      }
+      closeAllDropdowns();
+    });
+
+    // Delete endpoint with confirm modal (uses your existing endpoint)
+    let pendingCard = null;
+
+    function openConfirm(card) {
+      pendingCard = card;
+      const title = card.querySelector('.courseTitle')?.textContent?.trim() || 'Course';
+      const id = card.dataset.courseId || '';
+      confirmCourse.textContent = `${title} (ID: ${id})`;
+      confirmOverlay.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeConfirm() {
+      confirmOverlay.classList.add('hidden');
+      document.body.style.overflow = '';
+      pendingCard = null;
+    }
+
+    document.addEventListener('click', (e) => {
+      const del = e.target.closest('.dangerDelete');
+      if (!del) return;
+      const id = del.getAttribute('data-course');
+      const card = cards.find(c => String(c.dataset.courseId) === String(id));
+      if (card) openConfirm(card);
+      closeAllDropdowns();
+    });
+
+    confirmClose?.addEventListener('click', closeConfirm);
+    confirmNo?.addEventListener('click', closeConfirm);
+    confirmOverlay?.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirm(); });
+
+    function deleteCourse(courseId, silentToast=false) {
+      fetch(`/delete_course/${courseId}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: courseId })
+      })
+      .then(res => {
+        if (res.ok) {
+          const card = document.querySelector(`[data-course-id="${courseId}"]`);
+          if (card) card.remove();
+
+          // refresh cards cache
+          cards = Array.from(grid.querySelectorAll('.course-card'));
+          attachCheckboxListeners();
+          applyFilter();
+
+          if (!silentToast) toast('Course deleted successfully.', 'danger');
+        } else {
+          toast('Failed to delete course.', 'danger');
+        }
+      })
+      .catch(() => toast('An error occurred while deleting the course.', 'danger'));
+    }
+
+    confirmYes?.addEventListener('click', () => {
+      if (!pendingCard) return closeConfirm();
+      const id = pendingCard.dataset.courseId;
+      closeConfirm();
+      deleteCourse(id);
+    });
+
+    // Filters
+    searchInput?.addEventListener('input', applyFilter);
+    categorySelect?.addEventListener('change', applyFilter);
+    levelSelect?.addEventListener('change', applyFilter);
+    priceSelect?.addEventListener('change', applyFilter);
+    sortSelect?.addEventListener('change', () => sortCards(sortSelect.value));
+
+    // Command palette
+    function openCmdPalette() { cmdOverlay.classList.remove('hidden'); setTimeout(() => cmdInput?.focus(), 0); }
+    function closeCmdPalette() { cmdOverlay.classList.add('hidden'); }
+    openCmd?.addEventListener('click', openCmdPalette);
+    cmdClose?.addEventListener('click', closeCmdPalette);
+    cmdOverlay?.addEventListener('click', (e) => { if (e.target === cmdOverlay) closeCmdPalette(); });
+
+    function runCmd(action) {
+      if (action === 'focus-search') { closeCmdPalette(); searchInput?.focus(); return; }
+      if (action === 'clear-filters') {
+        closeCmdPalette();
+        if (searchInput) searchInput.value = '';
+        if (categorySelect) categorySelect.value = 'all';
+        if (levelSelect) levelSelect.value = 'all';
+        if (priceSelect) priceSelect.value = 'all';
+        if (sortSelect) sortSelect.value = 'default';
+        applyFilter();
+        toast('Filters cleared.', 'success');
+        return;
+      }
+      if (action === 'export') { closeCmdPalette(); exportBtn?.click(); return; }
+      if (action === 'toggle-view') { closeCmdPalette(); setView(view === 'grid' ? 'list' : 'grid'); return; }
+      if (action === 'toggle-theme') { closeCmdPalette(); toggleTheme(); return; }
+    }
+    cmdItems.forEach(i => i.addEventListener('click', () => runCmd(i.dataset.action)));
+
+    cmdInput?.addEventListener('input', () => {
+      const q = (cmdInput.value || '').trim().toLowerCase();
+      cmdItems.forEach(item => {
+        const t = item.textContent.toLowerCase();
+        item.classList.toggle('hidden', q && !t.includes(q));
+      });
+    });
+
+    // Shortcuts
     document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      const key = (e.key || '').toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && key === 'k') {
+        e.preventDefault();
+        if (cmdOverlay.classList.contains('hidden')) openCmdPalette();
+        else closeCmdPalette();
+      }
+      if (key === '/' && document.activeElement !== searchInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
         searchInput?.focus();
       }
+      if (e.key === 'Escape') {
+        closeCmdPalette();
+        closeDrawer();
+        closeConfirm();
+        closeAllDropdowns();
+      }
     });
 
-    searchInput?.addEventListener('input', apply);
-    categorySelect?.addEventListener('change', apply);
-    levelSelect?.addEventListener('change', apply);
-    priceSelect?.addEventListener('change', apply);
-
-    apply();
+    // Init
+    applyFilter();
+    updateChips();
+    toast('Courses loaded.', 'success');
   })();
-
-  // --- Edit / Delete hooks ---
-  function editCourse(courseId) {
-    window.location.href = `/edit_course/${courseId}/`;
-  }
-
-  function getCSRFToken() {
-    const name = 'csrftoken';
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-    return '';
-  }
-
-  function deleteCourse(courseId) {
-    if (!confirm('Are you sure you want to delete this course?')) return;
-
-    fetch(`/delete_course/${courseId}/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': getCSRFToken(),
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ id: courseId })
-    })
-    .then(res => {
-      if (res.ok) {
-        const card = document.querySelector(`[data-course-id="${courseId}"]`);
-        if (card) card.remove();
-
-        const countEl = document.getElementById('resultCount');
-        if (countEl) {
-          const current = document.querySelectorAll('.course-card:not(.hidden)').length;
-          countEl.textContent = `${current} result${current === 1 ? '' : 's'}`;
-        }
-      } else {
-        alert('Failed to delete course.');
-      }
-    })
-    .catch(() => alert('An error occurred while deleting the course.'));
-  }
 </script>
 
 {% endblock %}
