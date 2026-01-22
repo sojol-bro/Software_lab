@@ -1,25 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block content %}
-{% if viewer_role == 'admin' %}
-  <nav class="bg-[#9EC5FE] px-10 py-4 shadow-md sticky top-0 z-50 mb-6 border-b border-blue-200">
-      <div class="max-w-7xl mx-auto flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <span class="text-2xl font-bold text-[#1E3A8A]">SkillNet</span>
-            <span class="bg-white/50 px-2 py-0.5 rounded text-[10px] font-bold text-[#1E3A8A] uppercase tracking-wider">Admin View</span>
-          </div>
-          <a href="{% url 'app:dashboard' %}" class="bg-[#1E3A8A] text-white px-6 py-2 rounded-full font-bold hover:bg-blue-900 transition flex items-center gap-2 shadow-sm">
-              <i class="fas fa-arrow-left"></i> Back to Dashboard
-          </a>
-      </div>
-  </nav>
 
-  <style>
-      /* Hides the default navigation bar coming from base.html for Admin */
-      nav:not(.sticky) { display: none !important; }
-      header { display: none !important; }
-  </style>
-{% endif %}
+{% block content %}
 <!-- Main Content -->
 <main class="max-w-7xl mx-auto px-6 pb-12 pt-6">
 
@@ -75,25 +57,28 @@
         {% endif %}
       </div>
     </div>
-{% if is_own_profile %}
-      <a href="{% url 'app:edit_profile' %}" class="px-5 py-2 bg-blue-800 text-white rounded-full text-sm font-medium flex items-center justify-center hover:bg-blue-900 transition shadow-md">
+
+    {% if is_own_profile %}
+    <div class="flex flex-col gap-3">
+      <a href="{% url 'app:edit_profile' %}" class="px-5 py-2 bg-blue-800 text-white rounded-full text-sm font-medium flex items-center justify-center hover:bg-blue-900 transition">
         <i class="fas fa-edit mr-1"></i> Edit Profile
       </a>
-  {% endif %}
-
-  {% if profile.resume %}
-      <a href="{% url 'app:download_cv' %}" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium flex items-center justify-center hover:bg-gray-300 transition shadow-sm border border-gray-100">
+      
+      {% if profile.resume %}
+      <a href="{% url 'app:download_cv' %}" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium flex items-center justify-center hover:bg-gray-300 transition">
         <i class="fas fa-download mr-1"></i> Download CV
       </a>
-  {% endif %}
-      <button class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium flex items-center justify-center hover:bg-gray-300 transition shadow-sm border border-gray-100" onclick="shareProfile()">
-       <i class="fas fa-share-alt mr-1"></i> Share profile
+      {% else %}
+      <button class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium flex items-center justify-center hover:bg-gray-300 transition" disabled>
+        <i class="fas fa-download mr-1"></i> No CV Uploaded
       </button>
-      {% if viewer_role == 'admin' and not is_own_profile %}
-          <button class="px-5 py-2 bg-red-50 text-red-600 rounded-full text-sm font-bold border border-red-100 hover:bg-red-100 transition mt-4">
-             <i class="fas fa-user-slash mr-2"></i> Block User
-          </button>
       {% endif %}
+      
+      <button class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium flex items-center justify-center hover:bg-gray-300 transition" onclick="shareProfile()">
+        <i class="fas fa-share-alt mr-1"></i> Share profile
+      </button>
+    </div>
+    {% endif %}
   </section>
 
   <!-- Tabs Navigation -->

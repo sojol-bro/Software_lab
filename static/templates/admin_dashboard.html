@@ -1,311 +1,226 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base-admin.html' %} 
+{% load static %} 
+{% block content_admin %}
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SkillNet - Admin Dashboard</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <style>
-        :root {
-            --primary-blue: #9EC5FE;
-            --dark-blue: #1E3A8A;
-            --bg-light: #E3F2FD;
-            --accent-green: #28A745;
-            --pill-blue: #B3D4FF;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        /* Navbar Pill Design */
-        .nav-pill {
-            background-color: var(--pill-blue);
-            color: var(--dark-blue);
-            padding: 8px 22px;
-            border-radius: 9999px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .nav-pill:hover {
-            background-color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .nav-pill-active {
-            background-color: var(--accent-green);
-            color: white;
-            padding: 8px 22px;
-            border-radius: 9999px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .nav-pill-white {
-            background-color: white;
-            color: var(--dark-blue);
-            padding: 8px 22px;
-            border-radius: 9999px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        /* Dashboard Cards */
-        .stat-card {
-            background: white;
-            border-radius: 24px;
-            padding: 22px;
-            text-align: center;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0,0,0,0.02);
-            transition: transform 0.3s ease;
-        }
-        .stat-card:hover { transform: translateY(-5px); }
-
-        .health-bar-bg {
-            height: 10px;
-            background: #E9ECEF;
-            border-radius: 10px;
-        }
-        .health-bar-fill {
-            height: 100%;
-            background: var(--dark-blue);
-            border-radius: 10px;
-        }
-
-        /* Quick Action */
-        .action-box {
-            background-color: #D1E9F6;
-            border-radius: 30px;
-            padding: 30px 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            display: block;
-        }
-        .action-box:hover {
-            background-color: var(--dark-blue);
-            color: white !important;
-        }
-    </style>
+     <link rel="stylesheet" href="{% static 'css/style-admin.css' %}" />
 </head>
-<body>
-
-    <nav class="bg-[#9EC5FE] px-10 py-4 flex justify-between items-center shadow-md sticky top-0 z-50">
-        <div class="text-2xl font-bold text-[#1E3A8A]">SkillNet</div>
-        
-        <div class="hidden md:flex items-center gap-4">
-            <a href="/" class="nav-pill">Home</a>
-            <a href="#" class="nav-pill">Course</a>
-            <a href="#" class="nav-pill">About</a>
-            <a href="#" class="nav-pill-active">Admin</a>
-            <a href="{% url 'app:dashboard' %}" class="nav-pill-white">Admin Dashboard</a>
-        </div>
-        
-        <div class="flex items-center gap-6">
-            <div class="relative cursor-pointer">
-                <i class="fas fa-bell text-2xl text-gray-800"></i>
-                <span class="absolute -top-1 -right-1 bg-red-500 w-2.5 h-2.5 rounded-full border-2 border-[#9EC5FE]"></span>
-            </div>
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="bg-[#6C9BD3] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#1E3A8A] transition shadow-sm">
-                    Logout
-                </button>
-            </form>
-        </div>
-    </nav>
-
-    <div class="max-w-7xl mx-auto p-8">
-        
-        <div class="flex justify-between items-center mb-10">
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900 tracking-tight">Admin Dashboard</h1>
-                <p class="text-gray-500 mt-1 font-medium">SkillNet management and analytics</p>
-            </div>
-            <button class="bg-[#4A90E2] text-white px-6 py-3 rounded-2xl flex items-center gap-2 shadow-lg hover:bg-blue-600 transition">
-                <i class="fas fa-file-export"></i> Export Data
-            </button>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 mb-10">
-            <div class="stat-card">
-                <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Total users</p>
-                <div class="text-2xl font-black my-2 text-gray-800">{{ total_users|default:"0" }} <span class="text-blue-300">👤</span></div>
-                <p class="text-[10px] text-green-500 font-bold">↑ +12.3%</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Active jobs</p>
-                <div class="text-2xl font-black my-2 text-gray-800">{{ total_active_jobs|default:"0" }} <span class="text-blue-300">💼</span></div>
-                <p class="text-[10px] text-green-500 font-bold">↑ +22.9%</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Total courses</p>
-                <div class="text-2xl font-black my-2 text-gray-800">{{ total_courses|default:"0" }} <span class="text-blue-300">📚</span></div>
-                <p class="text-[10px] text-green-500 font-bold">↑ +17.5%</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Total revenue</p>
-                <div class="text-2xl font-black my-2 text-gray-800">178k <span class="text-yellow-400">💰</span></div>
-                <p class="text-[10px] text-green-500 font-bold">↑ +35.8%</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Conv. rate</p>
-                <div class="text-2xl font-black my-2 text-gray-800">12.4% <span class="text-green-300">📈</span></div>
-                <p class="text-[10px] text-green-500 font-bold">↑ +12.3%</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Avg rating</p>
-                <div class="text-2xl font-black my-2 text-gray-800">4.8 <span class="text-yellow-400">⭐</span></div>
-                <p class="text-[10px] text-green-500 font-bold">↑ +0.3%</p>
-            </div>
-        </div>
-
-        <div class="bg-[#B3D4FF]/40 p-3 rounded-[30px] flex flex-wrap gap-3 justify-center mb-10">
-            <button class="px-12 py-2.5 bg-white rounded-xl shadow-md font-bold text-gray-700">Overview</button>
-            <a href="{% url 'app:manage_users' %}" class="px-12 py-2.5 bg-[#6C9BD3] text-white rounded-xl font-bold hover:bg-[#1E3A8A] transition text-center">Users</a>
-            <button class="px-12 py-2.5 bg-[#6C9BD3] text-white rounded-xl font-bold hover:bg-[#1E3A8A]">Content</button>
-            <button class="px-12 py-2.5 bg-[#6C9BD3] text-white rounded-xl font-bold hover:bg-[#1E3A8A]">Payments</button>
-            <button class="px-12 py-2.5 bg-[#6C9BD3] text-white rounded-xl font-bold hover:bg-[#1E3A8A]">Support</button>
-            <button class="px-12 py-2.5 bg-[#6C9BD3] text-white rounded-xl font-bold hover:bg-[#1E3A8A]">Analytics</button>
-            <button class="px-12 py-2.5 bg-[#6C9BD3] text-white rounded-xl font-bold hover:bg-[#1E3A8A]">Settings</button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            
-            <div class="bg-white p-8 rounded-[45px] shadow-sm border border-gray-50">
-                <div class="flex justify-between items-center mb-6 px-2">
-                    <h3 class="text-xl font-bold text-gray-800">Recent Login Users</h3>
-                    
-                    <a href="{% url 'app:manage_users' %}" class="text-sm font-bold text-blue-600 hover:underline">View All</a>
-                </div>
-                <div class="space-y-4">
-                    {% for profile in recent_login_profiles %}
-                    <div class="flex items-center justify-between p-5 border border-gray-100 rounded-[35px] hover:bg-gray-50 transition shadow-sm hover:shadow-md duration-300">
-                        <div class="flex items-center gap-5">
-                            <div class="relative">
-                                {% if profile.profile_picture %}
-                                    <img src="{{ profile.profile_picture.url }}" class="w-14 h-14 rounded-full border-2 border-white shadow-sm object-cover">
-                                {% else %}
-                                    <img src="https://ui-avatars.com/api/?name={{ profile.user.username }}&background=random&color=fff" class="w-14 h-14 rounded-full border-2 border-white shadow-sm">
-                                {% endif %}
-                                <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
-                            </div>
-                            
-                            <div>
-                                <h4 class="font-bold text-gray-800 text-base">{{ profile.user.username }}</h4>
-                                <p class="text-xs text-gray-400 font-medium">{{ profile.user.email }}</p>
-                                <div class="flex gap-3 mt-1.5">
-                                    <span class="text-[10px] bg-blue-50 text-blue-600 px-3 py-0.5 rounded-full font-bold uppercase">{{ profile.get_user_type_display }}</span>
-                                    <span class="text-[10px] text-gray-400"><i class="far fa-clock mr-1"></i>{{ profile.user.last_login|timesince }} ago</span>
-                                </div>
-                            </div>
-                        </div>
-                        <span class="px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider {% if profile.user.is_active %}bg-green-100 text-green-600{% else %}bg-red-100 text-red-600{% endif %}">
-                            {% if profile.user.is_active %}Active{% else %}Blocked{% endif %}
-                        </span>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-12 text-gray-400">No recent activity found.</div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="space-y-10">
-                <div class="bg-white p-10 rounded-[45px] shadow-sm">
-                    <h3 class="text-xl font-bold mb-8 text-gray-800">System Health</h3>
-                    <div class="space-y-6">
-                        <div>
-                            <div class="flex justify-between text-xs mb-2 font-bold text-gray-500 uppercase"><span>Database</span><span>80%</span></div>
-                            <div class="health-bar-bg"><div class="health-bar-fill" style="width: 80%"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-2 font-bold text-gray-500 uppercase"><span>Server Uptime</span><span>70%</span></div>
-                            <div class="health-bar-bg"><div class="health-bar-fill" style="width: 70%"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-2 font-bold text-gray-500 uppercase"><span>API Response</span><span>75%</span></div>
-                            <div class="health-bar-bg"><div class="health-bar-fill" style="width: 75%"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-2 font-bold text-gray-500 uppercase"><span>Storage</span><span>55%</span></div>
-                            <div class="health-bar-bg"><div class="health-bar-fill" style="width: 55%"></div></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-8 rounded-[45px] shadow-sm">
-                    <h3 class="text-xl font-bold mb-6 text-gray-800 ml-2">Quick action</h3>
-                    <div class="grid grid-cols-2 gap-5">
-                        <a href="{% url 'app:manage_users' %}" class="action-box group">
-    <i class="fas fa-user-shield text-4xl mb-3 block group-hover:scale-110 transition duration-300"></i>
-    <p class="font-bold text-sm">Manage users</p>
-</a>
-                        <div class="action-box group">
-                            <i class="fas fa-briefcase text-4xl mb-3 block group-hover:scale-110 transition duration-300"></i>
-                            <p class="font-bold text-sm">Review jobs</p>
-                        </div>
-                        <div class="action-box group">
-                            <i class="fas fa-graduation-cap text-4xl mb-3 block group-hover:scale-110 transition duration-300"></i>
-                            <p class="font-bold text-sm">Approve Courses</p>
-                        </div>
-                        <div class="action-box group">
-                            <i class="fas fa-headset text-4xl mb-3 block group-hover:scale-110 transition duration-300"></i>
-                            <p class="font-bold text-sm">Support tickets</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="container">
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="page-title">
+      <h1>Admin Dashboard</h1>
+      <p>SkillNet management and analytics</p>
     </div>
 
-    <footer class="bg-[#1E3A8A] text-white p-16 mt-20 rounded-t-[60px]">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div>
-                <h2 class="text-3xl font-black mb-5 tracking-tighter">SkillNet</h2>
-                <p class="text-sm text-blue-200 leading-relaxed opacity-80">
-                    The leading AI-powered job portal connecting talented professionals with top companies worldwide.
-                </p>
-                <div class="flex gap-5 mt-6 text-xl">
-                    <i class="fab fa-facebook-f hover:text-blue-400 cursor-pointer transition duration-300"></i>
-                    <i class="fab fa-linkedin-in hover:text-blue-400 cursor-pointer transition duration-300"></i>
-                    <i class="fab fa-instagram hover:text-blue-400 cursor-pointer transition duration-300"></i>
-                </div>
-            </div>
-            <div>
-                <h4 class="text-lg font-bold mb-6 border-b-2 border-blue-400 inline-block pb-1">Quick Links</h4>
-                <ul class="text-sm space-y-3 text-blue-100 opacity-80">
-                    <li><a href="/" class="hover:translate-x-2 block transition cursor-pointer">Home</a></li>
-                    <li><a href="#" class="hover:translate-x-2 block transition cursor-pointer">Browse Jobs</a></li>
-                    <li><a href="#" class="hover:translate-x-2 block transition cursor-pointer">Online Courses</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="text-lg font-bold mb-6 border-b-2 border-blue-400 inline-block pb-1">Features</h4>
-                <ul class="text-sm space-y-3 text-blue-100 opacity-80">
-                    <li class="hover:translate-x-2 transition cursor-pointer">Post a Job</li>
-                    <li class="hover:translate-x-2 transition cursor-pointer">Pricing Plan</li>
-                    <li class="hover:translate-x-2 transition cursor-pointer">Talent Search</li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="text-lg font-bold mb-6 border-b-2 border-blue-400 inline-block pb-1">Contact</h4>
-                <div class="text-sm text-blue-100 space-y-4 opacity-80">
-                    <p class="flex items-center gap-3"><i class="fas fa-envelope text-blue-300"></i> SkillNet@gmail.com</p>
-                    <p class="flex items-center gap-3"><i class="fas fa-phone-alt text-blue-300"></i> 01701234567</p>
-                    <p class="flex items-center gap-3"><i class="fas fa-map-marker-alt text-blue-300"></i> UIU, Dhaka, Bangladesh</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      "
+    >
+      <div></div>
+      <a href="#" class="export-btn">📥 Export Data</a>
+    </div>
 
-</body>
-</html>
+    <!-- Stats Cards -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-title">Total users</div>
+        <div class="stat-value">
+          {{ total_users }} <span class="icon icon-user">👤</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +12.3%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Active jobs</div>
+           <div class="stat-value">
+         {{ total_active_jobs }} <span class="icon icon-job">💼</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +22.9%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Total courses</div>
+        <div class="stat-value">
+         {{ total_courses }} <span class="icon icon-course">📚</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +17.5%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Total revenue</div>
+        <div class="stat-value">
+          18k <span class="icon icon-revenue">💰</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +35.8%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Conversation rate</div>
+        <div class="stat-value">
+          12.4% <span class="icon icon-conversion">📈</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +12.3%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Avg rating</div>
+        <div class="stat-value">
+          4.8 <span class="icon icon-rating">⭐</span>
+        </div>
+        <div class="stat-change"><span class="icon-up">↑</span> +0.3%</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <a href="#" class="nav-tab">Overview</a>
+      <a href="{% url 'admin_user' %}" class="nav-tab">Users</a>
+      <a href="#" class="nav-tab">Content</a>
+ 
+      <a href="#" class="nav-tab">Support</a>
+      <a href="#" class="nav-tab">Analytics</a>
+      <a href="#" class="nav-tab">Settings</a>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Users Card -->
+      <div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Recent Users</h3>
+  </div>
+
+  <div class="user-list">
+    {% for u in recent_users %}
+      <div class="user-item">
+        <div class="user-info">
+          <div class="user-avatar">
+            <img src="https://via.placeholder.com/50" alt="User" />
+          </div>
+          <div class="user-details">
+            <div class="user-name">{{ u.user.username }}</div>
+            <div class="user-email">{{ u.user.email }}</div>
+            <div class="user-meta">
+              <span class="user-role">{{ u.get_user_type_display }}</span>
+              <span>{{ u.created_at|date:"Y-m-d" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="user-status status-active">
+          {% if u.user.is_active %}Active{% else %}Inactive{% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p>No recent users found.</p>
+    {% endfor %}
+  </div>
+</div>
+
+
+      <!-- System Health Card -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">System Health</h3>
+        </div>
+        <div class="system-health">
+          <div class="health-item">
+            <div class="health-label">Database</div>
+            <div class="health-bar">
+              <div class="health-progress" style="width: 80%"></div>
+            </div>
+            <div class="health-percentage">80%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Server Uptime</div>
+            <div class="health-bar">
+              <div class="health-progress" style="width: 70%"></div>
+            </div>
+            <div class="health-percentage">70%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Api Response</div>
+            <div class="health-bar">
+              <div class="health-progress" style="width: 75%"></div>
+            </div>
+            <div class="health-percentage">75%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Storage</div>
+            <div class="health-bar">
+              <div class="health-progress" style="width: 55%"></div>
+            </div>
+            <div class="health-percentage">55%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity Card -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Recent activity</h3>
+        </div>
+        <div class="activity-list">
+          <div class="activity-item">
+            <div class="activity-dot" style="background-color: #007bff"></div>
+            <div class="activity-content">
+              <div class="activity-title">
+                New employer registration : Techcrop Inc.
+              </div>
+              <div class="activity-time">2 hour ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background-color: #28a745"></div>
+            <div class="activity-content">
+              <div class="activity-title">
+                Course published : Advance react development
+              </div>
+              <div class="activity-time">5 hour ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background-color: #ffc107"></div>
+            <div class="activity-content">
+              <div class="activity-title">
+                Job flagged for review : Frontend developer
+              </div>
+              <div class="activity-time">2 hour ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Card -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Quick action</h3>
+        </div>
+        <div class="quick-action-grid">
+          <div class="quick-action-item">
+            <div class="quick-action-icon">👥</div>
+            <div class="quick-action-text">Manage users</div>
+          </div>
+          <div class="quick-action-item">
+            <div class="quick-action-icon">💼</div>
+            <div class="quick-action-text">Review jobs</div>
+          </div>
+          <div class="quick-action-item">
+            <div class="quick-action-icon">📚</div>
+            <div class="quick-action-text">Approve Courses</div>
+          </div>
+          <div class="quick-action-item">
+            <div class="quick-action-icon">🎫</div>
+            <div class="quick-action-text">Support tickets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  
+{% endblock %}
