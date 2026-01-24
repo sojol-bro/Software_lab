@@ -1,117 +1,214 @@
-<!-- Footer (Next-level | No redirects | Safe) -->
-<footer id="top"
-  class="relative bg-gradient-to-b from-[#EAF6FF] via-white/70 to-[#D3E9F9]/80 backdrop-blur-lg border-t border-white/30 text-[#1A3B7A]">
+<!-- ===========================
+  FOOTER — NOISY WHITE ON BLACK (PREMIUM)
+  Notes:
+  - Background: real grain + speckle dust
+  - Links: kept as # with comments above each link for later URL changes
+=========================== -->
+<footer id="top" class="relative overflow-hidden bg-black text-slate-200 border-t border-white/10">
 
-  <!-- Decorative blobs -->
-  <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
-    <div class="absolute -top-24 -left-24 h-64 w-64 rounded-full bg-[#7CC8FF]/20 blur-3xl"></div>
-    <div class="absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-[#3B82F6]/15 blur-3xl"></div>
+  <style>
+    /* ========= NOISE ENGINE (white noise on black) ========= */
+    .sn-noise-wrap{
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Grain layer (white grain) */
+    .sn-noise-grain{
+      position:absolute; inset:-40%;
+      opacity:.28;              /* <-- increase for more noise */
+      mix-blend-mode: screen;   /* makes the noise "white" on black */
+      transform: rotate(2deg);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.95'/%3E%3C/svg%3E");
+      background-size: 260px 260px;
+    }
+
+    /* Speckle layer (tiny white dust dots) */
+    .sn-noise-speckle{
+      position:absolute; inset:-20%;
+      opacity:.20;              /* <-- increase for more speckles */
+      mix-blend-mode: screen;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,.35) 0 1px, transparent 2px),
+        radial-gradient(circle at 70% 10%, rgba(255,255,255,.25) 0 1px, transparent 2px),
+        radial-gradient(circle at 30% 80%, rgba(255,255,255,.30) 0 1px, transparent 2px),
+        radial-gradient(circle at 90% 70%, rgba(255,255,255,.20) 0 1px, transparent 2px),
+        radial-gradient(circle at 55% 55%, rgba(255,255,255,.22) 0 1px, transparent 2px);
+      background-size: 220px 220px;
+      filter: blur(.15px);
+    }
+
+    /* Soft vignette + depth */
+    .sn-vignette{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(1200px 600px at 20% 15%, rgba(255,255,255,.08), transparent 55%),
+        radial-gradient(900px 500px at 85% 70%, rgba(56,189,248,.08), transparent 60%),
+        radial-gradient(1200px 800px at 50% 120%, rgba(255,255,255,.06), transparent 55%),
+        radial-gradient(circle at 50% 50%, transparent 35%, rgba(0,0,0,.65) 80%);
+      pointer-events:none;
+    }
+
+    /* Premium glass cards */
+    .sn-card{
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 20px 60px rgba(0,0,0,0.55),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      backdrop-filter: blur(10px);
+    }
+
+    .sn-link{
+      color: rgba(226,232,240,0.78);
+      transition: all .18s ease;
+    }
+    .sn-link:hover{
+      color: #fff;
+      transform: translateX(2px);
+    }
+
+    .sn-icon{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      transition: transform .18s ease, background .18s ease, border .18s ease;
+    }
+    .sn-icon:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.16);
+    }
+
+    /* nicer input */
+    .sn-input{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.90);
+    }
+    .sn-input::placeholder{ color: rgba(148,163,184,0.85); }
+    .sn-input:focus{
+      outline:none;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.22);
+    }
+  </style>
+
+  <!-- Background layers -->
+  <div class="sn-noise-wrap" aria-hidden="true">
+    <div class="sn-noise-grain"></div>
+    <div class="sn-noise-speckle"></div>
+    <div class="sn-vignette"></div>
   </div>
 
-  <div class="relative container mx-auto px-6 py-14">
+  <div class="relative container mx-auto px-6 py-16">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
 
       <!-- Brand -->
-      <div>
-        <div class="flex items-center gap-3">
-          <div class="h-11 w-11 rounded-2xl bg-white/70 border border-white/50 shadow-sm grid place-items-center">
-            <span class="font-black text-lg text-[#0F2355]">SN</span>
+      <div class="sn-card rounded-3xl p-6">
+        <div class="flex items-center gap-4">
+          <div class="h-12 w-12 rounded-2xl grid place-items-center bg-white/10 border border-white/15">
+            <span class="font-black text-lg text-white">SN</span>
           </div>
           <div>
-            <h3 class="text-2xl font-extrabold leading-none">SkillNet</h3>
-            <p class="text-xs text-slate-600 mt-1">AI-powered job & skill platform</p>
+            <h3 class="text-2xl font-extrabold tracking-tight text-white">SkillNet</h3>
+            <p class="text-xs text-slate-400 mt-1">AI-powered job & skill platform</p>
           </div>
         </div>
 
-        <p class="text-sm text-slate-700 leading-relaxed mt-4">
+        <p class="text-sm text-slate-300/80 leading-relaxed mt-5">
           Connecting professionals with top companies through intelligent matching,
           skill assessments, and career-ready learning.
         </p>
 
-        <!-- Social Icons -->
-        <div class="flex gap-3 mt-6 text-slate-700">
-          <a href="#" aria-label="Facebook"
-            class="h-10 w-10 rounded-xl bg-white/70 border border-white/50 shadow-sm grid place-items-center hover:text-[#0F2355] hover:-translate-y-0.5 transition">
+        <!-- Social -->
+        <div class="flex gap-3 mt-6 text-slate-200">
+          <!-- TODO: Facebook link -->
+          <a href="#" aria-label="Facebook" class="sn-icon h-10 w-10 rounded-xl grid place-items-center">
             <i class="fab fa-facebook-f"></i>
           </a>
-          <a href="#" aria-label="Instagram"
-            class="h-10 w-10 rounded-xl bg-white/70 border border-white/50 shadow-sm grid place-items-center hover:text-[#0F2355] hover:-translate-y-0.5 transition">
+          <!-- TODO: Instagram link -->
+          <a href="#" aria-label="Instagram" class="sn-icon h-10 w-10 rounded-xl grid place-items-center">
             <i class="fab fa-instagram"></i>
           </a>
-          <a href="#" aria-label="LinkedIn"
-            class="h-10 w-10 rounded-xl bg-white/70 border border-white/50 shadow-sm grid place-items-center hover:text-[#0F2355] hover:-translate-y-0.5 transition">
+          <!-- TODO: LinkedIn link -->
+          <a href="#" aria-label="LinkedIn" class="sn-icon h-10 w-10 rounded-xl grid place-items-center">
             <i class="fab fa-linkedin-in"></i>
           </a>
-          <a href="#" aria-label="Twitter"
-            class="h-10 w-10 rounded-xl bg-white/70 border border-white/50 shadow-sm grid place-items-center hover:text-[#0F2355] hover:-translate-y-0.5 transition">
+          <!-- TODO: Twitter link -->
+          <a href="#" aria-label="Twitter" class="sn-icon h-10 w-10 rounded-xl grid place-items-center">
             <i class="fab fa-twitter"></i>
           </a>
         </div>
-
-      
       </div>
 
       <!-- Quick Links -->
-      <div>
-        <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-        <ul class="space-y-2 text-slate-700">
-          <li><a href="#" class="hover:text-[#0F2355] transition">Home</a></li>
-          <li><a href="#" class="hover:text-[#0F2355] transition">Browse Jobs</a></li>
-          <li><a href="#" class="hover:text-[#0F2355] transition">Online Courses</a></li>
-          <li><a href="#" class="hover:text-[#0F2355] transition">Skill Quizzes</a></li>
-          <li><a href="#" class="hover:text-[#0F2355] transition">About Us</a></li>
+      <div class="sn-card rounded-3xl p-6">
+        <h4 class="text-sm font-semibold tracking-wider text-white/90 mb-5 uppercase">Quick Links</h4>
+        <ul class="space-y-3 text-sm">
+          <li><!-- TODO: Home link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Home</span><span class="text-white/30">→</span></a></li>
+          <li><!-- TODO: Browse Jobs link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Browse Jobs</span><span class="text-white/30">→</span></a></li>
+          <li><!-- TODO: Online Courses link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Online Courses</span><span class="text-white/30">→</span></a></li>
+          <li><!-- TODO: Skill Quizzes link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Skill Quizzes</span><span class="text-white/30">→</span></a></li>
+          <li><!-- TODO: About Us link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>About Us</span><span class="text-white/30">→</span></a></li>
         </ul>
       </div>
 
       <!-- Features -->
-      <div>
-        <h4 class="text-lg font-semibold mb-4">Features</h4>
-        <ul class="space-y-2 text-slate-700">
-          <li><a href="#" class="hover:text-[#0F2355] transition">Post a Job</a></li>
-          <li><a href="#" class="hover:text-[#0F2355] transition">Pricing Plan</a></li>
-          <li><a href="#" class="hover:text-[#0F2355] transition">Talent Search</a></li>
-          <li><a href="#" class="hover:text-[#0F2355] transition">Create Quizzes</a></li>
-          <li><a href="#" class="hover:text-[#0F2355] transition">Employer Resources</a></li>
+      <div class="sn-card rounded-3xl p-6">
+        <h4 class="text-sm font-semibold tracking-wider text-white/90 mb-5 uppercase">Features</h4>
+        <ul class="space-y-3 text-sm">
+          <li><!-- TODO: Post a Job link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Post a Job</span><span class="text-white/30">→</span></a></li>
+          <li><!-- TODO: Pricing Plan link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Pricing Plan</span><span class="text-white/30">→</span></a></li>
+          <li><!-- TODO: Talent Search link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Talent Search</span><span class="text-white/30">→</span></a></li>
+          <li><!-- TODO: Create Quizzes link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Create Quizzes</span><span class="text-white/30">→</span></a></li>
+          <li><!-- TODO: Employer Resources link --><a href="#" class="sn-link inline-flex items-center gap-2"><span>Employer Resources</span><span class="text-white/30">→</span></a></li>
         </ul>
       </div>
 
       <!-- Contact -->
-      <div>
-        <h4 class="text-lg font-semibold mb-4">Contact & Support</h4>
+      <div class="sn-card rounded-3xl p-6">
+        <h4 class="text-sm font-semibold tracking-wider text-white/90 mb-5 uppercase">Contact & Support</h4>
 
-        <div class="space-y-3 text-sm text-slate-700">
+        <div class="space-y-4 text-sm text-slate-300/80">
           <div class="flex items-center gap-3">
-            <i class="fas fa-envelope"></i>
-            <a href="#" class="hover:text-[#0F2355] transition">skillnet@gmail.com</a>
+            <i class="fas fa-envelope text-white/70"></i>
+            <!-- TODO: Email link -->
+            <a href="#" class="sn-link">skillnet@gmail.com</a>
           </div>
+
           <div class="flex items-center gap-3">
-            <i class="fas fa-phone"></i>
-            <a href="#" class="hover:text-[#0F2355] transition">+880 1701-234567</a>
+            <i class="fas fa-phone text-white/70"></i>
+            <!-- TODO: Phone link -->
+            <a href="#" class="sn-link">+880 1701-234567</a>
           </div>
+
           <div class="flex items-center gap-3">
-            <i class="fas fa-map-marker-alt"></i>
+            <i class="fas fa-map-marker-alt text-white/70"></i>
             <span>UIU, Dhaka, Bangladesh</span>
           </div>
         </div>
 
-        <!-- Newsletter UI -->
+        <!-- Newsletter -->
         <div class="mt-6">
-          <p class="text-sm font-semibold">Get updates</p>
+          <p class="text-sm font-semibold text-white">Get updates</p>
           <form class="mt-3 flex gap-2">
             <input type="email" placeholder="you@example.com"
-              class="w-full rounded-xl bg-white/80 border px-4 py-2 text-sm focus:ring-2 focus:ring-[#7CC8FF]/60 outline-none" />
+              class="sn-input w-full rounded-xl px-4 py-2 text-sm" />
             <button type="button"
-              class="rounded-xl bg-[#0F2355] text-white px-4 py-2 text-sm font-semibold hover:opacity-95 transition">
+              class="rounded-xl bg-white text-black px-4 py-2 text-sm font-semibold hover:bg-slate-200 transition">
               Subscribe
             </button>
           </form>
         </div>
       </div>
+
     </div>
 
     <!-- Bottom -->
-    <div class="mt-12 pt-6 border-t border-white/30 text-center text-sm text-slate-600">
-      &copy; 2026 <span class="font-semibold text-slate-700">SkillNet</span>. All rights reserved.
+    <div class="mt-14 pt-6 border-t border-white/10 text-center text-xs text-slate-400/80">
+      © 2026 <span class="text-white font-semibold">SkillNet</span>. All rights reserved.
     </div>
   </div>
 </footer>
