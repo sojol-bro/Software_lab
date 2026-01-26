@@ -3,395 +3,763 @@
 
 {% block content %}
 
-<!-- PAGE WRAPPER -->
-<section class="bg-slate-50/60">
-  <div class="container mx-auto px-4 py-10">
+<style>
+  .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .line-clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .no-scrollbar::-webkit-scrollbar{display:none;}
+  .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
 
-    <!-- HERO / HEADER -->
-    <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-      <!-- subtle gradient -->
-      <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-slate-50 pointer-events-none"></div>
+  @media (prefers-reduced-motion: no-preference){
+    .fade-in{opacity:0;transform:translateY(8px);animation:fadeIn .45s ease forwards;}
+    @keyframes fadeIn{to{opacity:1;transform:translateY(0)}}
+    .lift{transition:transform .2s ease, box-shadow .2s ease;}
+    .lift:hover{transform:translateY(-2px);}
+  }
+  .soft-focus:focus{outline:none;}
+  .soft-focus:focus-visible{box-shadow:0 0 0 4px rgba(56,189,248,.18); border-color: rgba(56,189,248,.45);}
 
-      <div class="relative p-6 md:p-10">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <div class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-              <i class="fas fa-brain"></i>
-              Skill Assessments
-            </div>
-            <h1 class="mt-4 text-2xl md:text-4xl font-extrabold tracking-tight text-slate-900">
-              Skill Assessment Quizzes
-            </h1>
-            <p class="mt-3 text-slate-600 max-w-2xl">
-              Test your knowledge, track progress, and unlock personalized job recommendations based on your performance.
-            </p>
+  .chip{display:inline-flex;align-items:center;gap:.45rem;border-radius:9999px;border:1px solid rgb(226 232 240);background:#fff;padding:.35rem .7rem;font-weight:600;font-size:.75rem;color:rgb(51 65 85);}
+</style>
 
-            <div class="mt-5 flex flex-wrap gap-2 text-xs">
-              <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-700">
-                <i class="fas fa-bolt text-slate-500"></i> Quick & focused
-              </span>
-              <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-700">
-                <i class="fas fa-shield-alt text-slate-500"></i> Verified skill signals
-              </span>
-              <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-700">
-                <i class="fas fa-briefcase text-slate-500"></i> Career matching
-              </span>
-            </div>
-          </div>
+<!-- ===== HERO ===== -->
+<section class="px-4 pt-8 pb-6">
+  <div class="container mx-auto max-w-6xl">
+    <div class="relative overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+      <div aria-hidden="true" class="pointer-events-none absolute -top-28 -right-28 h-72 w-72 rounded-full bg-slate-200/45 blur-3xl"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-32 -left-28 h-80 w-80 rounded-full bg-slate-300/30 blur-3xl"></div>
 
-          <!-- Right side CTA -->
-          <div class="flex flex-col sm:flex-row gap-3">
-            {% if user.is_authenticated %}
-              {# Optional: only show if you have a create URL. If you don't, remove this block or update URL. #}
-              {% url 'app:create_quiz' as create_quiz_url %}
-              {% if create_quiz_url %}
-                <a href="{{ create_quiz_url }}"
-                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-white font-semibold shadow hover:bg-slate-800 transition">
-                  <i class="fas fa-plus"></i>
-                  Create Quiz
-                </a>
-              {% endif %}
-            {% endif %}
-            <a href="{% url 'app:job_list' %}"
-               class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-slate-800 font-semibold hover:bg-slate-50 transition">
-              <i class="fas fa-briefcase"></i>
-              Explore Jobs
-            </a>
-          </div>
-        </div>
-
-        <!-- SEARCH / FILTER BAR -->
-        <div class="mt-8 rounded-2xl border border-slate-200 bg-white/70 backdrop-blur px-4 py-4 md:px-6">
-          <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-
-            <!-- Search -->
-            <div class="md:col-span-6 relative">
-              <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input
-                type="text"
-                name="q"
-                value="{{ search_query }}"
-                placeholder="Search quiz title, instructor, skill..."
-                class="w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 py-3 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
-              />
-            </div>
-
-            <!-- Difficulty filter -->
-            <div class="md:col-span-2">
-              <select name="difficulty"
-                      class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400">
-                <option value="">Difficulty</option>
-                <option value="beginner" {% if request.GET.difficulty == "beginner" %}selected{% endif %}>Beginner</option>
-                <option value="intermediate" {% if request.GET.difficulty == "intermediate" %}selected{% endif %}>Intermediate</option>
-                <option value="advanced" {% if request.GET.difficulty == "advanced" %}selected{% endif %}>Advanced</option>
-              </select>
-            </div>
-
-            <!-- Sort -->
-            <div class="md:col-span-2">
-              <select name="sort"
-                      class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400">
-                <option value="">Sort</option>
-                <option value="rating" {% if request.GET.sort == "rating" %}selected{% endif %}>Top rated</option>
-                <option value="popular" {% if request.GET.sort == "popular" %}selected{% endif %}>Most attempts</option>
-                <option value="short" {% if request.GET.sort == "short" %}selected{% endif %}>Shortest</option>
-                <option value="long" {% if request.GET.sort == "long" %}selected{% endif %}>Longest</option>
-              </select>
-            </div>
-
-            <!-- Submit -->
-            <div class="md:col-span-2 flex gap-2">
-              <button type="submit"
-                      class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-700 transition">
-                <i class="fas fa-filter"></i> Apply
-              </button>
-
-              {% if request.GET.q or request.GET.difficulty or request.GET.sort %}
-                <a href="{% url 'app:quiz_list' %}"
-                   class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-700 hover:bg-slate-50 transition">
-                  <i class="fas fa-times"></i>
-                </a>
-              {% endif %}
-            </div>
-
-          </form>
-
-          <!-- Small helper line -->
-          <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-            <p class="flex items-center gap-2">
-              <i class="fas fa-info-circle"></i>
-              Tip: Take 2–3 quizzes to unlock better recommendations.
-            </p>
-
-            <div class="flex items-center gap-2">
-              <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
-                <i class="fas fa-clock"></i> Avg 10–20 min
-              </span>
-              <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
-                <i class="fas fa-star"></i> Rated by users
-              </span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- QUIZ GRID -->
-    <div class="mt-10 max-w-6xl mx-auto">
-      <div class="flex items-end justify-between gap-4 mb-6">
-        <div>
-          <h2 class="text-lg md:text-xl font-bold text-slate-900">Available Quizzes</h2>
-          <p class="text-sm text-slate-600">Pick one and start building your profile score.</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        {% for quiz in quizzes %}
-          <!-- Card -->
-          <div class="group rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-[0_18px_60px_rgba(15,23,42,0.10)] transition overflow-hidden">
-            <!-- Top strip -->
-            <div class="p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
-
-              <!-- Instructor + difficulty -->
-              <div class="flex items-start justify-between gap-3">
-                <div class="flex items-center gap-3 min-w-0">
-                  <img
-                    src="{% if quiz.instructor_photo %}{{ quiz.instructor_photo.url }}{% else %}https://via.placeholder.com/60x60?text={{ quiz.instructor|slice:':1' }}{% endif %}"
-                    alt="{{ quiz.instructor }}"
-                    class="w-11 h-11 rounded-xl object-cover border border-slate-200"
-                  />
-                  <div class="min-w-0">
-                    <p class="text-xs text-slate-500">Instructor</p>
-                    <p class="text-sm font-semibold text-slate-800 truncate">{{ quiz.instructor }}</p>
-                  </div>
-                </div>
-
-                <span class="shrink-0 px-3 py-1 {{ quiz.get_difficulty_badge_class }} text-xs rounded-full font-semibold">
-                  {{ quiz.get_difficulty_display }}
-                </span>
-              </div>
-
-              <!-- Title -->
-              <a href="{% url 'app:quiz_detail' quiz.id %}" class="block mt-4">
-                <h3 class="text-base font-bold text-slate-900 leading-snug group-hover:underline">
-                  {{ quiz.title }}
-                </h3>
-                <p class="mt-1 text-sm text-slate-600 line-clamp-2">
-                  Build confidence with targeted questions and instant feedback.
-                </p>
-              </a>
-
-              <!-- Rating -->
-              <div class="mt-4 flex items-center justify-between">
-                <div class="flex items-center">
-                  <span class="text-sm font-semibold text-slate-900">{{ quiz.rating }}/5</span>
-                  <div class="ml-2 flex items-center">
-                    {% with filled_stars=quiz.get_star_rating.0 empty_stars=quiz.get_star_rating.1 %}
-                      {% for i in "12345" %}
-                        {% if forloop.counter <= filled_stars %}
-                          <i class="fas fa-star text-yellow-400"></i>
-                        {% else %}
-                          <i class="fas fa-star text-slate-200"></i>
-                        {% endif %}
-                      {% endfor %}
-                    {% endwith %}
-                  </div>
-                </div>
-
-                <span class="text-xs text-slate-500 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
-                  <i class="fas fa-clock"></i>
-                  {{ quiz.duration_minutes }} min
-                </span>
-              </div>
-
-              <!-- Stats -->
-              <div class="mt-4 grid grid-cols-3 gap-2 text-xs text-slate-600">
-                <div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-                  <p class="font-bold text-slate-900">{{ quiz.total_questions }}</p>
-                  <p class="text-[11px] mt-1">Questions</p>
-                </div>
-                <div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-                  <p class="font-bold text-slate-900">{{ quiz.attempts_count }}</p>
-                  <p class="text-[11px] mt-1">Attempts</p>
-                </div>
-                <div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-                  <p class="font-bold text-slate-900">AI</p>
-                  <p class="text-[11px] mt-1">Matching</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="p-5">
-              <div class="flex gap-2">
-
-                {% if user.is_authenticated %}
-                  <a href="{% url 'app:start_quiz' quiz.id %}"
-                     class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-white font-semibold hover:bg-slate-800 transition">
-                    <i class="fas fa-play"></i>
-                    Start
-                  </a>
-                {% else %}
-                  <a href="{% url 'login' %}?next={% url 'app:quiz_detail' quiz.id %}"
-                     class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-white font-semibold hover:bg-slate-800 transition">
-                    <i class="fas fa-lock"></i>
-                    Login to Start
-                  </a>
-                {% endif %}
-
-                <a href="{% url 'app:quiz_detail' quiz.id %}"
-                   class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 hover:bg-slate-50 transition"
-                   aria-label="View details">
-                  <i class="fas fa-arrow-right"></i>
-                </a>
-
-                {% if user.is_authenticated %}
-                  {# Optional edit button if you have an edit URL. Update to your actual URL name. #}
-                  {% url 'app:edit_quiz' quiz.id as edit_quiz_url %}
-                  {% if edit_quiz_url %}
-                    <a href="{{ edit_quiz_url }}"
-                       class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 hover:bg-slate-50 transition"
-                       aria-label="Edit quiz">
-                      <i class="fas fa-pen"></i>
-                    </a>
-                  {% endif %}
-                {% endif %}
-
-              </div>
-
-              <!-- trust line -->
-              <p class="mt-3 text-xs text-slate-500 flex items-center gap-2">
-                <i class="fas fa-check-circle text-emerald-500"></i>
-                Results are saved to your profile for better recommendations.
-              </p>
-            </div>
-          </div>
-        {% empty %}
-          <!-- Empty State -->
-          <div class="col-span-full">
-            <div class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
-              <div class="mx-auto w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                <i class="fas fa-clipboard-list text-2xl text-slate-500"></i>
-              </div>
-              <h3 class="text-xl font-bold text-slate-700">No quizzes available</h3>
-              <p class="mt-2 text-slate-500">Check back later — new skill assessments are added regularly.</p>
-
-              <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="{% url 'app:job_list' %}"
-                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-white font-semibold hover:bg-blue-700 transition">
-                  <i class="fas fa-briefcase"></i> Browse Jobs
-                </a>
-                {% if user.is_authenticated %}
-                  {% url 'app:create_quiz' as create_quiz_url %}
-                  {% if create_quiz_url %}
-                    <a href="{{ create_quiz_url }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-slate-800 font-semibold hover:bg-slate-50 transition">
-                      <i class="fas fa-plus"></i> Create First Quiz
-                    </a>
-                  {% endif %}
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-
-      </div>
-
-      {# OPTIONAL: Pagination UI (only works if you pass page_obj) #}
-      {% if page_obj %}
-        <div class="mt-10 flex items-center justify-center gap-2">
-          {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}"
-               class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50">Prev</a>
-          {% endif %}
-          <span class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-          </span>
-          {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}"
-               class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50">Next</a>
-          {% endif %}
-        </div>
-      {% endif %}
-    </div>
-
-    <!-- WHY TAKE QUIZZES -->
-    <div class="mt-16 max-w-6xl mx-auto">
-      <div class="text-center">
-        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Why take our quizzes?</h2>
-        <p class="mt-3 text-slate-600 max-w-2xl mx-auto">
-          Stronger signals → better job matches → faster growth.
+      <div class="relative px-6 py-10 md:px-10 md:py-12 text-center">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Skill Assessment Quizzes</h1>
+        <p class="text-slate-600 max-w-2xl mx-auto mt-3">
+          Test your knowledge, track progress, and unlock better matching on our platform.
         </p>
-      </div>
 
-      <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Benefit Card -->
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition">
-          <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
-            <i class="fas fa-certificate text-xl text-blue-600"></i>
+        <!-- Search -->
+        <form method="GET" action="{% url 'app:quiz_list' %}" class="max-w-4xl mx-auto mt-8">
+          <div class="relative">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+
+            <input
+              id="quizSearch"
+              type="text"
+              name="q"
+              placeholder="Quiz title, instructor, or skill"
+              value="{{ search_query }}"
+              class="soft-focus w-full pl-11 pr-28 sm:pr-36 py-3.5 rounded-2xl border border-slate-200 bg-white/90 backdrop-blur
+                     text-slate-800 placeholder:text-slate-400 shadow-sm"
+            />
+
+            <button type="submit"
+              class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2.5 rounded-xl
+                     bg-sky-600/90 text-white font-semibold shadow-sm
+                     hover:bg-sky-700/90 active:scale-[0.98] transition">
+              Search
+            </button>
           </div>
-          <h3 class="font-bold text-slate-900">Get Certified</h3>
-          <p class="mt-2 text-sm text-slate-600">Show verified skills to recruiters with confidence.</p>
+
+          <!-- keep filters when searching -->
+          <input type="hidden" name="difficulty" value="{{ request.GET.difficulty }}">
+          <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+          <input type="hidden" name="page" value="">
+        </form>
+
+        <!-- Filters + Views under search -->
+        <div class="mt-5">
+          <div class="mx-auto max-w-4xl">
+            <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur shadow-sm p-3 md:p-4">
+              <form method="GET" action="{% url 'app:quiz_list' %}">
+                <input type="hidden" name="q" value="{{ search_query }}">
+
+                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <!-- Filters -->
+                  <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                    <select name="difficulty"
+                      class="soft-focus px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-sm"
+                      onchange="this.form.submit()">
+                      <option value="">All Difficulties</option>
+                      <option value="beginner" {% if request.GET.difficulty == "beginner" %}selected{% endif %}>Beginner</option>
+                      <option value="intermediate" {% if request.GET.difficulty == "intermediate" %}selected{% endif %}>Intermediate</option>
+                      <option value="advanced" {% if request.GET.difficulty == "advanced" %}selected{% endif %}>Advanced</option>
+                    </select>
+
+                    <select name="sort"
+                      class="soft-focus px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-sm"
+                      onchange="this.form.submit()">
+                      <option value="">Sort</option>
+                      <option value="rating" {% if request.GET.sort == "rating" %}selected{% endif %}>Top rated</option>
+                      <option value="popular" {% if request.GET.sort == "popular" %}selected{% endif %}>Most attempts</option>
+                      <option value="short" {% if request.GET.sort == "short" %}selected{% endif %}>Shortest</option>
+                      <option value="long" {% if request.GET.sort == "long" %}selected{% endif %}>Longest</option>
+                    </select>
+
+                    <a href="{% url 'app:quiz_list' %}"
+                       class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
+                              border border-slate-200 bg-white text-slate-700 shadow-sm
+                              hover:bg-slate-50 transition">
+                      <i class="fas fa-times text-slate-400"></i>
+                      Clear
+                    </a>
+                  </div>
+
+                  <!-- Views + Saved -->
+                  <div class="flex items-center justify-center md:justify-end gap-2">
+                    <div class="inline-flex rounded-xl border border-slate-200 bg-white shadow-sm p-1">
+                      <button type="button" data-view="grid"
+                        class="viewBtn px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                        aria-label="Grid view">
+                        <i class="fas fa-th-large text-slate-400"></i>
+                      </button>
+                      <button type="button" data-view="list"
+                        class="viewBtn px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                        aria-label="List view">
+                        <i class="fas fa-bars text-slate-400"></i>
+                      </button>
+                      <button type="button" data-view="compact"
+                        class="viewBtn px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                        aria-label="Compact view">
+                        <i class="fas fa-list text-slate-400"></i>
+                      </button>
+                    </div>
+
+                    {% if user.is_authenticated %}
+                    <button id="savedOnlyBtn" type="button"
+                      class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 transition">
+                      <i class="fas fa-bookmark text-slate-400"></i>
+                      <span class="text-sm font-semibold">Saved</span>
+                      <span id="savedCount" class="chip">0</span>
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div class="mt-3 flex items-center justify-center gap-2 text-xs text-slate-500">
+              <span class="inline-flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-sky-500/70"></span>
+                Tip: click “Preview” for quick info, “View” for details
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
-            <i class="fas fa-briefcase text-xl text-emerald-600"></i>
-          </div>
-          <h3 class="font-bold text-slate-900">Job Matching</h3>
-          <p class="mt-2 text-sm text-slate-600">Personalized recommendations based on your performance.</p>
-        </div>
-
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition">
-          <div class="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center mb-4">
-            <i class="fas fa-chart-line text-xl text-purple-600"></i>
-          </div>
-          <h3 class="font-bold text-slate-900">Skill Tracking</h3>
-          <p class="mt-2 text-sm text-slate-600">Measure progress and target weak areas quickly.</p>
-        </div>
-
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition">
-          <div class="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-4">
-            <i class="fas fa-clock text-xl text-orange-600"></i>
-          </div>
-          <h3 class="font-bold text-slate-900">Time Efficient</h3>
-          <p class="mt-2 text-sm text-slate-600">Quick assessments that fit into your schedule.</p>
-        </div>
-
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition">
-          <div class="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center mb-4">
-            <i class="fas fa-user-tie text-xl text-rose-600"></i>
-          </div>
-          <h3 class="font-bold text-slate-900">Industry Relevant</h3>
-          <p class="mt-2 text-sm text-slate-600">Built with real-world job skills in mind.</p>
-        </div>
-
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition">
-          <div class="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center mb-4">
-            <i class="fas fa-rocket text-xl text-teal-600"></i>
-          </div>
-          <h3 class="font-bold text-slate-900">Career Growth</h3>
-          <p class="mt-2 text-sm text-slate-600">Discover what to learn next for your dream role.</p>
-        </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ===== RESULTS ===== -->
+<section class="px-4 pb-12">
+  <div class="container mx-auto max-w-6xl">
+
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-5">
+      <div class="text-slate-600">
+        <span class="inline-flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-sky-500/70"></span>
+          <span class="font-medium" id="serverCount">{{ quizzes.count }}</span>
+          <span>quiz{% if quizzes.count != 1 %}zes{% endif %} found</span>
+          <span id="clientCountWrap" class="hidden">• <span id="clientCount" class="font-medium">0</span> shown</span>
+        </span>
+      </div>
+
+      <div class="flex items-center justify-center md:justify-end gap-2">
+        <button id="clearClientFilter" type="button"
+          class="hidden px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 transition">
+          Clear refine
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== WRAP ===== -->
+    <div id="quizzesWrap" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" data-saved-only="0">
+
+      {% for quiz in quizzes %}
+      <article class="quizCard group h-full fade-in"
+        data-id="{{ quiz.id }}"
+        data-title="{{ quiz.title|default:''|lower }}"
+        data-instructor="{{ quiz.instructor|default:''|lower }}"
+        data-difficulty="{{ quiz.get_difficulty_display|default:''|lower }}"
+        data-rating="{{ quiz.rating|default:'' }}"
+        data-duration="{{ quiz.duration_minutes|default:'' }}"
+        data-questions="{{ quiz.total_questions|default:'' }}"
+        data-attempts="{{ quiz.attempts_count|default:'' }}"
+        data-url="{% url 'app:quiz_detail' quiz.id %}"
+        data-start="{% if user.is_authenticated %}{% url 'app:start_quiz' quiz.id %}{% else %}{% url 'login' %}?next={% url 'app:quiz_detail' quiz.id %}{% endif %}"
+        style="animation-delay: {{ forloop.counter0|add:1 }}0ms;">
+
+        <div class="h-full rounded-2xl border border-slate-200 bg-white
+                    shadow-[0_10px_30px_rgba(15,23,42,0.06)]
+                    hover:shadow-[0_18px_60px_rgba(15,23,42,0.10)]
+                    transition will-change-transform overflow-hidden lift">
+
+          <div class="h-1 bg-sky-500/60"></div>
+
+          <div class="p-5 flex flex-col h-full">
+
+            <!-- Top -->
+            <div class="topRow flex items-start gap-4">
+              <div class="h-12 w-12 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex items-center justify-center shrink-0">
+                {% if quiz.instructor_photo %}
+                  <img src="{{ quiz.instructor_photo.url }}" alt="{{ quiz.instructor }}" class="h-full w-full object-cover" loading="lazy" />
+                {% else %}
+                  <i class="fas fa-user text-slate-400"></i>
+                {% endif %}
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <h3 class="text-lg font-extrabold text-slate-900 leading-snug truncate">
+                      {{ quiz.title }}
+                    </h3>
+                    <p class="text-sm text-slate-600 truncate">
+                      {{ quiz.instructor }}
+                    </p>
+                  </div>
+
+                  <span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
+                    {% if quiz.difficulty == 'beginner' %}bg-emerald-50 text-emerald-700 border border-emerald-100
+                    {% elif quiz.difficulty == 'intermediate' %}bg-sky-50 text-sky-700 border border-sky-100
+                    {% else %}bg-amber-50 text-amber-700 border border-amber-100{% endif %}">
+                    {{ quiz.get_difficulty_display }}
+                  </span>
+                </div>
+
+                <div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl
+                            bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold">
+                  <i class="fas fa-clock text-slate-400"></i>
+                  <span class="truncate">{{ quiz.duration_minutes }} min</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 h-px bg-slate-100"></div>
+
+            <!-- Meta -->
+            <div class="meta mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <i class="fas fa-star text-slate-400"></i>
+                <span class="text-slate-700 truncate">{{ quiz.rating }}/5</span>
+              </div>
+
+              <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <i class="fas fa-question-circle text-slate-400"></i>
+                <span class="text-slate-700 truncate">{{ quiz.total_questions }} questions</span>
+              </div>
+
+              <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <i class="fas fa-users text-slate-400"></i>
+                <span class="text-slate-700 truncate">{{ quiz.attempts_count }} attempts</span>
+              </div>
+
+              <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <i class="fas fa-brain text-slate-400"></i>
+                <span class="text-slate-700 truncate">AI matching</span>
+              </div>
+            </div>
+
+            <p class="desc mt-4 text-sm text-slate-700 leading-relaxed line-clamp-3">
+              Build confidence with targeted questions and instant feedback.
+            </p>
+
+            <div class="flex-1"></div>
+
+            <!-- Bottom -->
+            <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+              <div class="text-xs text-slate-500 inline-flex items-center gap-2">
+                <i class="fas fa-shield-alt text-slate-400"></i>
+                Verified skill signal
+              </div>
+
+              <div class="flex items-center gap-2">
+                {% if user.is_authenticated %}
+                <button type="button"
+                  class="saveQuizBtn inline-flex items-center justify-center h-10 w-10 rounded-xl
+                         border border-slate-200 bg-white text-slate-700 shadow-sm
+                         hover:bg-slate-50 active:scale-[0.98] transition"
+                  aria-label="Save"
+                  data-quiz-id="{{ quiz.id }}"
+                  data-quiz-title="{{ quiz.title|escape }}">
+                  <i class="fas fa-bookmark text-slate-400"></i>
+                </button>
+                {% endif %}
+
+                <!-- Preview (opens modal) -->
+                <button type="button"
+                  class="previewBtn inline-flex items-center justify-center h-10 w-10 rounded-xl
+                         border border-slate-200 bg-white text-slate-700 shadow-sm
+                         hover:bg-slate-50 active:scale-[0.98] transition"
+                  aria-label="Quick preview"
+                  data-id="{{ quiz.id }}"
+                  data-title="{{ quiz.title|escape }}"
+                  data-instructor="{{ quiz.instructor|escape }}"
+                  data-difficulty="{{ quiz.get_difficulty_display|escape }}"
+                  data-rating="{{ quiz.rating|escape }}"
+                  data-duration="{{ quiz.duration_minutes|escape }}"
+                  data-questions="{{ quiz.total_questions|escape }}"
+                  data-attempts="{{ quiz.attempts_count|escape }}"
+                  data-url="{% url 'app:quiz_detail' quiz.id %}"
+                  data-start="{% if user.is_authenticated %}{% url 'app:start_quiz' quiz.id %}{% else %}{% url 'login' %}?next={% url 'app:quiz_detail' quiz.id %}{% endif %}"
+                >
+                  <i class="fas fa-eye text-slate-400"></i>
+                </button>
+
+                <!-- View -->
+                <a href="{% url 'app:quiz_detail' quiz.id %}"
+                  class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl
+                         bg-sky-600/90 text-white text-sm font-extrabold shadow-sm
+                         hover:bg-sky-700/90 active:scale-[0.98] transition">
+                  View
+                  <i class="fas fa-arrow-right text-white/90"></i>
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </article>
+      {% empty %}
+      <div class="col-span-full">
+        <div class="text-center py-16 rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div class="mx-auto h-14 w-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center">
+            <i class="fas fa-clipboard-list text-2xl text-slate-400"></i>
+          </div>
+          <h3 class="mt-5 text-xl font-extrabold text-slate-800">No quizzes found</h3>
+          <p class="mt-2 text-slate-600">Try adjusting your search criteria or clear filters.</p>
+          <a href="{% url 'app:quiz_list' %}"
+             class="inline-flex mt-6 items-center justify-center gap-2 px-6 py-3 rounded-xl
+                    bg-sky-600/90 text-white font-extrabold hover:bg-sky-700/90 transition">
+            View All Quizzes
+            <i class="fas fa-arrow-right text-white/90"></i>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div id="clientEmpty" class="hidden mt-8">
+      <div class="text-center py-14 rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <h3 class="text-lg font-extrabold text-slate-800">No matches</h3>
+        <p class="mt-2 text-slate-600">Clear refine or use server filters.</p>
+      </div>
+    </div>
+
+    <!-- ===== Pagination (keeps GET filters) ===== -->
+    {% if page_obj %}
+      <div class="flex justify-center mt-10">
+        <div class="inline-flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+               class="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-100 transition">
+              Prev
+            </a>
+          {% endif %}
+
+          {% for i in page_obj.paginator.page_range %}
+            {% if page_obj.number == i %}
+              <span class="px-4 py-2 rounded-xl bg-sky-600/90 text-white font-extrabold">{{ i }}</span>
+            {% else %}
+              <a href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                 class="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-100 transition">
+                {{ i }}
+              </a>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+               class="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-100 transition">
+              Next
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
 
   </div>
 </section>
 
-<!-- tiny utility for line-clamp (only if not already in your build) -->
-<style>
-  .line-clamp-2{
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
+<!-- ===== QUICK PREVIEW MODAL ===== -->
+<div id="qvOverlay" class="hidden fixed inset-0 z-[70]" aria-hidden="true">
+  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+
+  <div class="relative mx-auto mt-10 sm:mt-16 w-[min(860px,calc(100%-24px))]">
+    <div class="rounded-[24px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.22)] overflow-hidden">
+      <div class="px-5 sm:px-6 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-900">Quiz Preview</p>
+          <p id="qvSub" class="text-xs text-slate-500">Quick view</p>
+        </div>
+        <button id="qvClose" class="h-10 w-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition soft-focus" aria-label="Close">
+          <i class="fas fa-times text-slate-500"></i>
+        </button>
+      </div>
+
+      <div class="p-5 sm:p-6">
+        <div class="flex items-start gap-4">
+          <div class="h-12 w-12 rounded-2xl border border-slate-200 bg-white shadow-sm flex items-center justify-center shrink-0">
+            <i class="fas fa-brain text-slate-400"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 id="qvTitle" class="text-xl font-extrabold tracking-tight text-slate-900 truncate">—</h3>
+            <p id="qvInstructor" class="text-sm text-slate-600 truncate">—</p>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span id="qvChip1" class="chip">—</span>
+              <span id="qvChip2" class="chip">—</span>
+              <span id="qvChip3" class="chip">—</span>
+              <span id="qvChip4" class="chip">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+            <p class="text-xs text-slate-500">Difficulty</p>
+            <p id="qvDifficulty" class="mt-1 font-semibold text-slate-800">—</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+            <p class="text-xs text-slate-500">Rating</p>
+            <p id="qvRating" class="mt-1 font-semibold text-slate-800">—</p>
+          </div>
+        </div>
+
+        <div class="mt-5">
+          <p class="text-xs text-slate-500">Summary</p>
+          <p id="qvDesc" class="mt-2 text-sm text-slate-700 leading-relaxed line-clamp-3">
+            Build confidence with targeted questions and instant feedback.
+          </p>
+        </div>
+
+        <div class="mt-6 flex items-center justify-end gap-2">
+          <button id="qvDone" type="button"
+            class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl
+                   border border-slate-200 bg-white text-slate-700 font-semibold
+                   hover:bg-slate-50 transition soft-focus">
+            Done
+          </button>
+
+          <a id="qvStart"
+             href="#"
+             class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+                    border border-slate-200 bg-white text-slate-700 font-semibold
+                    hover:bg-slate-50 transition soft-focus">
+            Start
+            <i class="fas fa-play text-slate-400"></i>
+          </a>
+
+          <a id="qvView"
+             href="#"
+             class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+                    bg-sky-600/90 text-white font-extrabold shadow-sm
+                    hover:bg-sky-700/90 active:scale-[0.98] transition">
+            View details
+            <i class="fas fa-arrow-right text-white/90"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOASTS ===== -->
+<div id="toastHost" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[80] flex flex-col gap-2 w-[min(520px,calc(100%-18px))] pointer-events-none"></div>
+
+<script>
+  const qs = (s, el=document) => el.querySelector(s);
+  const qsa = (s, el=document) => Array.from(el.querySelectorAll(s));
+
+  function toast(msg){
+    const host = qs('#toastHost');
+    if(!host) return;
+    const node = document.createElement('div');
+    node.className = 'pointer-events-auto rounded-2xl border border-slate-200 bg-white shadow-[0_16px_50px_rgba(15,23,42,0.14)] px-4 py-3 flex items-start gap-3';
+    node.innerHTML = `
+      <div class="h-9 w-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
+        <i class="fas fa-info-circle text-slate-500"></i>
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-slate-900">Notice</p>
+        <p class="text-sm text-slate-600 mt-0.5">${msg}</p>
+      </div>
+      <button class="ml-auto h-9 w-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition">
+        <i class="fas fa-times text-slate-500"></i>
+      </button>
+    `;
+    host.appendChild(node);
+    const close = () => node.remove();
+    node.querySelector('button')?.addEventListener('click', close);
+    setTimeout(close, 2400);
   }
-</style>
+
+  // ===== View Toggle (same behavior as job list) =====
+  (function () {
+    const wrap = qs('#quizzesWrap');
+    const buttons = qsa('.viewBtn');
+    const STORAGE_KEY = 'skillnet_quiz_view';
+    if(!wrap || !buttons.length) return;
+
+    function setActive(btn){
+      buttons.forEach(b => {
+        b.classList.remove('bg-sky-600/90','text-white','shadow-sm');
+        b.classList.add('text-slate-700');
+        const icon = b.querySelector('i'); if(icon) icon.classList.add('text-slate-400');
+      });
+      btn.classList.add('bg-sky-600/90','text-white','shadow-sm');
+      btn.classList.remove('text-slate-700');
+      const icon = btn.querySelector('i'); if(icon) icon.classList.remove('text-slate-400');
+    }
+
+    function applyView(view) {
+      wrap.className = '';
+
+      const cards = qsa('.quizCard');
+      cards.forEach(card => {
+        card.querySelector('.desc')?.classList.remove('hidden');
+        card.querySelector('.meta')?.classList.remove('hidden');
+      });
+
+      if (view === 'grid') {
+        wrap.className = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6';
+      } else if (view === 'list') {
+        wrap.className = 'grid grid-cols-1 gap-4';
+      } else if (view === 'compact') {
+        wrap.className = 'grid grid-cols-1 gap-3';
+        cards.forEach(card => {
+          card.querySelector('.desc')?.classList.add('hidden');
+        });
+      }
+
+      localStorage.setItem(STORAGE_KEY, view);
+      const btn = buttons.find(b => b.dataset.view === view);
+      if(btn) setActive(btn);
+      applyClientRefine();
+    }
+
+    buttons.forEach(btn => btn.addEventListener('click', () => applyView(btn.dataset.view)));
+    applyView(localStorage.getItem(STORAGE_KEY) || 'grid');
+  })();
+
+  // ===== Save Quizzes + Saved-only filter (same UI as job list) =====
+  (function(){
+    const KEY = 'skillnet_saved_quizzes';
+    const countEl = qs('#savedCount');
+    const savedOnlyBtn = qs('#savedOnlyBtn');
+    const wrap = qs('#quizzesWrap');
+
+    const getSaved = () => {
+      try{ return new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); }
+      catch{ return new Set(); }
+    };
+    const setSaved = (set) => localStorage.setItem(KEY, JSON.stringify([...set]));
+
+    function sync(){
+      const saved = getSaved();
+      if(countEl) countEl.textContent = saved.size;
+
+      qsa('.saveQuizBtn').forEach(b=>{
+        const id = String(b.getAttribute('data-quiz-id') || '');
+        const icon = b.querySelector('i');
+        const on = saved.has(id);
+        if(on){
+          b.classList.add('bg-slate-50');
+          if(icon){ icon.classList.remove('text-slate-400'); icon.classList.add('text-sky-600'); }
+        }else{
+          b.classList.remove('bg-slate-50');
+          if(icon){ icon.classList.add('text-slate-400'); icon.classList.remove('text-sky-600'); }
+        }
+      });
+    }
+
+    document.addEventListener('click',(e)=>{
+      const btn = e.target.closest('.saveQuizBtn');
+      if(!btn) return;
+      const id = String(btn.getAttribute('data-quiz-id') || '');
+      const title = btn.getAttribute('data-quiz-title') || 'Quiz';
+
+      const saved = getSaved();
+      if(saved.has(id)){
+        saved.delete(id);
+        toast(`Removed "${title}" from Saved`);
+      } else {
+        saved.add(id);
+        toast(`Saved "${title}"`);
+      }
+      setSaved(saved);
+      sync();
+      applyClientRefine();
+    });
+
+    if(savedOnlyBtn && wrap){
+      savedOnlyBtn.addEventListener('click', ()=>{
+        const on = wrap.getAttribute('data-saved-only') === '1';
+        wrap.setAttribute('data-saved-only', on ? '0' : '1');
+        savedOnlyBtn.classList.toggle('bg-sky-50', !on);
+        savedOnlyBtn.classList.toggle('border-sky-200', !on);
+        toast(!on ? 'Showing Saved only (this page)' : 'Showing all (this page)');
+        applyClientRefine();
+      });
+    }
+
+    sync();
+  })();
+
+  // ===== Client refine (typing) =====
+  function applyClientRefine(){
+    const input = qs('#quizSearch');
+    const wrap = qs('#quizzesWrap');
+    if(!input || !wrap) return;
+
+    const query = (input.value || '').trim().toLowerCase();
+    const savedOnly = wrap.getAttribute('data-saved-only') === '1';
+
+    const KEY = 'skillnet_saved_quizzes';
+    let saved = new Set();
+    try{ saved = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); }catch{}
+
+    const cards = qsa('.quizCard', wrap);
+    let shown = 0;
+
+    cards.forEach(card=>{
+      const id = String(card.dataset.id || '');
+      const okSaved = !savedOnly || saved.has(id);
+
+      const hay = [
+        card.dataset.title || '',
+        card.dataset.instructor || '',
+        card.dataset.difficulty || ''
+      ].join(' ');
+
+      const okQuery = !query || hay.includes(query);
+
+      const visible = okSaved && okQuery;
+      card.classList.toggle('hidden', !visible);
+      if(visible) shown++;
+    });
+
+    const clientWrap = qs('#clientCountWrap');
+    const clientCount = qs('#clientCount');
+    const empty = qs('#clientEmpty');
+    const clearBtn = qs('#clearClientFilter');
+
+    const refining = !!query || savedOnly;
+    if(clientWrap) clientWrap.classList.toggle('hidden', !refining);
+    if(clientCount) clientCount.textContent = String(shown);
+    if(empty) empty.classList.toggle('hidden', shown !== 0 || !refining);
+
+    if(clearBtn){
+      clearBtn.classList.toggle('hidden', !query && !savedOnly);
+      clearBtn.onclick = () => {
+        input.value = '';
+        wrap.setAttribute('data-saved-only','0');
+        qs('#savedOnlyBtn')?.classList.remove('bg-sky-50','border-sky-200');
+        applyClientRefine();
+        input.focus();
+      };
+    }
+  }
+
+  (function(){
+    const input = qs('#quizSearch');
+    if(!input) return;
+    let t=null;
+    input.addEventListener('input', ()=>{
+      clearTimeout(t);
+      t=setTimeout(applyClientRefine, 70);
+    });
+    applyClientRefine();
+  })();
+
+  // ===== Quick Preview Modal (same behavior) =====
+  (function(){
+    const overlay = qs('#qvOverlay');
+    const closeBtn = qs('#qvClose');
+    const doneBtn = qs('#qvDone');
+
+    const qvTitle = qs('#qvTitle');
+    const qvInstructor = qs('#qvInstructor');
+    const qvChip1 = qs('#qvChip1');
+    const qvChip2 = qs('#qvChip2');
+    const qvChip3 = qs('#qvChip3');
+    const qvChip4 = qs('#qvChip4');
+    const qvDifficulty = qs('#qvDifficulty');
+    const qvRating = qs('#qvRating');
+    const qvDesc = qs('#qvDesc');
+    const qvView = qs('#qvView');
+    const qvStart = qs('#qvStart');
+
+    let lastActive = null;
+
+    function focusables(container){
+      return qsa('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])', container)
+        .filter(el => !el.disabled && !el.getAttribute('aria-hidden'));
+    }
+
+    function trapFocus(e){
+      if(!overlay || overlay.classList.contains('hidden')) return;
+      if(e.key !== 'Tab') return;
+
+      const els = focusables(overlay);
+      if(!els.length) return;
+
+      const first = els[0];
+      const last = els[els.length - 1];
+
+      if(e.shiftKey && document.activeElement === first){
+        e.preventDefault(); last.focus();
+      } else if(!e.shiftKey && document.activeElement === last){
+        e.preventDefault(); first.focus();
+      }
+    }
+
+    function openModal(btn){
+      lastActive = document.activeElement;
+
+      qvTitle.textContent = btn.dataset.title || 'Quiz';
+      qvInstructor.textContent = btn.dataset.instructor || '—';
+
+      qvChip1.textContent = (btn.dataset.duration ? `${btn.dataset.duration} min` : '—');
+      qvChip2.textContent = (btn.dataset.questions ? `${btn.dataset.questions} questions` : '—');
+      qvChip3.textContent = (btn.dataset.attempts ? `${btn.dataset.attempts} attempts` : '—');
+      qvChip4.textContent = (btn.dataset.difficulty || '—');
+
+      qvDifficulty.textContent = btn.dataset.difficulty || '—';
+      qvRating.textContent = (btn.dataset.rating ? `${btn.dataset.rating}/5` : '—');
+
+      qvView.setAttribute('href', btn.dataset.url || '#');
+      qvStart.setAttribute('href', btn.dataset.start || '#');
+
+      overlay.classList.remove('hidden');
+      overlay.setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+      setTimeout(()=> (closeBtn || doneBtn)?.focus(), 0);
+    }
+
+    function closeModal(){
+      overlay.classList.add('hidden');
+      overlay.setAttribute('aria-hidden','true');
+      document.body.style.overflow = '';
+      if(lastActive && lastActive.focus) lastActive.focus();
+    }
+
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.previewBtn');
+      if(!btn) return;
+      openModal(btn);
+    });
+
+    closeBtn?.addEventListener('click', closeModal);
+    doneBtn?.addEventListener('click', closeModal);
+
+    overlay?.addEventListener('click', (e)=>{
+      if(e.target === overlay) closeModal();
+    });
+
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) closeModal();
+      trapFocus(e);
+    });
+  })();
+</script>
 
 {% endblock %}

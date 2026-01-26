@@ -5,167 +5,179 @@
 
 <!-- =========================================================
   HOME: Next-Level Interactive UI/UX (Tailwind)
-  - SAME Django variables/loops kept: featured_jobs, popular_courses
-  - Adds: animated hero, magnetic buttons, quick chips, scroll-reveal,
-          filter tabs (JS), mobile snap carousel, counters, micro-interactions
-  - No external libs required (works with your Tailwind + FontAwesome)
+  FIXES:
+  ✅ Search dropdown now ALWAYS visible (no clipping + higher stacking)
+  ✅ Perfect alignment between Hero / Featured Jobs / Popular Courses
+  ✅ Clean spacing + consistent containers + less “messy” layout
 ========================================================= -->
 
 <style>
-  /* tiny helpers (safe even without Tailwind plugins) */
   .no-scrollbar::-webkit-scrollbar{display:none}
   .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
   .text-balance{ text-wrap: balance; }
+
+  /* Dropdown must sit above everything */
+  #suggestBox{ z-index: 9999; }
+
+  /* reveal defaults (JS will animate) */
+  .reveal{ will-change: transform, opacity; }
 </style>
 
 <!-- ================= HERO SECTION ================= -->
-<section class="relative mx-4 mt-4 overflow-hidden rounded-[34px] ring-1 ring-slate-200/60 bg-gradient-to-br from-sky-50 via-white to-blue-50 shadow-[0_25px_90px_rgba(2,50,92,0.18)]">
-  <!-- Animated mesh -->
-  <div class="pointer-events-none absolute inset-0">
-    <div class="absolute -top-44 -right-44 h-[620px] w-[620px] rounded-full bg-blue-500/25 blur-[140px] animate-[pulse_6s_ease-in-out_infinite]"></div>
-    <div class="absolute -bottom-48 -left-48 h-[620px] w-[620px] rounded-full bg-cyan-400/25 blur-[150px] animate-[pulse_7s_ease-in-out_infinite]"></div>
+<!-- FIX: remove overflow-hidden from OUTER section so dropdown can't be clipped -->
+<section class="relative mx-4 mt-4">
+  <!-- FIX: keep rounded + clipped backgrounds inside an inner wrapper -->
+  <div class="relative overflow-hidden rounded-[34px] ring-1 ring-slate-200/60 bg-gradient-to-br from-sky-50 via-white to-blue-50 shadow-[0_25px_90px_rgba(2,50,92,0.18)]">
+    <!-- Decorative background (clipped here) -->
+    <div class="pointer-events-none absolute inset-0">
+      <div class="absolute -top-44 -right-44 h-[620px] w-[620px] rounded-full bg-blue-500/25 blur-[140px] animate-[pulse_6s_ease-in-out_infinite]"></div>
+      <div class="absolute -bottom-48 -left-48 h-[620px] w-[620px] rounded-full bg-cyan-400/25 blur-[150px] animate-[pulse_7s_ease-in-out_infinite]"></div>
+      <div class="absolute left-1/2 top-[-30%] h-[520px] w-[820px] -translate-x-1/2 rotate-12 rounded-full bg-gradient-to-r from-blue-400/10 via-cyan-400/15 to-blue-600/10 blur-[90px]"></div>
+      <div class="absolute inset-0 opacity-[0.10]"
+           style="background-image: radial-gradient(#0ea5e9 0.7px, transparent 0.7px); background-size: 18px 18px;"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-white/0 via-white/0 to-white/55"></div>
+    </div>
 
-    <!-- “Aurora” band -->
-    <div class="absolute left-1/2 top-[-30%] h-[520px] w-[820px] -translate-x-1/2 rotate-12 rounded-full bg-gradient-to-r from-blue-400/10 via-cyan-400/15 to-blue-600/10 blur-[90px]"></div>
+    <!-- FIX: consistent container width + padding for perfect alignment with other sections -->
+    <div class="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-20">
+      <div class="max-w-5xl mx-auto text-center">
+        <div class="inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-white/75 backdrop-blur px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200/70 shadow-sm">
+          <span class="inline-flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-sky-600/90 animate-pulse"></span>
+            AI Matching
+          </span>
+          <span class="text-slate-300">•</span>
+          <span>Skill Quizzes</span>
+          <span class="text-slate-300">•</span>
+          <span>Smart Courses</span>
+        </div>
 
-    <!-- Subtle dot grid -->
-    <div class="absolute inset-0 opacity-[0.10]"
-         style="background-image: radial-gradient(#0ea5e9 0.7px, transparent 0.7px); background-size: 18px 18px;"></div>
+        <h1 class="mt-7 text-4xl md:text-6xl font-black tracking-tight leading-[1.05] text-slate-900 text-balance">
+          Find your next role with
+          <span class="relative inline-block">
+            <span class="absolute -inset-x-2 -inset-y-1 rounded-2xl bg-sky-600/10 blur-[2px]"></span>
+            <span class="relative text-sky-800">AI-level precision</span>
+          </span>
+        </h1>
 
-    <!-- Soft vignette -->
-    <div class="absolute inset-0 bg-gradient-to-b from-white/0 via-white/0 to-white/55"></div>
-  </div>
+        <p class="mt-5 text-base md:text-xl text-slate-600 max-w-3xl mx-auto text-balance">
+          Search jobs smarter, prove skills faster, and learn only what you actually need — all in one clean workflow.
+        </p>
 
-  <div class="container mx-auto relative z-10 px-6 py-18 md:py-24">
-    <div class="max-w-5xl mx-auto text-center">
-      <!-- Badge row -->
-      <div class="inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-white/75 backdrop-blur px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200/70 shadow-sm">
-        <span class="inline-flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
-          AI Matching
-        </span>
-        <span class="text-slate-300">•</span>
-        <span>Skill Quizzes</span>
-        <span class="text-slate-300">•</span>
-        <span>Smart Courses</span>
-      </div>
+        <!-- Search + quick chips -->
+        <div class="mt-10">
+          <!-- FIX: position relative so dropdown can stack above; no clipping -->
+          <form method="GET" action="{% url 'app:search_jobs' %}"
+                class="relative group mx-auto max-w-5xl rounded-[28px] bg-white/85 backdrop-blur-xl
+                       shadow-[0_18px_70px_rgba(15,23,42,0.10)]
+                       ring-1 ring-slate-200/70 p-3 md:p-4">
+            <div class="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch">
+              <!-- Query -->
+              <div class="relative flex-1">
+                <label class="sr-only" for="job-q">Search</label>
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
 
-      <h1 class="mt-7 text-4xl md:text-6xl font-black tracking-tight leading-[1.05] text-slate-900 text-balance">
-        Find your next role with
-        <span class="relative inline-block">
-          <span class="absolute -inset-x-2 -inset-y-1 rounded-2xl bg-blue-600/10 blur-[2px]"></span>
-          <span class="relative text-blue-800">AI-level precision</span>
-        </span>
-      </h1>
+                <input id="job-q" type="text" name="q" placeholder="Job title, keywords, or company"
+                       class="w-full rounded-2xl md:rounded-full border border-slate-200 bg-white/95 pl-12 pr-4 py-3.5
+                              text-slate-800 placeholder-slate-400
+                              focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-sky-500 transition"
+                       autocomplete="off">
 
-      <p class="mt-5 text-base md:text-xl text-slate-600 max-w-3xl mx-auto text-balance">
-        Search jobs smarter, prove skills faster, and learn only what you actually need — all in one clean workflow.
-      </p>
-
-      <!-- Search + quick chips -->
-      <div class="mt-10">
-        <form method="GET" action="{% url 'app:search_jobs' %}"
-              class="group mx-auto max-w-5xl rounded-[28px] bg-white/85 backdrop-blur-xl shadow-[0_18px_70px_rgba(15,23,42,0.10)]
-                     ring-1 ring-slate-200/70 p-3 md:p-4">
-          <div class="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch">
-            <!-- Query -->
-            <div class="relative flex-1">
-              <label class="sr-only" for="job-q">Search</label>
-              <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input id="job-q" type="text" name="q" placeholder="Job title, keywords, or company"
-                     class="w-full rounded-2xl md:rounded-full border border-slate-200 bg-white/95 pl-12 pr-4 py-3.5
-                            text-slate-800 placeholder-slate-400
-                            focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition"
-                     autocomplete="off">
-              <!-- Suggest dropdown (JS) -->
-              <div id="suggestBox"
-                   class="hidden absolute left-0 right-0 mt-2 rounded-2xl bg-white shadow-[0_18px_60px_rgba(15,23,42,0.12)]
-                          ring-1 ring-slate-200 overflow-hidden">
-                <div class="px-4 py-3 text-xs font-bold text-slate-500 bg-slate-50 border-b border-slate-200">
-                  Quick suggestions
+                <!-- Suggest dropdown -->
+                <!-- FIX: will NOT be clipped now because outer section is not overflow-hidden -->
+                <div id="suggestBox"
+                     class="hidden absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white
+                            shadow-[0_18px_60px_rgba(15,23,42,0.12)]
+                            ring-1 ring-slate-200 overflow-hidden">
+                  <div class="px-4 py-3 text-xs font-bold text-slate-500 bg-slate-50 border-b border-slate-200">
+                    Quick suggestions
+                  </div>
+                  <div id="suggestList" class="max-h-64 overflow-auto"></div>
                 </div>
-                <div id="suggestList" class="max-h-64 overflow-auto"></div>
               </div>
+
+              <!-- Location -->
+              <div class="relative flex-1">
+                <label class="sr-only" for="job-loc">Location</label>
+                <i class="fas fa-map-marker-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input id="job-loc" type="text" name="location" placeholder="Location (e.g., Dhaka, Remote)"
+                       class="w-full rounded-2xl md:rounded-full border border-slate-200 bg-white/95 pl-12 pr-4 py-3.5
+                              text-slate-800 placeholder-slate-400
+                              focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-sky-500 transition">
+              </div>
+
+              <!-- Button -->
+              <button type="submit"
+                      data-magnetic
+                      class="magnetic rounded-2xl md:rounded-full px-8 py-3.5 font-semibold text-white
+                             bg-sky-600/90 hover:bg-sky-600
+                             shadow-[0_14px_38px_rgba(2,132,199,0.26)]
+                             hover:shadow-[0_18px_52px_rgba(2,132,199,0.34)]
+                             active:scale-[0.99]
+                             focus:outline-none focus:ring-4 focus:ring-sky-200 transition
+                             relative overflow-hidden">
+                <span class="relative z-10 inline-flex items-center gap-2">
+                  Search Jobs
+                  <i class="fas fa-arrow-right text-sm opacity-90"></i>
+                </span>
+                <span class="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition">
+                  <span class="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-white/20 blur-[6px]"></span>
+                </span>
+              </button>
             </div>
 
-            <!-- Location -->
-            <div class="relative flex-1">
-              <label class="sr-only" for="job-loc">Location</label>
-              <i class="fas fa-map-marker-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input id="job-loc" type="text" name="location" placeholder="Location (e.g., Dhaka, Remote)"
-                     class="w-full rounded-2xl md:rounded-full border border-slate-200 bg-white/95 pl-12 pr-4 py-3.5
-                            text-slate-800 placeholder-slate-400
-                            focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition">
+            <!-- Chips -->
+            <div class="mt-3 flex flex-wrap items-center gap-2 px-1">
+              <span class="text-xs font-semibold text-slate-500">Try:</span>
+              <button type="button"
+                      class="chip rounded-full bg-sky-50 text-sky-800 ring-1 ring-sky-100 px-3 py-1 text-xs font-semibold hover:bg-sky-100 transition"
+                      data-chip="Python Developer">Python Developer</button>
+              <button type="button"
+                      class="chip rounded-full bg-sky-50 text-sky-800 ring-1 ring-sky-100 px-3 py-1 text-xs font-semibold hover:bg-sky-100 transition"
+                      data-chip="UI/UX Designer">UI/UX Designer</button>
+              <button type="button"
+                      class="chip rounded-full bg-sky-50 text-sky-800 ring-1 ring-sky-100 px-3 py-1 text-xs font-semibold hover:bg-sky-100 transition"
+                      data-chip="Data Analyst">Data Analyst</button>
+              <button type="button"
+                      class="chip rounded-full bg-slate-50 text-slate-700 ring-1 ring-slate-200 px-3 py-1 text-xs font-semibold hover:bg-slate-100 transition"
+                      data-chip="Internship">Internship</button>
+
+              <span class="ml-auto text-xs text-slate-500 hidden md:inline-flex items-center gap-2">
+                <i class="fas fa-bolt text-sky-600/90"></i> Faster results with skill keywords
+              </span>
             </div>
+          </form>
+        </div>
 
-            <!-- Button -->
-            <button type="submit"
-                    data-magnetic
-                    class="magnetic rounded-2xl md:rounded-full px-8 py-3.5 font-semibold text-white
-                           bg-gradient-to-r from-blue-700 via-blue-800 to-blue-950
-                           shadow-[0_14px_38px_rgba(30,64,175,0.28)]
-                           hover:shadow-[0_18px_52px_rgba(30,64,175,0.35)]
-                           active:scale-[0.99]
-                           focus:outline-none focus:ring-4 focus:ring-blue-200 transition
-                           relative overflow-hidden">
-              <span class="relative z-10 inline-flex items-center gap-2">
-                Search Jobs
-                <i class="fas fa-arrow-right text-sm opacity-90"></i>
-              </span>
-              <span class="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition">
-                <span class="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-white/20 blur-[6px]"></span>
-              </span>
-            </button>
+        <!-- Stats (animated counters) -->
+        <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div class="reveal rounded-2xl bg-white/75 backdrop-blur-md ring-1 ring-slate-200/70 p-5 shadow-sm hover:shadow-md transition">
+            <p class="text-3xl md:text-4xl font-black text-sky-800">
+              <span class="counter" data-count="{{ featured_jobs.count }}">0</span>+
+            </p>
+            <p class="mt-1 text-xs md:text-sm text-slate-600">Active Jobs</p>
           </div>
 
-          <!-- Chips -->
-          <div class="mt-3 flex flex-wrap items-center gap-2 px-1">
-            <span class="text-xs font-semibold text-slate-500">Try:</span>
-            <button type="button" class="chip rounded-full bg-blue-50 text-blue-800 ring-1 ring-blue-100 px-3 py-1 text-xs font-semibold hover:bg-blue-100 transition"
-                    data-chip="Python Developer">Python Developer</button>
-            <button type="button" class="chip rounded-full bg-blue-50 text-blue-800 ring-1 ring-blue-100 px-3 py-1 text-xs font-semibold hover:bg-blue-100 transition"
-                    data-chip="UI/UX Designer">UI/UX Designer</button>
-            <button type="button" class="chip rounded-full bg-blue-50 text-blue-800 ring-1 ring-blue-100 px-3 py-1 text-xs font-semibold hover:bg-blue-100 transition"
-                    data-chip="Data Analyst">Data Analyst</button>
-            <button type="button" class="chip rounded-full bg-slate-50 text-slate-700 ring-1 ring-slate-200 px-3 py-1 text-xs font-semibold hover:bg-slate-100 transition"
-                    data-chip="Internship">Internship</button>
-
-            <span class="ml-auto text-xs text-slate-500 hidden md:inline-flex items-center gap-2">
-              <i class="fas fa-bolt text-blue-600"></i> Faster results with skill keywords
-            </span>
+          <div class="reveal rounded-2xl bg-white/75 backdrop-blur-md ring-1 ring-slate-200/70 p-5 shadow-sm hover:shadow-md transition">
+            <p class="text-3xl md:text-4xl font-black text-sky-800">
+              <span class="counter" data-count="3000">0</span>+
+            </p>
+            <p class="mt-1 text-xs md:text-sm text-slate-600">Companies</p>
           </div>
-        </form>
 
-      </div>
+          <div class="reveal rounded-2xl bg-white/75 backdrop-blur-md ring-1 ring-slate-200/70 p-5 shadow-sm hover:shadow-md transition">
+            <p class="text-3xl md:text-4xl font-black text-sky-800">
+              <span class="counter" data-count="100">0</span>+
+            </p>
+            <p class="mt-1 text-xs md:text-sm text-slate-600">Skill Quizzes</p>
+          </div>
 
-      <!-- Stats (animated counters) -->
-      <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <div class="reveal rounded-2xl bg-white/75 backdrop-blur-md ring-1 ring-slate-200/70 p-5 shadow-sm hover:shadow-md transition">
-          <p class="text-3xl md:text-4xl font-black text-blue-800">
-            <span class="counter" data-count="{{ featured_jobs.count }}">0</span>+
-          </p>
-          <p class="mt-1 text-xs md:text-sm text-slate-600">Active Jobs</p>
-        </div>
-
-        <div class="reveal rounded-2xl bg-white/75 backdrop-blur-md ring-1 ring-slate-200/70 p-5 shadow-sm hover:shadow-md transition">
-          <p class="text-3xl md:text-4xl font-black text-blue-800">
-            <span class="counter" data-count="3000">0</span>+
-          </p>
-          <p class="mt-1 text-xs md:text-sm text-slate-600">Companies</p>
-        </div>
-
-        <div class="reveal rounded-2xl bg-white/75 backdrop-blur-md ring-1 ring-slate-200/70 p-5 shadow-sm hover:shadow-md transition">
-          <p class="text-3xl md:text-4xl font-black text-blue-800">
-            <span class="counter" data-count="100">0</span>+
-          </p>
-          <p class="mt-1 text-xs md:text-sm text-slate-600">Skill Quizzes</p>
-        </div>
-
-        <div class="reveal rounded-2xl bg-white/75 backdrop-blur-md ring-1 ring-slate-200/70 p-5 shadow-sm hover:shadow-md transition">
-          <p class="text-3xl md:text-4xl font-black text-blue-800">
-            <span class="counter" data-count="{{ popular_courses.count }}">0</span>+
-          </p>
-          <p class="mt-1 text-xs md:text-sm text-slate-600">Courses</p>
+          <div class="reveal rounded-2xl bg-white/75 backdrop-blur-md ring-1 ring-slate-200/70 p-5 shadow-sm hover:shadow-md transition">
+            <p class="text-3xl md:text-4xl font-black text-sky-800">
+              <span class="counter" data-count="{{ popular_courses.count }}">0</span>+
+            </p>
+            <p class="mt-1 text-xs md:text-sm text-slate-600">Courses</p>
+          </div>
         </div>
       </div>
     </div>
@@ -173,17 +185,16 @@
 </section>
 
 <!-- ================= FEATURED JOBS ================= -->
+<!-- FIX: identical outer spacing + identical max width/padding as Hero -->
 <section class="mx-4 my-16 rounded-[34px] bg-gradient-to-b from-white to-[#f7fbfd]
                 shadow-[0_18px_80px_rgba(15,23,42,0.09)] ring-1 ring-slate-200/60 overflow-hidden">
-  <div class="container mx-auto px-4 py-18 md:py-22">
-
+  <div class="max-w-7xl mx-auto px-6 py-16 md:py-20">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
       <div>
         <h2 class="text-3xl md:text-5xl font-black tracking-tight text-slate-900">Featured Jobs</h2>
         <p class="mt-2 text-slate-600">Hand-picked opportunities from top companies</p>
       </div>
 
-      <!-- Filter tabs (JS only affects UI; safe if job data has no tags) -->
       <div class="flex flex-wrap gap-2">
         <button class="job-filter rounded-full px-4 py-2 text-sm font-bold ring-1 ring-slate-200 bg-white hover:bg-slate-50 transition"
                 data-filter="all">All</button>
@@ -196,8 +207,8 @@
       </div>
     </div>
 
-    <!-- Mobile: horizontal snap / Desktop: grid -->
-    <div class="md:hidden -mx-4 px-4">
+    <!-- Mobile: horizontal snap -->
+    <div class="md:hidden -mx-6 px-6">
       <div class="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2">
         {% for job in featured_jobs %}
         <article
@@ -207,7 +218,7 @@
           data-company="{{ job.company.name|lower }}"
           data-location="{{ job.location|lower }}"
         >
-          <div class="h-1 w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-950"></div>
+          <div class="h-1 w-full bg-gradient-to-r from-sky-500 via-cyan-500 to-sky-900"></div>
 
           <div class="p-7">
             <div class="flex items-center gap-4">
@@ -227,21 +238,21 @@
 
             <div class="mt-6 space-y-3 text-sm text-slate-600">
               <div class="flex items-center gap-3">
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
                   <i class="fas fa-map-marker-alt"></i>
                 </span>
                 <span class="truncate">{{ job.location }}</span>
               </div>
 
               <div class="flex items-center gap-3">
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
                   <i class="fas fa-dollar-sign"></i>
                 </span>
                 <span class="truncate">{{ job.get_salary_range }}</span>
               </div>
 
               <div class="flex items-center gap-3">
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
                   <i class="fas fa-clock"></i>
                 </span>
                 <span class="truncate">{{ job.posted_date|timesince }} ago</span>
@@ -250,7 +261,7 @@
 
             <div class="mt-5 flex flex-wrap gap-2">
               {% for skill in job.get_skills_list|slice:":4" %}
-              <span class="rounded-full bg-blue-50 text-blue-800 ring-1 ring-blue-100 px-3 py-1 text-xs font-semibold">
+              <span class="rounded-full bg-sky-50 text-sky-800 ring-1 ring-sky-100 px-3 py-1 text-xs font-semibold">
                 {{ skill }}
               </span>
               {% endfor %}
@@ -259,10 +270,10 @@
             <div class="mt-7 flex gap-3">
               <a href="{% url 'app:job_detail' job.id %}"
                  class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-white
-                        bg-gradient-to-r from-blue-700 to-blue-950
-                        shadow-[0_12px_30px_rgba(30,64,175,0.22)]
-                        hover:shadow-[0_16px_42px_rgba(30,64,175,0.30)]
-                        focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+                        bg-sky-600/90 hover:bg-sky-600
+                        shadow-[0_12px_30px_rgba(2,132,199,0.22)]
+                        hover:shadow-[0_16px_42px_rgba(2,132,199,0.30)]
+                        focus:outline-none focus:ring-4 focus:ring-sky-200 transition">
                 View Details
                 <i class="fas fa-arrow-right text-sm opacity-90"></i>
               </a>
@@ -287,23 +298,22 @@
       </div>
     </div>
 
+    <!-- Desktop grid -->
     <div class="hidden md:grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
       {% for job in featured_jobs %}
       <article
         class="reveal job-card group relative overflow-hidden rounded-[26px] bg-white shadow-sm ring-1 ring-slate-200/70
-               hover:shadow-[0_22px_65px_rgba(15,23,42,0.14)] transition
-               hover:-translate-y-1"
+               hover:shadow-[0_22px_65px_rgba(15,23,42,0.14)] transition hover:-translate-y-1"
         data-job-title="{{ job.title|lower }}"
         data-company="{{ job.company.name|lower }}"
         data-location="{{ job.location|lower }}"
       >
-        <!-- glow hover -->
         <div class="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition">
-          <div class="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-blue-500/15 blur-[40px]"></div>
+          <div class="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-sky-500/15 blur-[40px]"></div>
           <div class="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-cyan-400/15 blur-[40px]"></div>
         </div>
 
-        <div class="h-1 w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-950"></div>
+        <div class="h-1 w-full bg-gradient-to-r from-sky-500 via-cyan-500 to-sky-900"></div>
 
         <div class="p-7 relative z-10">
           <div class="flex items-center gap-4">
@@ -330,21 +340,21 @@
 
           <div class="mt-6 space-y-3 text-sm text-slate-600">
             <div class="flex items-center gap-3">
-              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
                 <i class="fas fa-map-marker-alt"></i>
               </span>
               <span class="truncate">{{ job.location }}</span>
             </div>
 
             <div class="flex items-center gap-3">
-              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
                 <i class="fas fa-dollar-sign"></i>
               </span>
               <span class="truncate">{{ job.get_salary_range }}</span>
             </div>
 
             <div class="flex items-center gap-3">
-              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
                 <i class="fas fa-clock"></i>
               </span>
               <span class="truncate">{{ job.posted_date|timesince }} ago</span>
@@ -353,7 +363,7 @@
 
           <div class="mt-5 flex flex-wrap gap-2">
             {% for skill in job.get_skills_list|slice:":4" %}
-            <span class="rounded-full bg-blue-50 text-blue-800 ring-1 ring-blue-100 px-3 py-1 text-xs font-semibold">
+            <span class="rounded-full bg-sky-50 text-sky-800 ring-1 ring-sky-100 px-3 py-1 text-xs font-semibold">
               {{ skill }}
             </span>
             {% endfor %}
@@ -362,10 +372,10 @@
           <div class="mt-7">
             <a href="{% url 'app:job_detail' job.id %}"
                class="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-white
-                      bg-gradient-to-r from-blue-700 to-blue-950
-                      shadow-[0_12px_30px_rgba(30,64,175,0.22)]
-                      hover:shadow-[0_16px_42px_rgba(30,64,175,0.30)]
-                      focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+                      bg-sky-600/90 hover:bg-sky-600
+                      shadow-[0_12px_30px_rgba(2,132,199,0.22)]
+                      hover:shadow-[0_16px_42px_rgba(2,132,199,0.30)]
+                      focus:outline-none focus:ring-4 focus:ring-sky-200 transition">
               View Details
               <i class="fas fa-arrow-right text-sm opacity-90 group-hover:translate-x-0.5 transition"></i>
             </a>
@@ -386,11 +396,11 @@
       <a href="{% url 'app:job_list' %}"
          data-magnetic
          class="magnetic inline-flex items-center justify-center rounded-full px-10 py-4 font-semibold text-white
-                bg-gradient-to-r from-blue-700 via-blue-800 to-blue-950
-                shadow-[0_16px_48px_rgba(30,64,175,0.26)]
-                hover:shadow-[0_20px_60px_rgba(30,64,175,0.34)]
+                bg-sky-600/90 hover:bg-sky-600
+                shadow-[0_16px_48px_rgba(2,132,199,0.26)]
+                hover:shadow-[0_20px_60px_rgba(2,132,199,0.34)]
                 hover:scale-[1.02] active:scale-[0.99]
-                focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+                focus:outline-none focus:ring-4 focus:ring-sky-200 transition">
         View All Jobs
       </a>
     </div>
@@ -398,10 +408,12 @@
 </section>
 
 <!-- ================= POPULAR COURSES ================= -->
-<section class="relative overflow-hidden bg-gradient-to-b from-[#eef7fb] to-[#d9eef8]">
+<!-- FIX: wrap in SAME style container so it aligns perfectly with Featured Jobs -->
+<section class="mx-4 my-16 rounded-[34px] bg-gradient-to-b from-[#eef7fb] to-[#d9eef8]
+                shadow-[0_18px_80px_rgba(15,23,42,0.09)] ring-1 ring-slate-200/60 overflow-hidden relative">
   <div class="pointer-events-none absolute -top-44 left-10 h-[520px] w-[520px] rounded-full bg-blue-500/15 blur-[150px]"></div>
-  <div class="container mx-auto px-4 py-18 md:py-22">
 
+  <div class="relative max-w-7xl mx-auto px-6 py-16 md:py-20">
     <div class="text-center mb-12">
       <h2 class="text-3xl md:text-5xl font-black tracking-tight text-slate-900">Popular Courses</h2>
       <p class="mt-2 text-slate-600">Industry-focused courses to level up your skills</p>
@@ -411,17 +423,15 @@
       {% for course in popular_courses %}
       <article class="reveal group relative overflow-hidden rounded-[26px] bg-white shadow-sm ring-1 ring-slate-200/70
                       hover:shadow-[0_22px_65px_rgba(15,23,42,0.14)] transition hover:-translate-y-1">
-        <!-- top ribbon -->
-        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-600 to-blue-950"></div>
+        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-500 via-sky-500 to-sky-900"></div>
 
-        <!-- Difficulty badge -->
-        <span class="absolute top-5 right-5 rounded-full bg-blue-50 text-blue-800 ring-1 ring-blue-100 px-3 py-1 text-xs font-extrabold">
+        <span class="absolute top-5 right-5 rounded-full bg-sky-50 text-sky-800 ring-1 ring-sky-100 px-3 py-1 text-xs font-extrabold">
           {{ course.get_difficulty_display }}
         </span>
 
         <div class="p-7">
           <div class="flex items-center gap-4">
-            <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 ring-1 ring-slate-200 flex items-center justify-center font-black text-blue-900">
+            <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-sky-100 to-cyan-100 ring-1 ring-slate-200 flex items-center justify-center font-black text-sky-900">
               {{ course.title|slice:":1" }}
             </div>
 
@@ -437,7 +447,7 @@
 
           <div class="mt-5 flex flex-wrap gap-2">
             {% for skill in course.get_skills_list|slice:":4" %}
-            <span class="rounded-full bg-blue-50 text-blue-800 ring-1 ring-blue-100 px-3 py-1 text-xs font-semibold">
+            <span class="rounded-full bg-sky-50 text-sky-800 ring-1 ring-sky-100 px-3 py-1 text-xs font-semibold">
               {{ skill }}
             </span>
             {% endfor %}
@@ -445,7 +455,7 @@
 
           <div class="mt-6 flex items-center justify-between text-sm text-slate-700">
             <div class="flex items-center gap-2">
-              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
                 <i class="fas fa-layer-group"></i>
               </span>
               <span class="font-semibold">{{ course.lessons_count }} Lessons</span>
@@ -453,28 +463,27 @@
 
             <div class="text-right">
               <div class="text-xs text-slate-500">Price</div>
-              <div class="font-black text-blue-900">{{ course.price }} Tk</div>
+              <div class="font-black text-sky-900">{{ course.price }} Tk</div>
             </div>
           </div>
 
-          <!-- tiny “progress” feel (static, UI only) -->
           <div class="mt-5">
             <div class="flex items-center justify-between text-xs text-slate-500">
               <span>Popularity</span>
               <span class="font-bold text-slate-600">High</span>
             </div>
             <div class="mt-2 h-2 rounded-full bg-slate-100 ring-1 ring-slate-200 overflow-hidden">
-              <div class="h-full w-[78%] bg-gradient-to-r from-cyan-500 to-blue-800"></div>
+              <div class="h-full w-[78%] bg-gradient-to-r from-cyan-500 to-sky-700"></div>
             </div>
           </div>
 
           <div class="mt-7">
             <a href="{% url 'app:course_detail' course.id %}"
                class="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-white
-                      bg-gradient-to-r from-blue-700 to-blue-950
-                      shadow-[0_12px_30px_rgba(30,64,175,0.22)]
-                      hover:shadow-[0_16px_42px_rgba(30,64,175,0.30)]
-                      focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+                      bg-sky-600/90 hover:bg-sky-600
+                      shadow-[0_12px_30px_rgba(2,132,199,0.22)]
+                      hover:shadow-[0_16px_42px_rgba(2,132,199,0.30)]
+                      focus:outline-none focus:ring-4 focus:ring-sky-200 transition">
               View Course
               <i class="fas fa-arrow-right text-sm opacity-90 group-hover:translate-x-0.5 transition"></i>
             </a>
@@ -495,11 +504,11 @@
       <a href="{% url 'app:course_list' %}"
          data-magnetic
          class="magnetic inline-flex items-center justify-center rounded-full px-10 py-4 font-semibold text-white
-                bg-gradient-to-r from-blue-700 via-blue-800 to-blue-950
-                shadow-[0_16px_48px_rgba(30,64,175,0.26)]
-                hover:shadow-[0_20px_60px_rgba(30,64,175,0.34)]
+                bg-sky-600/90 hover:bg-sky-600
+                shadow-[0_16px_48px_rgba(2,132,199,0.26)]
+                hover:shadow-[0_20px_60px_rgba(2,132,199,0.34)]
                 hover:scale-[1.02] active:scale-[0.99]
-                focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+                focus:outline-none focus:ring-4 focus:ring-sky-200 transition">
         View All Courses
       </a>
     </div>
@@ -507,58 +516,38 @@
 </section>
 
 <!-- ================= HOW IT WORKS ================= -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[#d9eef8] via-[#eef7fb] to-[#d3e9f9]">
+<!-- FIX: match same mx-4 + max-w-7xl so alignment is consistent -->
+<section class="mx-4 my-16 rounded-[34px] overflow-hidden bg-gradient-to-br from-[#d9eef8] via-[#eef7fb] to-[#d3e9f9]
+                shadow-[0_18px_80px_rgba(15,23,42,0.09)] ring-1 ring-slate-200/60 relative">
   <div class="pointer-events-none absolute -top-48 right-10 h-[520px] w-[520px] rounded-full bg-blue-500/15 blur-[160px]"></div>
 
-  <div class="container mx-auto px-4 py-18 md:py-22">
+  <div class="relative max-w-7xl mx-auto px-6 py-16 md:py-20">
     <div class="text-center mb-12">
       <h2 class="text-3xl md:text-5xl font-black text-slate-900">How It Works</h2>
       <p class="mt-2 text-slate-600">A smooth flow from skills → learning → hiring</p>
     </div>
 
-    <!-- Connector line (desktop) -->
     <div class="hidden md:block relative max-w-5xl mx-auto mb-8">
-      <div class="absolute left-0 right-0 top-7 h-1 rounded-full bg-gradient-to-r from-cyan-300 via-blue-400 to-blue-700 opacity-40"></div>
+      <div class="absolute left-0 right-0 top-7 h-1 rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-sky-700 opacity-40"></div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10 max-w-5xl mx-auto">
       <div class="reveal group rounded-[26px] bg-white/75 backdrop-blur ring-1 ring-slate-200/70 p-8 text-center shadow-sm hover:shadow-md transition">
-        <div class="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 ring-1 ring-blue-100 text-2xl">
-          🧠
-        </div>
+        <div class="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 ring-1 ring-sky-100 text-2xl">🧠</div>
         <h3 class="text-lg font-black text-slate-900">Skill Quizzes</h3>
         <p class="mt-2 text-sm text-slate-600">Measure real skills with quick, focused tests.</p>
-        <div class="mt-5">
-          <span class="inline-flex items-center gap-2 text-xs font-bold text-blue-900 bg-blue-50 ring-1 ring-blue-100 px-3 py-2 rounded-full">
-            <i class="fas fa-check-circle"></i> Get a strength map
-          </span>
-        </div>
       </div>
 
       <div class="reveal group rounded-[26px] bg-white/75 backdrop-blur ring-1 ring-slate-200/70 p-8 text-center shadow-sm hover:shadow-md transition">
-        <div class="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 ring-1 ring-blue-100 text-2xl">
-          📚
-        </div>
+        <div class="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 ring-1 ring-sky-100 text-2xl">📚</div>
         <h3 class="text-lg font-black text-slate-900">Smart Learning</h3>
         <p class="mt-2 text-sm text-slate-600">Courses that match your gaps and job goals.</p>
-        <div class="mt-5">
-          <span class="inline-flex items-center gap-2 text-xs font-bold text-blue-900 bg-blue-50 ring-1 ring-blue-100 px-3 py-2 rounded-full">
-            <i class="fas fa-bolt"></i> Learn only what matters
-          </span>
-        </div>
       </div>
 
       <div class="reveal group rounded-[26px] bg-white/75 backdrop-blur ring-1 ring-slate-200/70 p-8 text-center shadow-sm hover:shadow-md transition">
-        <div class="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 ring-1 ring-blue-100 text-2xl">
-          🚀
-        </div>
+        <div class="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 ring-1 ring-sky-100 text-2xl">🚀</div>
         <h3 class="text-lg font-black text-slate-900">Get Hired</h3>
         <p class="mt-2 text-sm text-slate-600">Show proof, match faster, and apply confidently.</p>
-        <div class="mt-5">
-          <span class="inline-flex items-center gap-2 text-xs font-bold text-blue-900 bg-blue-50 ring-1 ring-blue-100 px-3 py-2 rounded-full">
-            <i class="fas fa-star"></i> Stronger applications
-          </span>
-        </div>
       </div>
     </div>
   </div>
@@ -569,7 +558,7 @@
 (() => {
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // --------- Quick chip fill ----------
+  // Quick chip fill
   const qInput = document.getElementById('job-q');
   document.querySelectorAll('.chip').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -580,7 +569,7 @@
     });
   });
 
-  // --------- Suggestion dropdown ----------
+  // Suggestion dropdown
   const suggestBox = document.getElementById('suggestBox');
   const suggestList = document.getElementById('suggestList');
 
@@ -598,6 +587,9 @@
     if (!suggestBox) return;
     suggestBox.classList.remove('hidden');
   }
+  function escapeHtml(str){
+    return (str || "").replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
   function renderSuggest(items){
     if (!suggestList) return;
     suggestList.innerHTML = items.map((t) => `
@@ -608,7 +600,6 @@
       </button>
     `).join('');
 
-    // click select
     [...suggestList.querySelectorAll('button')].forEach((b, idx) => {
       b.addEventListener('click', () => {
         qInput.value = items[idx];
@@ -617,14 +608,13 @@
       });
     });
   }
-  function escapeHtml(str){
-    return (str || "").replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-  }
 
   if (qInput && suggestBox && suggestList) {
     renderSuggest(baseSuggestions.slice(0, 8));
 
+    // Show dropdown on focus
     qInput.addEventListener('focus', () => showSuggest());
+
     qInput.addEventListener('input', () => {
       const v = (qInput.value || '').toLowerCase().trim();
       const filtered = baseSuggestions.filter(s => s.toLowerCase().includes(v));
@@ -632,12 +622,21 @@
       showSuggest();
     });
 
-    document.addEventListener('click', (e) => {
+    // Keep open while interacting inside dropdown
+    suggestBox.addEventListener('mousedown', (e) => e.preventDefault());
+
+    // Click outside closes
+    document.addEventListener('mousedown', (e) => {
       if (!suggestBox.contains(e.target) && e.target !== qInput) hideSuggest();
+    });
+
+    // ESC closes
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hideSuggest();
     });
   }
 
-  // --------- Save buttons (localStorage) ----------
+  // Save buttons (localStorage)
   const savedKey = 'savedJobs';
   const getSaved = () => new Set(JSON.parse(localStorage.getItem(savedKey) || "[]"));
   const setSaved = (set) => localStorage.setItem(savedKey, JSON.stringify([...set]));
@@ -651,11 +650,11 @@
       if (icon) {
         icon.classList.toggle('far', !isSaved);
         icon.classList.toggle('fas', isSaved);
-        icon.classList.toggle('text-blue-700', isSaved);
+        icon.classList.toggle('text-sky-700', isSaved);
         icon.classList.toggle('text-slate-700', !isSaved);
       }
-      btn.classList.toggle('ring-blue-200', isSaved);
-      btn.classList.toggle('bg-blue-50', isSaved);
+      btn.classList.toggle('ring-sky-200', isSaved);
+      btn.classList.toggle('bg-sky-50', isSaved);
     });
   }
   syncSaveButtons();
@@ -671,17 +670,17 @@
     });
   });
 
-  // --------- Filter tabs (heuristic using title/location text) ----------
+  // Filter tabs
   const filters = document.querySelectorAll('.job-filter');
   const jobCards = document.querySelectorAll('.job-card');
 
   function activeFilter(btn){
     filters.forEach(b => {
-      b.classList.remove('bg-blue-700','text-white','ring-blue-600');
+      b.classList.remove('bg-sky-600/90','text-white','ring-sky-600');
       b.classList.add('bg-white','text-slate-800','ring-slate-200');
     });
     btn.classList.remove('bg-white','text-slate-800','ring-slate-200');
-    btn.classList.add('bg-blue-700','text-white','ring-blue-600');
+    btn.classList.add('bg-sky-600/90','text-white','ring-sky-600');
   }
 
   function matchFilter(card, filter){
@@ -707,7 +706,7 @@
     if (idx === 0) activeFilter(btn);
   });
 
-  // --------- Reveal on scroll ----------
+  // Reveal on scroll
   const reveals = document.querySelectorAll('.reveal');
   if (!prefersReduced && 'IntersectionObserver' in window) {
     reveals.forEach(el => {
@@ -729,7 +728,7 @@
     reveals.forEach(el => io.observe(el));
   }
 
-  // --------- Counters ----------
+  // Counters
   const counters = document.querySelectorAll('.counter');
   function animateCount(el){
     const target = Number(el.getAttribute('data-count') || '0');
@@ -740,7 +739,6 @@
 
     function tick(t){
       const p = Math.min(1, (t - start) / duration);
-      // easeOutCubic
       const eased = 1 - Math.pow(1 - p, 3);
       const val = Math.floor(from + (target - from) * eased);
       el.textContent = val.toLocaleString();
@@ -764,7 +762,7 @@
     counters.forEach(animateCount);
   }
 
-  // --------- Magnetic buttons (subtle) ----------
+  // Magnetic buttons
   document.querySelectorAll('[data-magnetic]').forEach(el => {
     const strength = 18;
     el.addEventListener('mousemove', (e) => {

@@ -2,98 +2,107 @@
 {% load static %}
 {% block content %}
 
-<!-- SkillNet About (Premium Calm SaaS) -->
-<section class="bg-gradient-to-b from-slate-50 via-white to-slate-50">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<style>
+  .soft-focus:focus{outline:none;}
+  .soft-focus:focus-visible{box-shadow:0 0 0 4px rgba(56,189,248,.18); border-color: rgba(56,189,248,.45);}
+  .chip{display:inline-flex;align-items:center;gap:.45rem;border-radius:9999px;border:1px solid rgb(226 232 240);background:#fff;padding:.35rem .7rem;font-weight:600;font-size:.75rem;color:rgb(51 65 85);}
+</style>
 
-    <!-- HERO -->
-    <div class="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.10)]">
-      <!-- soft backdrop -->
-      <div class="absolute inset-0">
-        <div class="absolute -top-28 -left-24 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl"></div>
-        <div class="absolute -bottom-28 -right-24 h-72 w-72 rounded-full bg-indigo-400/10 blur-3xl"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,0.12),transparent_55%),radial-gradient(circle_at_80%_40%,rgba(99,102,241,0.10),transparent_55%),radial-gradient(circle_at_55%_90%,rgba(16,185,129,0.08),transparent_60%)]"></div>
-      </div>
+<section class="px-4 pt-8 pb-12 bg-slate-50/60">
+  <div class="container mx-auto max-w-6xl">
 
-      <div class="relative p-7 sm:p-10">
+    <!-- ===== HERO (Job List style shell) ===== -->
+    <div class="relative overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+      <div aria-hidden="true" class="pointer-events-none absolute -top-28 -right-28 h-72 w-72 rounded-full bg-slate-200/45 blur-3xl"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-32 -left-28 h-80 w-80 rounded-full bg-slate-300/30 blur-3xl"></div>
+
+      <div class="relative px-6 py-10 md:px-10 md:py-12">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
 
           <!-- Left -->
           <div class="max-w-2xl">
-            <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 backdrop-blur px-3 py-1 text-xs font-extrabold tracking-wide text-slate-700 shadow-sm">
-              <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.15)]"></span>
+            <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 backdrop-blur px-3 py-1 text-xs font-semibold tracking-wide text-slate-700 shadow-sm">
+              <span class="h-2 w-2 rounded-full bg-sky-500/70"></span>
               SkillNet • AI Career & Hiring Platform
             </span>
 
-            <h1 class="mt-5 text-3xl sm:text-4xl lg:text-[42px] font-black tracking-tight text-slate-900 leading-tight">
+            <!-- Keep hero title strong (only place) -->
+            <h1 class="mt-5 text-3xl md:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
               A calmer, smarter way to
-              <span class="bg-gradient-to-r from-slate-900 via-indigo-700 to-blue-700 bg-clip-text text-transparent">
+              <span class="bg-gradient-to-r from-slate-900 via-indigo-700 to-sky-700 bg-clip-text text-transparent font-bold">
                 hire and get hired
               </span>.
             </h1>
 
-            <p class="mt-4 text-slate-600 leading-relaxed text-[15px] sm:text-base">
+            <p class="mt-4 text-slate-600 leading-relaxed text-sm md:text-base">
               SkillNet helps job seekers prove skills and helps employers find talent faster — using quizzes, learning paths,
               and role-fit matching. Less noise. More signal.
             </p>
 
             <div class="mt-7 flex flex-col sm:flex-row gap-3">
               <a href="{% url 'app:job_list' %}"
-                 class="group inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-extrabold text-white shadow-[0_14px_35px_rgba(15,23,42,0.22)] hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+                 class="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-600/90 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sky-700/90 active:scale-[0.98] transition soft-focus">
+                <i class="fas fa-briefcase"></i>
                 Explore Jobs
-                <span class="ml-2 inline-block transition-transform group-hover:translate-x-0.5">→</span>
               </a>
 
               <a href="{% url 'app:course_list' %}"
-                 class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/80 backdrop-blur px-6 py-3 text-sm font-extrabold text-slate-900 hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+                 class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-white transition soft-focus">
+                <i class="fas fa-graduation-cap text-slate-500"></i>
                 Browse Courses
               </a>
             </div>
 
             <div class="mt-7 flex flex-wrap gap-2">
-              <span class="rounded-full border border-slate-200 bg-white/70 backdrop-blur px-3 py-1 text-xs font-semibold text-slate-700">Skill-first matching</span>
-              <span class="rounded-full border border-slate-200 bg-white/70 backdrop-blur px-3 py-1 text-xs font-semibold text-slate-700">Quiz-based proof</span>
-              <span class="rounded-full border border-slate-200 bg-white/70 backdrop-blur px-3 py-1 text-xs font-semibold text-slate-700">Personalized learning</span>
-              <span class="rounded-full border border-slate-200 bg-white/70 backdrop-blur px-3 py-1 text-xs font-semibold text-slate-700">Admin support</span>
+              <span class="chip"><i class="fas fa-bolt text-slate-400"></i> Skill-first matching</span>
+              <span class="chip"><i class="fas fa-certificate text-slate-400"></i> Quiz-based proof</span>
+              <span class="chip"><i class="fas fa-route text-slate-400"></i> Learning paths</span>
+              <span class="chip"><i class="fas fa-shield-alt text-slate-400"></i> Admin support</span>
             </div>
           </div>
 
           <!-- Right card -->
-          <div class="w-full lg:w-[400px]">
-            <div class="rounded-[2rem] border border-slate-200/80 bg-white/70 backdrop-blur p-6 shadow-[0_18px_55px_rgba(15,23,42,0.10)]">
+          <div class="w-full lg:w-[420px]">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-6">
               <div class="flex items-center justify-between">
-                <h3 class="text-sm font-black text-slate-900">What happens on SkillNet</h3>
-                <span class="text-[11px] font-extrabold text-slate-500">3 steps</span>
+                <p class="text-sm font-semibold text-slate-900">What happens on SkillNet</p>
+                <span class="text-[11px] font-semibold text-slate-500">3 steps</span>
               </div>
 
               <div class="mt-5 space-y-4">
                 <div class="flex items-start gap-3">
-                  <div class="h-11 w-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-sm shadow-sm">🧠</div>
+                  <div class="h-11 w-11 rounded-2xl border border-slate-200 bg-white shadow-sm flex items-center justify-center">
+                    <i class="fas fa-brain text-slate-400"></i>
+                  </div>
                   <div>
-                    <p class="text-sm font-extrabold text-slate-900">Take a skill quiz</p>
-                    <p class="text-xs text-slate-600">Get a clear snapshot of strengths + gaps.</p>
+                    <p class="text-sm font-semibold text-slate-900">Take a skill quiz</p>
+                    <p class="text-xs text-slate-600">Get a snapshot of strengths + gaps.</p>
                   </div>
                 </div>
 
                 <div class="flex items-start gap-3">
-                  <div class="h-11 w-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-sm shadow-sm">🎯</div>
+                  <div class="h-11 w-11 rounded-2xl border border-slate-200 bg-white shadow-sm flex items-center justify-center">
+                    <i class="fas fa-bullseye text-slate-400"></i>
+                  </div>
                   <div>
-                    <p class="text-sm font-extrabold text-slate-900">Get better matches</p>
+                    <p class="text-sm font-semibold text-slate-900">Get better matches</p>
                     <p class="text-xs text-slate-600">Roles aligned to your skill signals.</p>
                   </div>
                 </div>
 
                 <div class="flex items-start gap-3">
-                  <div class="h-11 w-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-sm shadow-sm">📚</div>
+                  <div class="h-11 w-11 rounded-2xl border border-slate-200 bg-white shadow-sm flex items-center justify-center">
+                    <i class="fas fa-book text-slate-400"></i>
+                  </div>
                   <div>
-                    <p class="text-sm font-extrabold text-slate-900">Learn what’s next</p>
+                    <p class="text-sm font-semibold text-slate-900">Learn what’s next</p>
                     <p class="text-xs text-slate-600">Courses recommended for your target job.</p>
                   </div>
                 </div>
               </div>
 
-              <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-                <p class="text-xs font-extrabold text-slate-700">For employers</p>
+              <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p class="text-xs font-semibold text-slate-700">For employers</p>
                 <p class="mt-1 text-sm text-slate-600">
                   Filter candidates by verified skills, not just keywords.
                 </p>
@@ -105,186 +114,154 @@
       </div>
     </div>
 
-    <!-- STATS -->
+    <!-- ===== STATS ===== -->
     <div class="mt-7 grid grid-cols-2 md:grid-cols-4 gap-4">
-      {% comment %} premium stat card style {% endcomment %}
-      <div class="stat-card group rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-[0_18px_55px_rgba(15,23,42,0.10)] transition">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:bg-slate-50 transition">
         <div class="flex items-center justify-between">
           <p class="text-xs font-semibold text-slate-500">Job posts</p>
-          <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center text-sm">📌</span>
+          <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-white flex items-center justify-center"><i class="fas fa-thumbtack text-slate-400"></i></span>
         </div>
-        <p class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 counter" data-target="10000">0</p>
+        <p class="mt-3 text-2xl sm:text-3xl font-bold text-slate-900 counter" data-target="10000">0</p>
         <p class="mt-2 text-xs text-slate-600">Across categories</p>
       </div>
 
-      <div class="stat-card group rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-[0_18px_55px_rgba(15,23,42,0.10)] transition">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:bg-slate-50 transition">
         <div class="flex items-center justify-between">
           <p class="text-xs font-semibold text-slate-500">Candidates</p>
-          <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center text-sm">🧑‍💻</span>
+          <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-white flex items-center justify-center"><i class="fas fa-user text-slate-400"></i></span>
         </div>
-        <p class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 counter" data-target="50000">0</p>
+        <p class="mt-3 text-2xl sm:text-3xl font-bold text-slate-900 counter" data-target="50000">0</p>
         <p class="mt-2 text-xs text-slate-600">Skill profiles</p>
       </div>
 
-      <div class="stat-card group rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-[0_18px_55px_rgba(15,23,42,0.10)] transition">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:bg-slate-50 transition">
         <div class="flex items-center justify-between">
           <p class="text-xs font-semibold text-slate-500">Companies</p>
-          <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center text-sm">🏢</span>
+          <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-white flex items-center justify-center"><i class="fas fa-building text-slate-400"></i></span>
         </div>
-        <p class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 counter" data-target="5000">0</p>
+        <p class="mt-3 text-2xl sm:text-3xl font-bold text-slate-900 counter" data-target="5000">0</p>
         <p class="mt-2 text-xs text-slate-600">Verified listings</p>
       </div>
 
-      <div class="stat-card group rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-[0_18px_55px_rgba(15,23,42,0.10)] transition">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:bg-slate-50 transition">
         <div class="flex items-center justify-between">
           <p class="text-xs font-semibold text-slate-500">Successful hires</p>
-          <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center text-sm">✅</span>
+          <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-white flex items-center justify-center"><i class="fas fa-check text-slate-400"></i></span>
         </div>
-        <p class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 counter" data-target="30000">0</p>
+        <p class="mt-3 text-2xl sm:text-3xl font-bold text-slate-900 counter" data-target="30000">0</p>
         <p class="mt-2 text-xs text-slate-600">Better outcomes</p>
       </div>
     </div>
 
-    <!-- ROLE SWITCH + DEMO -->
-    <div class="mt-7 rounded-[2rem] border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+    <!-- ===== ROLE + DEMO ===== -->
+    <div class="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div class="p-6 sm:p-8">
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 class="text-xl sm:text-2xl font-black text-slate-900">Who are you here as?</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Who are you here as?</h2>
             <p class="mt-1 text-sm text-slate-600">Switch to see what SkillNet does for you.</p>
           </div>
 
-          <!-- Premium segmented control -->
-          <div class="inline-flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-inner">
-            <button class="role-btn relative px-4 py-2 rounded-xl text-sm font-black text-slate-700 transition"
-                    data-role="seeker">
-              Job Seeker
-            </button>
-            <button class="role-btn relative px-4 py-2 rounded-xl text-sm font-black text-slate-700 transition"
-                    data-role="employer">
-              Employer
-            </button>
+          <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-sm p-1">
+            <button class="role-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition" data-role="seeker">Job Seeker</button>
+            <button class="role-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition" data-role="employer">Employer</button>
           </div>
         </div>
 
         <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-          <!-- seeker -->
           <div id="role-seeker" class="role-panel">
-            <div class="rounded-[2rem] border border-slate-200/80 bg-gradient-to-b from-slate-50 to-white p-6">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <h3 class="text-lg font-black text-slate-900">For Job Seekers</h3>
-                  <p class="mt-2 text-sm text-slate-600">
-                    Stop guessing. Show skills. Follow a clear path to better roles.
-                  </p>
-                </div>
-                <span class="hidden sm:inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-extrabold text-emerald-700">
-                  Recommended
-                </span>
-              </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+              <h3 class="text-lg font-bold text-slate-900">For Job Seekers</h3>
+              <p class="mt-2 text-sm text-slate-600">Show skills, get matched, and follow a clean learning path.</p>
 
-              <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
-                  <p class="text-sm font-extrabold text-slate-900">Skill quizzes</p>
+              <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p class="font-semibold text-slate-900">Skill quizzes</p>
                   <p class="mt-1 text-xs text-slate-600">Measure ability in minutes.</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
-                  <p class="text-sm font-extrabold text-slate-900">Match score</p>
-                  <p class="mt-1 text-xs text-slate-600">Know why you fit a role.</p>
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p class="font-semibold text-slate-900">Match score</p>
+                  <p class="mt-1 text-xs text-slate-600">Know why you fit.</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
-                  <p class="text-sm font-extrabold text-slate-900">Learning plan</p>
-                  <p class="mt-1 text-xs text-slate-600">Courses that move your score up.</p>
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p class="font-semibold text-slate-900">Learning plan</p>
+                  <p class="mt-1 text-xs text-slate-600">Courses that improve your score.</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
-                  <p class="text-sm font-extrabold text-slate-900">Career tracking</p>
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p class="font-semibold text-slate-900">Tracking</p>
                   <p class="mt-1 text-xs text-slate-600">Progress you can show.</p>
                 </div>
               </div>
 
               <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <a href="{% url 'app:job_list' %}"
-                   class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
-                  Start exploring
+                <a href="{% url 'app:job_list' %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600/90 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700/90 transition soft-focus">
+                  <i class="fas fa-arrow-right"></i> Start exploring
                 </a>
-                <a href="{% url 'app:quiz_list' %}"
-                   class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-900 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
-                  Take a quiz
+                <a href="{% url 'app:quiz_list' %}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition soft-focus">
+                  <i class="fas fa-brain text-slate-500"></i> Take a quiz
                 </a>
               </div>
             </div>
           </div>
 
-          <!-- employer -->
           <div id="role-employer" class="role-panel hidden">
-            <div class="rounded-[2rem] border border-slate-200/80 bg-gradient-to-b from-slate-50 to-white p-6">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <h3 class="text-lg font-black text-slate-900">For Employers</h3>
-                  <p class="mt-2 text-sm text-slate-600">
-                    Hire faster with clearer evidence. Reduce time wasted on random applications.
-                  </p>
-                </div>
-                <span class="hidden sm:inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-extrabold text-blue-700">
-                  Faster hiring
-                </span>
-              </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+              <h3 class="text-lg font-bold text-slate-900">For Employers</h3>
+              <p class="mt-2 text-sm text-slate-600">Hire faster using skill signals — not only keywords.</p>
 
-              <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
-                  <p class="text-sm font-extrabold text-slate-900">Skill filters</p>
-                  <p class="mt-1 text-xs text-slate-600">Shortlist using quiz signals.</p>
+              <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p class="font-semibold text-slate-900">Skill filters</p>
+                  <p class="mt-1 text-xs text-slate-600">Shortlist quickly.</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
-                  <p class="text-sm font-extrabold text-slate-900">Better fit</p>
-                  <p class="mt-1 text-xs text-slate-600">Match roles with verified ability.</p>
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p class="font-semibold text-slate-900">Better fit</p>
+                  <p class="mt-1 text-xs text-slate-600">Match verified ability.</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
-                  <p class="text-sm font-extrabold text-slate-900">Admin support</p>
-                  <p class="mt-1 text-xs text-slate-600">Resolve disputes & guide hiring.</p>
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p class="font-semibold text-slate-900">Admin support</p>
+                  <p class="mt-1 text-xs text-slate-600">Help with disputes.</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
-                  <p class="text-sm font-extrabold text-slate-900">Trust & safety</p>
-                  <p class="mt-1 text-xs text-slate-600">Moderation to prevent spam.</p>
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p class="font-semibold text-slate-900">Trust & safety</p>
+                  <p class="mt-1 text-xs text-slate-600">Moderation.</p>
                 </div>
               </div>
 
               <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <a href="{% url 'app:create_job' %}"
-                   class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
-                  Post a job
+                <a href="{% url 'app:create_job' %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600/90 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700/90 transition soft-focus">
+                  <i class="fas fa-plus"></i> Post a job
                 </a>
-                <a href="{% url 'app:employee_dashboard' %}"
-                   class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-900 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
-                  Employer dashboard
+                <a href="{% url 'app:employee_dashboard' %}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition soft-focus">
+                  <i class="fas fa-gauge text-slate-500"></i> Employer dashboard
                 </a>
               </div>
             </div>
           </div>
 
-          <!-- DEMO -->
-          <div class="rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-sm">
+          <!-- Demo -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex items-start justify-between gap-3">
               <div>
-                <h3 class="text-sm font-black text-slate-900">Try a quick “match” demo</h3>
-                <p class="mt-1 text-sm text-slate-600">
-                  Select your focus and see what SkillNet would recommend.
-                </p>
+                <h3 class="text-sm font-semibold text-slate-900">Try a quick “match” demo</h3>
+                <p class="mt-1 text-sm text-slate-600">Select your focus and see suggestions.</p>
               </div>
-              <span class="h-9 w-9 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center text-sm">✨</span>
+              <span class="h-10 w-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center">
+                <i class="fas fa-wand-magic-sparkles text-slate-400"></i>
+              </span>
             </div>
 
             <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <select id="demoRole" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <select id="demoRole" class="soft-focus w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900">
                 <option value="frontend">Frontend Developer</option>
                 <option value="backend">Backend Developer</option>
                 <option value="data">Data Analyst</option>
                 <option value="uiux">UI/UX Designer</option>
               </select>
 
-              <select id="demoLevel" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-100">
+              <select id="demoLevel" class="soft-focus w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900">
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
                 <option value="advanced">Advanced</option>
@@ -292,12 +269,12 @@
             </div>
 
             <button id="demoBtn"
-              class="mt-4 w-full rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 px-5 py-3 text-sm font-black text-white shadow-[0_14px_35px_rgba(15,23,42,0.18)] hover:opacity-95 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+              class="mt-4 w-full rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition soft-focus">
               Show recommendations
             </button>
 
-            <div id="demoResult" class="mt-4 hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p class="text-xs font-black text-slate-700">Recommendations</p>
+            <div id="demoResult" class="mt-4 hidden rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs font-semibold text-slate-700">Recommendations</p>
               <ul class="mt-2 space-y-2 text-sm text-slate-700" id="demoList"></ul>
             </div>
           </div>
@@ -306,110 +283,112 @@
       </div>
     </div>
 
-    <!-- SUPPORT PILLARS -->
-    <div class="mt-7 rounded-[2rem] border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+    <!-- ===== SUPPORT PILLARS ===== -->
+    <div class="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div class="p-6 sm:p-8">
-        <h2 class="text-xl sm:text-2xl font-black text-slate-900">The people behind the platform</h2>
-        <p class="mt-1 text-sm text-slate-600">
-          Instead of fake team names, we show real platform roles your users care about.
-        </p>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900">The people behind the platform</h2>
+        <p class="mt-1 text-sm text-slate-600">Real platform roles users care about.</p>
 
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="rounded-[2rem] border border-slate-200/80 bg-slate-50 p-6 hover:bg-white hover:shadow-sm transition">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 hover:bg-white transition">
             <div class="flex items-start gap-3">
-              <div class="h-11 w-11 rounded-2xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">🛡️</div>
+              <div class="h-11 w-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">
+                <i class="fas fa-shield-alt text-slate-400"></i>
+              </div>
               <div>
-                <p class="text-sm font-black text-slate-900">Admins & Moderation</p>
-                <p class="mt-1 text-sm text-slate-600">Keep listings clean, remove spam, verify reports.</p>
+                <p class="text-sm font-semibold text-slate-900">Admins & Moderation</p>
+                <p class="mt-1 text-sm text-slate-600">Remove spam, verify reports.</p>
               </div>
             </div>
           </div>
 
-          <div class="rounded-[2rem] border border-slate-200/80 bg-slate-50 p-6 hover:bg-white hover:shadow-sm transition">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 hover:bg-white transition">
             <div class="flex items-start gap-3">
-              <div class="h-11 w-11 rounded-2xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">💬</div>
+              <div class="h-11 w-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">
+                <i class="fas fa-headset text-slate-400"></i>
+              </div>
               <div>
-                <p class="text-sm font-black text-slate-900">Support Team</p>
-                <p class="mt-1 text-sm text-slate-600">Help seekers + employers, resolve account & payment issues.</p>
+                <p class="text-sm font-semibold text-slate-900">Support Team</p>
+                <p class="mt-1 text-sm text-slate-600">Resolve account issues.</p>
               </div>
             </div>
           </div>
 
-          <div class="rounded-[2rem] border border-slate-200/80 bg-slate-50 p-6 hover:bg-white hover:shadow-sm transition">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 hover:bg-white transition">
             <div class="flex items-start gap-3">
-              <div class="h-11 w-11 rounded-2xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">⚙️</div>
+              <div class="h-11 w-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">
+                <i class="fas fa-gear text-slate-400"></i>
+              </div>
               <div>
-                <p class="text-sm font-black text-slate-900">Platform Operations</p>
-                <p class="mt-1 text-sm text-slate-600">Course publishing, job approvals, system stability.</p>
+                <p class="text-sm font-semibold text-slate-900">Platform Operations</p>
+                <p class="mt-1 text-sm text-slate-600">System stability & approvals.</p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-          <p class="text-sm font-black text-slate-900">Team Section</p>
-          <p class="mt-1 text-sm text-slate-600">
-            We’ll switch this to a dynamic team list from database later (admins/support).
-          </p>
+          <p class="text-sm font-semibold text-slate-900">Team Section</p>
+          <p class="mt-1 text-sm text-slate-600">Later you can load team members dynamically from DB.</p>
         </div>
       </div>
     </div>
 
-    <!-- FAQ -->
-    <div class="mt-7 rounded-[2rem] border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+    <!-- ===== FAQ ===== -->
+    <div class="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div class="p-6 sm:p-8">
-        <h2 class="text-xl sm:text-2xl font-black text-slate-900">Frequently asked</h2>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Frequently asked</h2>
         <p class="mt-1 text-sm text-slate-600">Short answers, no noise.</p>
 
         <div class="mt-5 space-y-3" id="faqWrap">
-          <button type="button" class="faq-btn w-full text-left rounded-[2rem] border border-slate-200/80 bg-slate-50 p-5 hover:bg-white transition">
+          <button type="button" class="faq-btn w-full text-left rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white transition">
             <div class="flex items-center justify-between gap-3">
-              <span class="text-sm font-black text-slate-900">Is SkillNet free for job seekers?</span>
-              <span class="faq-icon text-slate-500 font-black text-lg leading-none">+</span>
+              <span class="text-sm font-semibold text-slate-900">Is SkillNet free for job seekers?</span>
+              <span class="faq-icon text-slate-500 font-semibold text-lg leading-none">+</span>
             </div>
             <div class="faq-panel hidden mt-3 text-sm text-slate-600 leading-relaxed">
               Yes. Job seekers can create profiles, browse jobs, and take quizzes. Some courses may be paid depending on the provider.
             </div>
           </button>
 
-          <button type="button" class="faq-btn w-full text-left rounded-[2rem] border border-slate-200/80 bg-slate-50 p-5 hover:bg-white transition">
+          <button type="button" class="faq-btn w-full text-left rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white transition">
             <div class="flex items-center justify-between gap-3">
-              <span class="text-sm font-black text-slate-900">How does matching work?</span>
-              <span class="faq-icon text-slate-500 font-black text-lg leading-none">+</span>
+              <span class="text-sm font-semibold text-slate-900">How does matching work?</span>
+              <span class="faq-icon text-slate-500 font-semibold text-lg leading-none">+</span>
             </div>
             <div class="faq-panel hidden mt-3 text-sm text-slate-600 leading-relaxed">
-              Matching uses skill signals (quiz + profile), job requirements, and learning progress to rank fit. It’s not random keyword matching.
+              Matching uses skill signals (quiz + profile), job requirements, and learning progress to rank fit.
             </div>
           </button>
 
-          <button type="button" class="faq-btn w-full text-left rounded-[2rem] border border-slate-200/80 bg-slate-50 p-5 hover:bg-white transition">
+          <button type="button" class="faq-btn w-full text-left rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white transition">
             <div class="flex items-center justify-between gap-3">
-              <span class="text-sm font-black text-slate-900">Can employers communicate with admins?</span>
-              <span class="faq-icon text-slate-500 font-black text-lg leading-none">+</span>
+              <span class="text-sm font-semibold text-slate-900">Can employers communicate with admins?</span>
+              <span class="faq-icon text-slate-500 font-semibold text-lg leading-none">+</span>
             </div>
             <div class="faq-panel hidden mt-3 text-sm text-slate-600 leading-relaxed">
-              Yes. Your platform can include a live chat (seekers/employers ↔ admins). This helps resolve verification, disputes, and guidance.
+              Yes. You can include a live chat (seekers/employers ↔ admins) for verification and disputes.
             </div>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- CTA -->
-    <div class="mt-7 rounded-[2rem] border border-slate-200/80 bg-gradient-to-b from-white to-slate-50 shadow-sm">
+    <!-- ===== CTA ===== -->
+    <div class="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h3 class="text-lg font-black text-slate-900">Get started in 2 minutes</h3>
-          <p class="mt-1 text-sm text-slate-600">Quiz → matches → learning path → better hiring outcomes.</p>
+          <h3 class="text-lg font-bold text-slate-900">Get started in 2 minutes</h3>
+          <p class="mt-1 text-sm text-slate-600">Quiz → matches → learning path → better outcomes.</p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3">
           <a href="{% url 'app:quiz_list' %}"
-             class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-black text-white hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
-            Take a quiz
+             class="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600/90 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-700/90 transition soft-focus">
+            <i class="fas fa-brain"></i> Take a quiz
           </a>
           <a href="{% url 'app:job_list' %}"
-             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-900 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
-            View jobs
+             class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition soft-focus">
+            <i class="fas fa-briefcase text-slate-500"></i> View jobs
           </a>
         </div>
       </div>
@@ -419,13 +398,12 @@
 </section>
 
 <script>
-  // -------- count-up (only when visible) --------
+  // count-up
   (function () {
     const counters = document.querySelectorAll('.counter');
     if (!counters.length) return;
 
     const format = (n) => n.toLocaleString();
-
     const io = new IntersectionObserver((entries) => {
       entries.forEach(en => {
         if (!en.isIntersecting) return;
@@ -448,7 +426,7 @@
     counters.forEach(c => io.observe(c));
   })();
 
-  // -------- role switch (premium segmented control) --------
+  // role switch (active style like job list view buttons)
   (function () {
     const btns = document.querySelectorAll('.role-btn');
     const seeker = document.getElementById('role-seeker');
@@ -461,12 +439,10 @@
 
       btns.forEach(b => {
         const active = b.dataset.role === which;
-        b.classList.toggle('bg-white', active);
+        b.classList.toggle('bg-sky-600/90', active);
+        b.classList.toggle('text-white', active);
         b.classList.toggle('shadow-sm', active);
-        b.classList.toggle('text-slate-900', active);
         b.classList.toggle('text-slate-700', !active);
-        b.classList.toggle('ring-1', active);
-        b.classList.toggle('ring-slate-200', active);
       });
     }
 
@@ -474,7 +450,7 @@
     activate('seeker');
   })();
 
-  // -------- FAQ accordion --------
+  // FAQ accordion
   (function () {
     const wrap = document.getElementById('faqWrap');
     if (!wrap) return;
@@ -494,7 +470,7 @@
     });
   })();
 
-  // -------- mini demo recommender --------
+  // mini demo recommender
   (function () {
     const role = document.getElementById('demoRole');
     const level = document.getElementById('demoLevel');
@@ -539,14 +515,6 @@
       `).join('');
 
       box.classList.remove('hidden');
-
-      const old = btn.textContent;
-      btn.textContent = "Updated ✓";
-      btn.classList.add('opacity-95');
-      setTimeout(() => {
-        btn.textContent = old;
-        btn.classList.remove('opacity-95');
-      }, 1200);
     });
   })();
 </script>

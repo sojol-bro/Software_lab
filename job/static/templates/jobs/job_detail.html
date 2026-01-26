@@ -1,59 +1,521 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-4xl">
-  <div class="bg-white rounded-xl shadow-md p-6">
-    <div class="flex items-center mb-6">
-      <img src="{{ job.company.logo.url }}" 
-              alt="{{ job.company.name }}" 
-              class="mr-4 rounded-lg h-12 w-12 object-cover overflow-hidden" /> 
-      <div>
-        <h1 class="text-2xl font-bold">{{ job.title }}</h1>
-        <p class="text-lg text-gray-600">{{ job.company.name }}</p>
-      </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <div class="flex items-center">
-        <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
-        <span>{{ job.location }}</span>
-      </div>
-      <div class="flex items-center">
-        <i class="fas fa-dollar-sign text-blue-500 mr-2"></i>
-        <span>{{ job.get_salary_range }}</span>
-      </div>
-      <div class="flex items-center">
-        <i class="fas fa-briefcase text-blue-500 mr-2"></i>
-        <span>{{ job.get_job_type_display }}</span>
-      </div>
-      <div class="flex items-center">
-        <i class="fas fa-clock text-blue-500 mr-2"></i>
-        <span>Posted {{ job.posted_date|timesince }} ago</span>
-      </div>
-    </div>
+<style>
+  .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .line-clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .no-scrollbar::-webkit-scrollbar{display:none;}
+  .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
 
-    <div class="mb-6">
-      <h2 class="text-xl font-bold mb-3">Job Description</h2>
-      <p class="text-gray-700">{{ job.description }}</p>
-    </div>
+  /* Premium tabs (course-detail style) */
+  .tab-button{
+    display:flex; align-items:center; gap:.55rem;
+    padding:.7rem 1rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: .92rem;
+    color: rgb(71 85 105);
+    border: 1px solid transparent;
+    transition: .18s ease;
+    user-select:none;
+    white-space: nowrap;
+  }
+  .tab-button i{opacity:.75}
+  .tab-button:hover{
+    background: rgb(248 250 252);
+    border-color: rgb(226 232 240);
+    color: rgb(15 23 42);
+  }
+  .tab-button.is-active{
+    background: rgba(14,165,233,.10);
+    border-color: rgba(14,165,233,.22);
+    color: rgb(2 132 199);
+  }
+  .tab-content{animation: fadeIn .32s ease both;}
+  @keyframes fadeIn{from{opacity:0; transform: translateY(8px);}to{opacity:1; transform: translateY(0);} }
 
-    <div class="mb-6">
-      <h2 class="text-xl font-bold mb-3">Requirements</h2>
-      <p class="text-gray-700">{{ job.requirements }}</p>
-    </div>
+  .focus-sky:focus{
+    outline:none;
+    box-shadow: 0 0 0 4px rgba(14,165,233,.18);
+    border-color: rgba(14,165,233,.35);
+  }
+</style>
 
-    <div class="mb-6">
-      <h2 class="text-xl font-bold mb-3">Skills Required</h2>
-      <div class="flex flex-wrap gap-2">
-        {% for skill in job.get_skills_list %}
-        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">{{ skill }}</span>
-        {% endfor %}
+<div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 py-8">
+  <div class="container mx-auto px-4 max-w-6xl">
+
+    <!-- ================= HERO ================= -->
+    <section class="rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-[0_16px_45px_rgba(2,6,23,0.08)] overflow-hidden mb-8">
+      <div class="grid md:grid-cols-12">
+
+        <!-- Media -->
+        <div class="md:col-span-5 relative">
+          {% if job.company.logo %}
+            <img src="{{ job.company.logo.url }}" alt="{{ job.company.name }}" class="w-full h-64 md:h-full object-cover" />
+          {% else %}
+            <div class="w-full h-64 md:h-full bg-gradient-to-br from-slate-100 via-white to-slate-100 flex items-center justify-center">
+              <div class="w-20 h-20 rounded-3xl border border-slate-200 bg-white shadow-sm flex items-center justify-center">
+                <i class="fas fa-building text-3xl text-slate-400"></i>
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/15 to-transparent"></div>
+
+          <!-- Badges -->
+          <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+            {% if job.category %}
+              <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white/90 text-slate-900 border border-white/60 shadow-sm">
+                {{ job.category }}
+              </span>
+            {% endif %}
+
+            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white/90 text-slate-900 border border-white/60 shadow-sm">
+              {{ job.get_job_type_display }}
+            </span>
+
+            <span class="px-3 py-1 text-xs font-semibold rounded-full shadow-sm
+              {% if job.experience_level == 'entry' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+              {% elif job.experience_level == 'mid' %}bg-sky-50 text-sky-700 border border-sky-100
+              {% elif job.experience_level == 'senior' %}bg-sky-50 text-sky-700 border border-sky-100
+              {% else %}bg-amber-100 text-amber-800 border border-amber-200{% endif %}">
+              {{ job.get_experience_level_display }}
+            </span>
+          </div>
+
+          <!-- Bottom info panel -->
+          <div class="absolute left-4 bottom-4 right-4">
+            <div class="bg-white/90 backdrop-blur rounded-2xl border border-white/60 p-4 shadow-sm">
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="flex items-center gap-2 text-slate-700">
+                  <i class="fas fa-map-marker-alt text-slate-400"></i>
+                  <span class="truncate">{{ job.location }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-700">
+                  <i class="fas fa-laptop-house text-slate-400"></i>
+                  <span class="truncate">{{ job.get_work_mode_display }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-700">
+                  <i class="fas fa-wallet text-slate-400"></i>
+                  <span class="truncate">{{ job.get_salary_range }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-700">
+                  <i class="fas fa-calendar-alt text-slate-400"></i>
+                  <span class="truncate">Posted {{ job.get_formatted_date }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="md:col-span-7 p-6 md:p-9">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div class="min-w-0">
+              <a href="{% url 'app:job_list' %}"
+                 class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition">
+                <i class="fas fa-arrow-left text-slate-400"></i>
+                Back to Jobs
+              </a>
+
+              <h1 class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
+                {{ job.title }}
+              </h1>
+
+              <p class="mt-2 text-slate-600 text-base md:text-lg">
+                {{ job.company.name }}
+              </p>
+            </div>
+
+            <span class="shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-100">
+              {{ job.get_job_type_display }}
+            </span>
+          </div>
+
+          {% if job.short_description %}
+            <p class="text-slate-600 text-base md:text-lg leading-relaxed mb-6">
+              {{ job.short_description }}
+            </p>
+          {% else %}
+            <p class="text-slate-600 text-base md:text-lg leading-relaxed mb-6">
+              {{ job.description|truncatewords:30 }}
+            </p>
+          {% endif %}
+
+          <!-- Stats (course-like) -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7">
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition">
+              <div class="text-lg font-extrabold text-slate-900 line-clamp-2">{{ job.get_salary_range|default:"—" }}</div>
+              <div class="text-xs text-slate-500 mt-1">Salary</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition">
+              <div class="text-lg font-extrabold text-slate-900 line-clamp-2">{{ job.location|default:"—" }}</div>
+              <div class="text-xs text-slate-500 mt-1">Location</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition">
+              <div class="text-lg font-extrabold text-slate-900 line-clamp-2">{{ job.get_work_mode_display|default:"—" }}</div>
+              <div class="text-xs text-slate-500 mt-1">Work Mode</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition">
+              <div class="text-lg font-extrabold text-slate-900 line-clamp-2">{{ job.get_experience_level_display|default:"—" }}</div>
+              <div class="text-xs text-slate-500 mt-1">Level</div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            {% if user.is_authenticated %}
+              <button id="openQuizModal" type="button"
+                class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600/90 text-white font-semibold shadow-sm
+                       hover:bg-sky-700/90 active:scale-[0.99] transition text-center">
+                Apply Now
+              </button>
+            {% else %}
+              <a href="{% url 'login' %}?next={% url 'app:job_detail' job.id %}"
+                 class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600/90 text-white font-semibold shadow-sm
+                        hover:bg-sky-700/90 active:scale-[0.99] transition text-center">
+                Login to Apply
+              </a>
+            {% endif %}
+
+            <button type="button"
+              class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-800 font-semibold
+                     hover:bg-slate-50 transition focus-sky">
+              <i class="far fa-heart mr-2 opacity-70"></i>Save
+            </button>
+
+            <button id="viewDetailsBtn" type="button"
+              class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-800 font-semibold
+                     hover:bg-slate-50 transition focus-sky">
+              View Details
+            </button>
+          </div>
+
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="text-center">
-      <a href="{% url 'app:apply_job' job.id %}" class="px-6 py-3 inline-block bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">Apply Now</a>
+    <!-- ================= TABS ================= -->
+    <section id="jobTabsSection" class="bg-white rounded-3xl shadow-[0_14px_40px_rgba(2,6,23,0.06)] border border-slate-200 mb-8 overflow-hidden">
+      <div class="sticky top-16 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+        <nav class="relative flex flex-wrap gap-2 p-3 overflow-x-auto no-scrollbar" role="tablist" aria-label="Job tabs">
+
+          <button data-tab="overview" class="tab-button is-active" role="tab" aria-selected="true" tabindex="0">
+            <i class="fas fa-info-circle"></i><span>Overview</span>
+          </button>
+
+          <button data-tab="requirements" class="tab-button" role="tab" aria-selected="false" tabindex="-1">
+            <i class="fas fa-list-check"></i><span>Requirements</span>
+          </button>
+
+          <button data-tab="company" class="tab-button" role="tab" aria-selected="false" tabindex="-1">
+            <i class="fas fa-building"></i><span>Company</span>
+          </button>
+
+          <button data-tab="similar" class="tab-button" role="tab" aria-selected="false" tabindex="-1">
+            <i class="fas fa-briefcase"></i><span>Similar</span>
+          </button>
+
+          <span id="tab-indicator" class="absolute bg-sky-600/90 transition-all duration-300"></span>
+        </nav>
+      </div>
+
+      <div class="p-6 md:p-9">
+
+        <!-- Overview -->
+        <div id="overview" class="tab-content">
+          <div class="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-slate-900">Job Overview</h3>
+              <p class="text-slate-500 mt-1">Role summary, highlights, and skills.</p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 mb-8">
+            <div class="text-slate-700 leading-relaxed space-y-3">
+              {{ job.description|linebreaksbr }}
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="rounded-2xl border border-slate-200 bg-white p-6">
+              <h4 class="text-lg font-semibold text-slate-900 mb-4">Highlights</h4>
+              <div class="space-y-3 text-slate-700">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
+                    <i class="fas fa-check text-xs"></i>
+                  </span>
+                  <span><b>Type:</b> {{ job.get_job_type_display }}</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
+                    <i class="fas fa-check text-xs"></i>
+                  </span>
+                  <span><b>Work Mode:</b> {{ job.get_work_mode_display }}</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
+                    <i class="fas fa-check text-xs"></i>
+                  </span>
+                  <span><b>Level:</b> {{ job.get_experience_level_display }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-6">
+              <h4 class="text-lg font-semibold text-slate-900 mb-4">Skills</h4>
+              <div class="flex flex-wrap gap-2">
+                {% for skill in job.get_skills_list %}
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white text-slate-700 border border-slate-200">
+                    {{ skill }}
+                  </span>
+                {% empty %}
+                  <span class="text-sm text-slate-600">No skills specified.</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Requirements -->
+        <div id="requirements" class="tab-content hidden">
+          <h3 class="text-2xl font-bold text-slate-900 mb-4">Requirements</h3>
+
+          {% if job.requirements %}
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-slate-700 leading-relaxed">
+              {{ job.requirements|linebreaksbr }}
+            </div>
+          {% else %}
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-slate-600">
+              Requirements will be added soon.
+            </div>
+          {% endif %}
+
+          {% if job.responsibilities %}
+          <div class="mt-6">
+            <h4 class="text-lg font-semibold text-slate-900 mb-2">Responsibilities</h4>
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 text-slate-700 leading-relaxed">
+              {{ job.responsibilities|linebreaksbr }}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Company -->
+        <div id="company" class="tab-content hidden">
+          <h3 class="text-2xl font-bold text-slate-900 mb-3">{{ job.company.name }}</h3>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6">
+            <p class="text-slate-700 leading-relaxed">
+              {{ job.company.description|default:"Company details will appear here." }}
+            </p>
+
+            {% if job.company.website %}
+              <a href="{{ job.company.website }}" target="_blank"
+                 class="inline-flex items-center gap-2 mt-4 text-sm font-semibold text-slate-900 hover:text-sky-700 transition">
+                Visit website →
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Similar -->
+        <div id="similar" class="tab-content hidden">
+          <div class="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-slate-900">Similar Jobs</h3>
+              <p class="text-slate-500 mt-1">Explore roles close to this job.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for sj in similar_jobs %}
+              <article class="group rounded-3xl border border-slate-200 bg-white overflow-hidden hover:shadow-lg transition">
+                <div class="p-5">
+                  <h4 class="font-semibold text-slate-900 leading-tight line-clamp-2">{{ sj.title }}</h4>
+                  <p class="text-sm text-slate-500 mt-2">{{ sj.company.name }}</p>
+
+                  <div class="flex items-center justify-between mt-5">
+                    <span class="text-sm font-semibold text-slate-700">{{ sj.location }}</span>
+                    <a href="{% url 'app:job_detail' sj.id %}"
+                       class="text-sm font-semibold text-slate-900 hover:text-sky-700 transition">
+                      View →
+                    </a>
+                  </div>
+                </div>
+              </article>
+            {% empty %}
+              <div class="col-span-full rounded-2xl border border-slate-200 bg-slate-50 p-6 text-slate-600">
+                No similar jobs found.
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ================= QUIZ MODAL ================= -->
+<div id="quizModal" class="fixed inset-0 z-[9999] hidden items-center justify-center px-4">
+  <div id="quizBackdrop" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+
+  <div class="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
+    <div class="h-1.5 bg-sky-600/90"></div>
+
+    <div class="p-6 sm:p-7">
+      <div class="flex items-start gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+          <i class="fas fa-question-circle text-sky-600 text-xl"></i>
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-xl font-extrabold text-slate-900">Short Quiz Required</h2>
+          <p class="mt-1 text-slate-600">
+            A short quiz is required before applying. You can do it now or later.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p class="text-sm font-semibold text-slate-800">Options:</p>
+        <ul class="mt-2 text-sm text-slate-600 space-y-1">
+          <li>• Later: stay on job details</li>
+          <li>• Attend now: go to quiz page (if you have it)</li>
+        </ul>
+      </div>
+
+      <div class="mt-6 flex flex-col sm:flex-row gap-3">
+        <button id="laterBtn" type="button"
+          class="inline-flex w-full items-center justify-center gap-2 px-5 py-3 rounded-2xl
+                 border border-slate-200 bg-white text-slate-700 font-semibold
+                 hover:bg-slate-50 transition focus-sky">
+          Later
+          <i class="fas fa-clock text-slate-400"></i>
+        </button>
+
+        {% if quiz_url %}
+          <a href="{{ quiz_url }}"
+             class="inline-flex w-full items-center justify-center gap-2 px-5 py-3 rounded-2xl
+                    bg-sky-600/90 text-white font-extrabold shadow-sm
+                    hover:bg-sky-700/90 active:scale-[0.98] transition">
+            Attend Now
+            <i class="fas fa-arrow-right text-white/90"></i>
+          </a>
+        {% else %}
+          <button id="attendBtn" type="button"
+            class="inline-flex w-full items-center justify-center gap-2 px-5 py-3 rounded-2xl
+                   bg-sky-600/90 text-white font-extrabold shadow-sm
+                   hover:bg-sky-700/90 active:scale-[0.98] transition">
+            Attend Now
+            <i class="fas fa-arrow-right text-white/90"></i>
+          </button>
+        {% endif %}
+      </div>
+
+      <button id="closeX" type="button"
+        class="mt-4 w-full text-sm font-semibold text-slate-500 hover:text-slate-700 transition">
+        Close
+      </button>
     </div>
   </div>
 </div>
+
+<script>
+  // Tabs with moving indicator (course-detail style)
+  const tabButtons = () => Array.from(document.querySelectorAll(".tab-button"));
+  const tabContents = () => Array.from(document.querySelectorAll(".tab-content"));
+  const indicator = () => document.getElementById("tab-indicator");
+
+  function setActiveTab(tabName, { scrollToTabs = false } = {}) {
+    tabContents().forEach(el => el.classList.add("hidden"));
+    const activeContent = document.getElementById(tabName);
+    if (activeContent) activeContent.classList.remove("hidden");
+
+    tabButtons().forEach(btn => {
+      const isActive = btn.dataset.tab === tabName;
+      btn.classList.toggle("is-active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+      btn.setAttribute("tabindex", isActive ? "0" : "-1");
+    });
+
+    const activeBtn = tabButtons().find(b => b.dataset.tab === tabName);
+    if (activeBtn && indicator()) {
+      const nav = activeBtn.parentElement;
+      const navRect = nav.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
+      indicator().style.left = (btnRect.left - navRect.left) + "px";
+      indicator().style.width = btnRect.width + "px";
+      indicator().style.height = "3px";
+      indicator().style.bottom = "10px";
+      indicator().style.borderRadius = "999px";
+    }
+
+    if (scrollToTabs) {
+      const section = document.getElementById("jobTabsSection");
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab-button");
+    if (!btn) return;
+    setActiveTab(btn.dataset.tab);
+  });
+
+  // Quiz modal open/close
+  (function(){
+    const openBtn = document.getElementById('openQuizModal');
+    const modal = document.getElementById('quizModal');
+    const backdrop = document.getElementById('quizBackdrop');
+    const laterBtn = document.getElementById('laterBtn');
+    const attendBtn = document.getElementById('attendBtn');
+    const closeX = document.getElementById('closeX');
+
+    function openModal(){
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(){
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    openBtn?.addEventListener('click', openModal);
+    laterBtn?.addEventListener('click', closeModal);
+    closeX?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+
+    // If no quiz_url, Attend just closes (prevents NoReverseMatch)
+    attendBtn?.addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', (e) => {
+      if(modal.classList.contains('hidden')) return;
+      if(e.key === 'Escape') closeModal();
+    });
+  })();
+
+  // View Details scroll
+  window.addEventListener("load", () => {
+    setActiveTab("overview");
+
+    const viewBtn = document.getElementById("viewDetailsBtn");
+    if (viewBtn) {
+      viewBtn.addEventListener("click", () => {
+        setActiveTab("overview", { scrollToTabs: true });
+      });
+    }
+
+    window.addEventListener("resize", () => {
+      const activeBtn = document.querySelector(".tab-button.is-active");
+      if (activeBtn) setActiveTab(activeBtn.dataset.tab);
+    });
+  });
+</script>
+
 {% endblock %}
