@@ -30,6 +30,7 @@ urlpatterns = [
     path('', home, name='home'),
     path('', include('app.urls')),
     path('', include('admin.urls')),
+    path("", include(("app.urls", "app"), namespace="app")),
     path('employee/', employee_view, name='employee_view'),
     path('login/', login_view, name='login'),
     path('two-factor/', two_factor_challenge, name='two_factor_challenge'),

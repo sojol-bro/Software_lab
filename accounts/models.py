@@ -3,9 +3,9 @@ from django.db import models
 
 class CustomUser(models.Model):
     USER_TYPES = (
-        ('user', 'Regular User'),
-        ('employee', 'Employee'),
-        ('admin', 'Administrator'),
+        ('user', 'Regular User'),     # Job Seeker
+        ('employee', 'Employee'),     # Employer / Company
+        ('admin', 'Administrator'),   # Admin
     )
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)

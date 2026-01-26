@@ -1,14 +1,22 @@
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.conf import settings
 
 
 class Company(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="companies",
+        null=True,
+        blank=True
+    )
+
     name = models.CharField(max_length=200)
     logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
     description = models.TextField(blank=True)
-    
+
     def __str__(self):
         return self.name
 

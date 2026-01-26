@@ -16,26 +16,32 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from app.views import home,  logout_view, about_view
-from accounts.views import employee_view, signup_view,login_view
 from django.conf.urls.static import static
 from django.conf import settings
-from admin import views as project_admin_views
 
-app_name = 'job'
+from app.views import home, logout_view, about_view, dashboard as admin_dashboard_view
+from accounts.views import employee_view, signup_view, login_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Home
     path('', home, name='home'),
-    path('', include('app.urls')),
-    path('', include('admin.urls')),
+
+    # ✅ App URLs (ONLY ONCE, namespaced)
+    path('', include(('app.urls', 'app'), namespace='app')),
+
+    # ✅ Admin dashboard (your custom one)
+    path('admin_dashboard/', admin_dashboard_view, name='admin_dashboard'),
+
+    # Auth
     path('employee/', employee_view, name='employee_view'),
     path('login/', login_view, name='login'),
-    path('signup/', signup_view, name='signup'), 
+    path('signup/', signup_view, name='signup'),
     path('logout/', logout_view, name='logout'),
+
+    # About
     path('about/', about_view, name='about_view'),
-    path('',include('app.urls', namespace='app')),
-    path('admin_dashboard/', project_admin_views.admin_dashboard, name='admin_dashboard'),
 ]
 
 if settings.DEBUG:

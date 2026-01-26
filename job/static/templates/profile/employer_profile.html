@@ -1,0 +1,1348 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- =========================================================
+    NEXT-LEVEL COMPANY PROFILE (REBUILT)
+    - Cleaner layout, better hierarchy, more friendly UI
+    - No fragile URL dependencies (no NoReverseMatch)
+    - Edit Profile is INCLUDED (modal + safe placeholders)
+    - Keeps your Django vars: company, company_stats, jobs, quizzes, applicants, team_members, reviews, active_tab, is_company_owner
+  ========================================================= -->
+
+  <!-- ===== HERO / HEADER ===== -->
+  <section class="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_22px_70px_rgba(15,23,42,.10)]">
+    <!-- Background decor -->
+    <div class="pointer-events-none absolute inset-0">
+      <div class="absolute -top-24 -right-28 h-80 w-80 rounded-full bg-sky-200/60 blur-3xl"></div>
+      <div class="absolute -bottom-28 -left-28 h-80 w-80 rounded-full bg-indigo-200/50 blur-3xl"></div>
+      <div class="absolute inset-0 opacity-[0.06] bg-[linear-gradient(to_right,rgba(15,23,42,1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,1)_1px,transparent_1px)] bg-[size:22px_22px]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(59,130,246,.12),transparent_55%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,.12),transparent_60%),radial-gradient(circle_at_35%_90%,rgba(16,185,129,.10),transparent_55%)]"></div>
+    </div>
+
+    <div class="relative p-5 sm:p-8 lg:p-10">
+      <div class="flex flex-col lg:flex-row lg:items-start gap-6">
+        <!-- Identity -->
+        <div class="flex items-start gap-4 min-w-0 flex-1">
+          <!-- Logo -->
+          <div class="relative shrink-0">
+            <div class="h-18 w-18 sm:h-20 sm:w-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm">
+              <img
+                src="{% if company.logo %}{{ company.logo.url }}{% else %}https://via.placeholder.com/200{% endif %}"
+                alt="{{ company.name }}"
+                class="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            {% if company.is_verified %}
+            <span class="absolute -bottom-2 -right-2 inline-flex items-center justify-center h-7 w-7 rounded-full bg-emerald-600 text-white shadow ring-4 ring-white">
+              <i class="fas fa-check text-xs"></i>
+            </span>
+            {% endif %}
+          </div>
+
+          <!-- Text -->
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 truncate">
+                {{ company.name|default:"Company Name" }}
+              </h1>
+
+              {% if company.is_verified %}
+              <span class="pill pill-emerald" title="Verified company">
+                <i class="fas fa-badge-check"></i> Verified
+              </span>
+              {% endif %}
+
+              {% if company.hiring_now %}
+              <span class="pill pill-blue" title="Hiring now">
+                <span class="h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+                Hiring now
+              </span>
+              {% endif %}
+            </div>
+
+            <p class="mt-1 text-slate-600 max-w-2xl">
+              {{ company.tagline|default:"We build great teams and ship impactful products." }}
+            </p>
+
+            <!-- Chips -->
+            <div class="mt-4 flex flex-wrap gap-2 text-sm text-slate-700">
+              {% if company.industry %}
+              <span class="chip"><i class="fas fa-building mr-2 text-slate-400"></i>{{ company.industry }}</span>
+              {% endif %}
+              {% if company.size %}
+              <span class="chip"><i class="fas fa-users mr-2 text-slate-400"></i>{{ company.size }}</span>
+              {% endif %}
+              {% if company.location %}
+              <span class="chip"><i class="fas fa-map-marker-alt mr-2 text-slate-400"></i>{{ company.location }}</span>
+              {% endif %}
+              {% if company.website %}
+              <a class="chip chip-link" href="{{ company.website }}" target="_blank" rel="noopener">
+                <i class="fas fa-globe mr-2"></i>Website
+              </a>
+              {% endif %}
+            </div>
+
+            <!-- Micro actions -->
+            <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <button class="mini-link" type="button" onclick="copyText('{{ company.name|default:'Company'|escapejs }}')">
+                <i class="far fa-copy mr-1"></i>Copy name
+              </button>
+              {% if company.website %}
+              <a class="mini-link" href="{{ company.website }}" target="_blank" rel="noopener">
+                <i class="fas fa-arrow-up-right-from-square mr-1"></i>Open website
+              </a>
+              {% endif %}
+              <button class="mini-link" type="button" onclick="shareCompany()">
+                <i class="fas fa-share-nodes mr-1"></i>Share
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary actions -->
+        <div class="w-full lg:w-auto flex flex-col sm:flex-row gap-3 lg:justify-end">
+            
+          {% if is_company_owner %}
+            <!-- IMPORTANT: Edit profile is HERE -->
+            <button type="button" class="btn-primary" onclick="openEditCompanyModal()">
+              <i class="fas fa-pen-to-square mr-2"></i>Edit Profile
+            </button>
+
+            <a href="{% url 'app:create_job' %}" class="btn-secondary">
+              <i class="fas fa-plus mr-2"></i>Post a Job
+            </a>
+
+            <a href="{% url 'app:quiz_list' %}" class="btn-ghost">
+              <i class="fas fa-clipboard-check mr-2"></i>Quizzes
+            </a>
+
+            <a href="{% url 'app:employee_dashboard' %}" class="btn-ghost">
+              <i class="fas fa-chart-line mr-2"></i>Dashboard
+            </a>
+
+            {# If you later add a real edit page, put your URL here:
+               {% comment %}<a href="{% url 'app:company_edit' company.id %}" class="btn-primary">Edit Profile</a>{% endcomment %}
+            #}
+          {% else %}
+            <button type="button" class="btn-primary" onclick="toggleFollow()" id="followBtn" aria-pressed="false">
+              <i class="fas fa-star mr-2"></i><span id="followLabel">Follow</span>
+            </button>
+            <button type="button" class="btn-secondary" onclick="shareCompany()">
+              <i class="fas fa-share-alt mr-2"></i>Share
+            </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Metrics (clean + readable) -->
+      <div class="mt-7 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div class="metric">
+          <div class="metric-top">
+            <span class="metric-icon"><i class="fas fa-briefcase"></i></span>
+            <span class="metric-hint">Open</span>
+          </div>
+          <div class="metric-kpi">{{ company_stats.open_jobs|default:"0" }}</div>
+          <div class="metric-label">Jobs</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-top">
+            <span class="metric-icon"><i class="fas fa-user-group"></i></span>
+            <span class="metric-hint">Total</span>
+          </div>
+          <div class="metric-kpi">{{ company_stats.total_applicants|default:"0" }}</div>
+          <div class="metric-label">Applicants</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-top">
+            <span class="metric-icon"><i class="fas fa-clipboard-check"></i></span>
+            <span class="metric-hint">Active</span>
+          </div>
+          <div class="metric-kpi">{{ company_stats.active_quizzes|default:"0" }}</div>
+          <div class="metric-label">Quizzes</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-top">
+            <span class="metric-icon"><i class="fas fa-user-check"></i></span>
+            <span class="metric-hint">Total</span>
+          </div>
+          <div class="metric-kpi">{{ company_stats.hires|default:"0" }}</div>
+          <div class="metric-label">Hires</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TABS (sticky + indicator) ===== -->
+  <nav class="sticky top-4 z-30 mt-8">
+    <div class="tabs-shell" id="tabsShell">
+      <span class="tab-indicator" id="tabIndicator" aria-hidden="true"></span>
+
+      <a href="?tab=overview" class="tab {% if active_tab == 'overview' %}tab-active{% endif %}" data-tab>
+        <i class="fas fa-circle-info mr-2"></i>Overview
+      </a>
+      <a href="?tab=jobs" class="tab {% if active_tab == 'jobs' %}tab-active{% endif %}" data-tab>
+        <i class="fas fa-briefcase mr-2"></i>Jobs
+      </a>
+      <a href="?tab=quizzes" class="tab {% if active_tab == 'quizzes' %}tab-active{% endif %}" data-tab>
+        <i class="fas fa-clipboard-check mr-2"></i>Quizzes
+      </a>
+      <a href="?tab=applicants" class="tab {% if active_tab == 'applicants' %}tab-active{% endif %}" data-tab>
+        <i class="fas fa-user-check mr-2"></i>Applicants
+      </a>
+      <a href="?tab=team" class="tab {% if active_tab == 'team' %}tab-active{% endif %}" data-tab>
+        <i class="fas fa-users mr-2"></i>Team
+      </a>
+      <a href="?tab=reviews" class="tab {% if active_tab == 'reviews' %}tab-active{% endif %}" data-tab>
+        <i class="fas fa-star mr-2"></i>Reviews
+      </a>
+      {% if is_company_owner %}
+      <a href="?tab=settings" class="tab {% if active_tab == 'settings' %}tab-active{% endif %}" data-tab>
+        <i class="fas fa-gear mr-2"></i>Settings
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <section class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Content -->
+    <div class="lg:col-span-8 space-y-6">
+
+      {% if active_tab == "overview" %}
+      <div class="card">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <h3 class="card-title">Company Overview</h3>
+            <p class="text-slate-600 text-sm leading-relaxed mt-2">
+              {{ company.about|default:"No company overview added yet." }}
+            </p>
+          </div>
+
+          {% if is_company_owner %}
+          <button type="button" class="btn-mini" onclick="openEditCompanyModal()">
+            <i class="fas fa-pen mr-2"></i>Edit
+          </button>
+          {% endif %}
+        </div>
+
+        <div class="mt-6 grid sm:grid-cols-2 gap-4">
+          <div class="info">
+            <div class="info-label">Founded</div>
+            <div class="info-value">{{ company.founded|default:"—" }}</div>
+          </div>
+          <div class="info">
+            <div class="info-label">Headquarters</div>
+            <div class="info-value">{{ company.headquarters|default:"—" }}</div>
+          </div>
+          <div class="info">
+            <div class="info-label">Company Type</div>
+            <div class="info-value">{{ company.company_type|default:"—" }}</div>
+          </div>
+          <div class="info">
+            <div class="info-label">Email</div>
+            <div class="info-value">{{ company.email|default:"—" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex items-center justify-between gap-4">
+          <h3 class="card-title">Hiring Snapshot</h3>
+          <span class="text-xs text-slate-500">Last 30 days</span>
+        </div>
+
+        <div class="mt-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="pipeline">
+            <div class="pipeline-kpi">{{ company_stats.new_applicants_30d|default:"0" }}</div>
+            <div class="pipeline-label">New Applicants</div>
+          </div>
+          <div class="pipeline">
+            <div class="pipeline-kpi">{{ company_stats.shortlisted_30d|default:"0" }}</div>
+            <div class="pipeline-label">Shortlisted</div>
+          </div>
+          <div class="pipeline">
+            <div class="pipeline-kpi">{{ company_stats.interviews_30d|default:"0" }}</div>
+            <div class="pipeline-label">Interviews</div>
+          </div>
+          <div class="pipeline">
+            <div class="pipeline-kpi">{{ company_stats.offers_30d|default:"0" }}</div>
+            <div class="pipeline-label">Offers</div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+          <span class="dot dot-blue"></span> New
+          <span class="dot dot-amber"></span> In progress
+          <span class="dot dot-emerald"></span> Closed
+        </div>
+      </div>
+      {% endif %}
+
+      {% if active_tab == "jobs" %}
+      <div class="card">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <h3 class="card-title mb-0">Open Jobs</h3>
+            <span class="count-pill">{{ jobs|length|default:"0" }}</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-mini" onclick="toggleCompactJobs()" id="compactJobsBtn" aria-pressed="false">
+              <i class="fas fa-grip mr-2"></i>Compact
+            </button>
+            {% if is_company_owner %}
+            <a href="{% url 'app:create_job' %}" class="btn-mini">
+              <i class="fas fa-plus mr-2"></i>New Job
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="relative">
+            <i class="fas fa-search absolute left-4 top-3.5 text-slate-400 text-sm"></i>
+            <input
+              id="jobSearch"
+              type="text"
+              placeholder="Search by title, type, location…"
+              class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              oninput="filterJobs()"
+            />
+          </div>
+        </div>
+
+        <div class="mt-6 grid sm:grid-cols-2 gap-5" id="jobsGrid">
+          {% for job in jobs %}
+          <article class="job-card" data-job-card data-title="{{ job.title|default:''|escapejs }}" data-location="{{ job.location|default:''|escapejs }}" data-type="{{ job.job_type|default:''|escapejs }}">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h4 class="font-extrabold text-slate-900 truncate">{{ job.title }}</h4>
+                <p class="text-sm text-slate-600 mt-1 truncate">
+                  {% if job.location %}{{ job.location }} • {% endif %}
+                  {{ job.job_type|default:"Full-time" }}
+                </p>
+              </div>
+
+              {% if job.is_active %}
+              <span class="badge badge-green">Active</span>
+              {% else %}
+              <span class="badge badge-gray">Closed</span>
+              {% endif %}
+            </div>
+
+            <p class="text-sm text-slate-600 mt-3 line-clamp-2">{{ job.description|truncatewords:22 }}</p>
+
+            <div class="mt-4 flex items-center justify-between">
+              <div class="text-xs text-slate-500">Posted {{ job.created_at|date:"M d, Y" }}</div>
+
+              <div class="flex items-center gap-3">
+                <a href="{% url 'app:job_detail' job.id %}" class="link">View</a>
+                {% if is_company_owner %}
+                <a href="#" class="link" onclick="showToast('Applicants page not added yet'); return false;">
+                  Applicants
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+          {% empty %}
+          <p class="text-slate-500">No jobs posted yet.</p>
+          {% endfor %}
+        </div>
+
+        <p id="jobsEmpty" class="hidden text-slate-500 mt-4">No jobs match your search.</p>
+      </div>
+      {% endif %}
+
+      {% if active_tab == "quizzes" %}
+      <div class="card">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <h3 class="card-title mb-0">Quizzes & Assessments</h3>
+            <span class="count-pill">{{ quizzes|length|default:"0" }}</span>
+          </div>
+          {% if is_company_owner %}
+          <button type="button" class="btn-mini" onclick="showToast('Quiz create not added yet')">
+            <i class="fas fa-plus mr-2"></i>Create
+          </button>
+          {% endif %}
+        </div>
+
+        <div class="mt-6 space-y-3">
+          {% for quiz in quizzes %}
+          <div class="row">
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-900 truncate">{{ quiz.title }}</div>
+              <div class="text-sm text-slate-600 truncate">{{ quiz.category|default:"General" }} • {{ quiz.duration|default:"—" }} mins</div>
+            </div>
+            <div class="flex items-center gap-3">
+              {% if quiz.is_active %}
+              <span class="badge badge-blue">Live</span>
+              {% else %}
+              <span class="badge badge-gray">Draft</span>
+              {% endif %}
+              <a href="{% url 'app:quiz_detail' quiz.id %}" class="link">Open</a>
+              {% if is_company_owner %}
+              <a href="#" class="link" onclick="showToast('Results page not added yet'); return false;">Results</a>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-slate-500">No quizzes created yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if active_tab == "applicants" %}
+      <div class="card">
+        <div class="flex items-center justify-between gap-4">
+          <h3 class="card-title mb-0">Applicants</h3>
+          <button type="button" class="btn-mini" onclick="toggleTableDensity()" id="densityBtn" aria-pressed="false">
+            <i class="fas fa-arrows-up-down mr-2"></i>Density
+          </button>
+        </div>
+
+        <div class="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+          <table class="min-w-full text-sm" id="appTable">
+            <thead class="bg-slate-50 text-slate-500">
+              <tr class="text-left">
+                <th class="py-3 px-4">Candidate</th>
+                <th class="py-3 px-4">Job</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Applied</th>
+                <th class="py-3 px-4">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              {% for a in applicants %}
+              <tr class="hover:bg-slate-50/70 transition">
+                <td class="py-4 px-4">
+                  <div class="font-extrabold text-slate-900">{{ a.candidate_name }}</div>
+                  <div class="text-xs text-slate-500">{{ a.candidate_email }}</div>
+                </td>
+                <td class="py-4 px-4 text-slate-700">{{ a.job_title }}</td>
+                <td class="py-4 px-4">
+                  <span class="badge badge-gray">{{ a.status|default:"Pending" }}</span>
+                </td>
+                <td class="py-4 px-4 text-slate-600">{{ a.applied_at|date:"M d, Y" }}</td>
+                <td class="py-4 px-4">
+                  <a href="#" class="link" onclick="showToast('Applicant detail not added yet'); return false;">Review</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td class="py-4 px-4 text-slate-500" colspan="5">No applicants yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if active_tab == "team" %}
+      <div class="card">
+        <div class="flex items-center justify-between gap-4">
+          <h3 class="card-title mb-0">Team</h3>
+          <span class="text-xs text-slate-500">Visible to everyone</span>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4 mt-5">
+          {% for member in team_members %}
+          <div class="team-card">
+            <div class="flex items-center gap-3">
+              <div class="h-12 w-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden">
+                <img src="{% if member.photo %}{{ member.photo.url }}{% else %}https://via.placeholder.com/96{% endif %}"
+                     class="h-full w-full object-cover" alt="" loading="lazy">
+              </div>
+              <div class="min-w-0">
+                <div class="font-extrabold text-slate-900 truncate">{{ member.name }}</div>
+                <div class="text-sm text-slate-600 truncate">{{ member.role|default:"Team Member" }}</div>
+              </div>
+            </div>
+            {% if member.linkedin %}
+            <a href="{{ member.linkedin }}" target="_blank" rel="noopener" class="link mt-3 inline-flex items-center">
+              <i class="fab fa-linkedin mr-2"></i>LinkedIn
+            </a>
+            {% endif %}
+          </div>
+          {% empty %}
+          <p class="text-slate-500">No team members added.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if active_tab == "reviews" %}
+      <div class="card">
+        <div class="flex items-center justify-between gap-4">
+          <h3 class="card-title mb-0">Company Reviews</h3>
+          <button type="button" class="btn-mini" onclick="scrollToReviewsEnd()">
+            <i class="fas fa-arrow-down mr-2"></i>Jump down
+          </button>
+        </div>
+
+        <div class="space-y-4 mt-5" id="reviewsList">
+          {% for r in reviews %}
+          <div class="review">
+            <div class="flex items-center justify-between gap-3">
+              <div class="font-extrabold text-slate-900 truncate">{{ r.title }}</div>
+              <div class="text-amber-500 text-sm shrink-0" aria-label="Rating: {{ r.rating }} out of 5">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= r.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            <p class="text-sm text-slate-600 mt-2">{{ r.body }}</p>
+            <p class="text-xs text-slate-500 mt-2">— {{ r.author }}, {{ r.created_at|date:"M Y" }}</p>
+          </div>
+          {% empty %}
+          <p class="text-slate-500">No reviews yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if active_tab == "settings" and is_company_owner %}
+      <div class="card">
+        <h3 class="card-title">Settings</h3>
+
+        <div class="mt-5 grid sm:grid-cols-2 gap-4">
+          <button type="button" class="tile" onclick="openEditCompanyModal()">
+            <div class="tile-ico"><i class="fas fa-pen"></i></div>
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-900">Edit Company Profile</div>
+              <div class="text-sm text-slate-600">Logo, overview, industry, website, hiring status</div>
+            </div>
+            <i class="fas fa-chevron-right text-slate-300 ml-auto"></i>
+          </button>
+
+          <button type="button" class="tile" onclick="showToast('Manage users not added yet')">
+            <div class="tile-ico"><i class="fas fa-user-shield"></i></div>
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-900">Manage Team Access</div>
+              <div class="text-sm text-slate-600">Roles, permissions, recruiter accounts</div>
+            </div>
+            <i class="fas fa-chevron-right text-slate-300 ml-auto"></i>
+          </button>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="lg:col-span-4 space-y-6">
+      <!-- Quick actions -->
+      <div class="card">
+        <div class="flex items-center justify-between">
+          <h3 class="card-title mb-0">Quick Actions</h3>
+          <button class="btn-icon" type="button" onclick="showToast('Shortcuts ready')">
+            <i class="fas fa-bolt"></i>
+          </button>
+        </div>
+
+        <div class="mt-4 grid gap-3">
+          <a href="{% url 'app:create_job' %}" class="tile-link">
+            <div class="tile-ico"><i class="fas fa-plus"></i></div>
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-900 truncate">Post a new job</div>
+              <div class="text-sm text-slate-600 truncate">Publish job openings in minutes</div>
+            </div>
+            <i class="fas fa-chevron-right text-slate-300 ml-auto"></i>
+          </a>
+
+          <a href="{% url 'app:quiz_list' %}" class="tile-link">
+            <div class="tile-ico"><i class="fas fa-clipboard-check"></i></div>
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-900 truncate">Quizzes</div>
+              <div class="text-sm text-slate-600 truncate">View quizzes & assessments</div>
+            </div>
+            <i class="fas fa-chevron-right text-slate-300 ml-auto"></i>
+          </a>
+
+          <a href="{% url 'app:employee_dashboard' %}" class="tile-link">
+            <div class="tile-ico"><i class="fas fa-chart-line"></i></div>
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-900 truncate">Dashboard</div>
+              <div class="text-sm text-slate-600 truncate">Track activity & stats</div>
+            </div>
+            <i class="fas fa-chevron-right text-slate-300 ml-auto"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="card">
+        <div class="flex items-center justify-between">
+          <h3 class="card-title mb-0">Contact</h3>
+          {% if is_company_owner %}
+          <button class="btn-mini" type="button" onclick="openEditCompanyModal()">
+            <i class="fas fa-pen mr-2"></i>Edit
+          </button>
+          {% endif %}
+        </div>
+
+        <div class="mt-4 space-y-3 text-sm text-slate-700">
+          <div class="contact-row">
+            <span class="contact-ico"><i class="fas fa-envelope"></i></span>
+            <span class="truncate">{{ company.email|default:"—" }}</span>
+            <button class="mini-link ml-auto" type="button" onclick="copyText('{{ company.email|default:''|escapejs }}')">
+              <i class="far fa-copy"></i>
+            </button>
+          </div>
+
+          <div class="contact-row">
+            <span class="contact-ico"><i class="fas fa-phone"></i></span>
+            <span class="truncate">{{ company.phone|default:"—" }}</span>
+            <button class="mini-link ml-auto" type="button" onclick="copyText('{{ company.phone|default:''|escapejs }}')">
+              <i class="far fa-copy"></i>
+            </button>
+          </div>
+
+          <div class="contact-row">
+            <span class="contact-ico"><i class="fas fa-location-dot"></i></span>
+            <span class="truncate">{{ company.location|default:"—" }}</span>
+            <button class="mini-link ml-auto" type="button" onclick="copyText('{{ company.location|default:''|escapejs }}')">
+              <i class="far fa-copy"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-5 flex gap-2">
+          {% if company.linkedin %}
+          <a href="{{ company.linkedin }}" target="_blank" rel="noopener" class="social" aria-label="LinkedIn">
+            <i class="fab fa-linkedin"></i>
+          </a>
+          {% endif %}
+          {% if company.github %}
+          <a href="{{ company.github }}" target="_blank" rel="noopener" class="social" aria-label="GitHub">
+            <i class="fab fa-github"></i>
+          </a>
+          {% endif %}
+          {% if company.website %}
+          <a href="{{ company.website }}" target="_blank" rel="noopener" class="social" aria-label="Website">
+            <i class="fas fa-globe"></i>
+          </a>
+          {% endif %}
+        </div>
+
+        <div class="mt-5">
+          <button type="button" class="btn-secondary w-full justify-center" onclick="shareCompany()">
+            <i class="fas fa-share-alt mr-2"></i>Share company
+          </button>
+        </div>
+      </div>
+
+      <!-- Highlights -->
+      <div class="card hidden lg:block sticky top-24">
+        <h3 class="card-title mb-3">Highlights</h3>
+        <div class="space-y-2 text-sm text-slate-700">
+          <div class="hl-row">
+            <span class="hl-dot bg-blue-500"></span>
+            <span>Verified</span>
+            <span class="ml-auto font-black text-slate-900">{% if company.is_verified %}Yes{% else %}No{% endif %}</span>
+          </div>
+          <div class="hl-row">
+            <span class="hl-dot bg-emerald-500"></span>
+            <span>Hiring now</span>
+            <span class="ml-auto font-black text-slate-900">{% if company.hiring_now %}Yes{% else %}No{% endif %}</span>
+          </div>
+          <div class="hl-row">
+            <span class="hl-dot bg-indigo-500"></span>
+            <span>Open jobs</span>
+            <span class="ml-auto font-black text-slate-900">{{ company_stats.open_jobs|default:"0" }}</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<!-- ================= EDIT COMPANY MODAL (UI) ================= -->
+<div id="editCompanyModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-backdrop" onclick="closeEditCompanyModal()" aria-hidden="true"></div>
+
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="editCompanyTitle">
+    <div class="modal-head">
+      <div class="min-w-0">
+        <h3 id="editCompanyTitle" class="modal-title">Edit Company Profile</h3>
+        <p class="modal-subtitle">Currently UI-only (Save shows a toast). You can connect it to a Django form later.</p>
+      </div>
+      <button class="modal-x" type="button" onclick="closeEditCompanyModal()" aria-label="Close">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="field-label">Company Name</label>
+          <input id="edit_name" class="field" type="text" value="{{ company.name|default:'' }}">
+        </div>
+        <div>
+          <label class="field-label">Tagline</label>
+          <input id="edit_tagline" class="field" type="text" value="{{ company.tagline|default:'' }}">
+        </div>
+
+        <div>
+          <label class="field-label">Industry</label>
+          <input id="edit_industry" class="field" type="text" value="{{ company.industry|default:'' }}">
+        </div>
+        <div>
+          <label class="field-label">Company Size</label>
+          <input id="edit_size" class="field" type="text" value="{{ company.size|default:'' }}">
+        </div>
+
+        <div>
+          <label class="field-label">Location</label>
+          <input id="edit_location" class="field" type="text" value="{{ company.location|default:'' }}">
+        </div>
+        <div>
+          <label class="field-label">Website</label>
+          <input id="edit_website" class="field" type="url" value="{{ company.website|default:'' }}">
+        </div>
+
+        <div>
+          <label class="field-label">Email</label>
+          <input id="edit_email" class="field" type="email" value="{{ company.email|default:'' }}">
+        </div>
+        <div>
+          <label class="field-label">Phone</label>
+          <input id="edit_phone" class="field" type="text" value="{{ company.phone|default:'' }}">
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="field-label">About</label>
+          <textarea id="edit_about" class="field field-area" rows="5">{{ company.about|default:'' }}</textarea>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="field-label">Status</label>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="toggle-pill" id="toggleHiring"
+              aria-pressed="{% if company.hiring_now %}true{% else %}false{% endif %}"
+              onclick="togglePill(this)">
+              <span class="toggle-dot"></span> Hiring now
+            </button>
+
+            <button type="button" class="toggle-pill" id="toggleVerified"
+              aria-pressed="{% if company.is_verified %}true{% else %}false{% endif %}"
+              onclick="togglePill(this)">
+              <span class="toggle-dot"></span> Verified
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+    <div class="modal-foot">
+      <button type="button" class="btn-ghost" onclick="closeEditCompanyModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="saveCompanyUIOnly()">
+        <i class="fas fa-floppy-disk mr-2"></i>Save changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<style>
+  @media (prefers-reduced-motion: reduce){
+    *{scroll-behavior:auto!important;transition:none!important;animation:none!important;}
+  }
+  .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+
+  /* Tabs */
+  .tabs-shell{
+    position: relative;
+    display:flex;
+    gap:.5rem;
+    padding:.55rem;
+    border-radius:999px;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(255,255,255,.86);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 14px 44px rgba(15,23,42,.10);
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .tabs-shell::-webkit-scrollbar{display:none;}
+  .tab{
+    position:relative;
+    padding:.72rem 1.05rem;
+    border-radius:999px;
+    font-size:.875rem;
+    color: rgb(71 85 105);
+    transition:.18s ease;
+    white-space: nowrap;
+    display:inline-flex;
+    align-items:center;
+    z-index:1;
+    font-weight:900;
+  }
+  .tab:hover{ color: rgb(37 99 235); }
+  .tab-active{ color: rgb(37 99 235); }
+  .tab-indicator{
+    position:absolute;
+    top:.45rem; left:.45rem;
+    height: calc(100% - .9rem);
+    width: 120px;
+    border-radius:999px;
+    background: white;
+    border: 1px solid rgba(148,163,184,.35);
+    box-shadow: 0 10px 26px rgba(2,6,23,.10);
+    transition: transform .22s ease, width .22s ease;
+    z-index:0;
+  }
+
+  /* Base components */
+  .card{
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(12px);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    border: 1px solid rgb(226 232 240);
+    box-shadow: 0 12px 44px rgba(15,23,42,.08);
+  }
+  .card-title{
+    font-weight: 950;
+    color: rgb(15 23 42);
+    letter-spacing: -0.01em;
+  }
+
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    padding:.32rem .72rem;
+    border-radius:999px;
+    border:1px solid;
+    font-size:.75rem;
+    font-weight:950;
+  }
+  .pill-emerald{ background: rgba(16,185,129,.10); color: rgb(5,150,105); border-color: rgba(16,185,129,.25); }
+  .pill-blue{ background: rgba(37,99,235,.10); color: rgb(37,99,235); border-color: rgba(37,99,235,.25); }
+
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    padding:.40rem .75rem;
+    border-radius:999px;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.82);
+    transition:.16s ease;
+    font-weight:800;
+  }
+  .chip-link:hover{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.22); color: rgb(37 99 235); transform: translateY(-1px); }
+
+  .mini-link{
+    display:inline-flex;
+    align-items:center;
+    gap:.35rem;
+    padding:.30rem .55rem;
+    border-radius:999px;
+    border:1px solid rgba(226,232,240,.9);
+    background: rgba(248,250,252,.80);
+    color: rgb(71,85,105);
+    font-weight:900;
+    transition:.16s ease;
+  }
+  .mini-link:hover{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.22); color: rgb(37 99 235); }
+
+  /* Buttons */
+  .btn-primary, .btn-secondary, .btn-ghost{
+    padding: .74rem 1.15rem;
+    border-radius: 999px;
+    font-weight: 950;
+    transition: .18s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    user-select:none;
+    white-space: nowrap;
+  }
+  .btn-primary{
+    background: rgb(37 99 235);
+    color: white;
+    box-shadow: 0 14px 34px rgba(37,99,235,.28);
+  }
+  .btn-primary:hover{ transform: translateY(-1px); filter: brightness(.98); }
+  .btn-secondary{
+    background: rgba(255,255,255,.96);
+    border: 1px solid rgba(226,232,240,.95);
+    color: rgb(15 23 42);
+  }
+  .btn-secondary:hover{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.22); color: rgb(37 99 235); transform: translateY(-1px); }
+  .btn-ghost{
+    background: transparent;
+    border: 1px solid rgba(226,232,240,.95);
+    color: rgb(15 23 42);
+  }
+  .btn-ghost:hover{ background: rgba(2,6,23,.04); transform: translateY(-1px); }
+  .btn-mini{
+    display:inline-flex;
+    align-items:center;
+    padding: .48rem .9rem;
+    border-radius: 999px;
+    font-size:.85rem;
+    font-weight:950;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.86);
+    transition:.18s ease;
+  }
+  .btn-mini:hover{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.22); color: rgb(37 99 235); transform: translateY(-1px); }
+  .btn-icon{
+    height: 40px; width: 40px;
+    border-radius: 999px;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.86);
+    display:flex; align-items:center; justify-content:center;
+    transition:.18s ease;
+  }
+  .btn-icon:hover{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.22); color: rgb(37 99 235); transform: translateY(-1px); }
+
+  /* Metrics */
+  .metric{
+    border-radius: 1.2rem;
+    border: 1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.82);
+    padding: 1rem;
+    transition: .18s ease;
+  }
+  .metric:hover{ transform: translateY(-2px); box-shadow: 0 16px 44px rgba(15,23,42,.10); }
+  .metric-top{ display:flex; align-items:center; justify-content:space-between; color: rgb(100,116,139); }
+  .metric-icon{
+    height: 34px; width: 34px;
+    border-radius: 14px;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(255,255,255,.92);
+    display:flex; align-items:center; justify-content:center;
+    color: rgb(37 99 235);
+  }
+  .metric-hint{ font-size:.72rem; font-weight:950; text-transform: uppercase; letter-spacing: .10em; }
+  .metric-kpi{ font-size: 1.55rem; font-weight: 950; color: rgb(15 23 42); margin-top:.35rem; }
+  .metric-label{ font-size: .85rem; color: rgb(71 85 105); margin-top:.1rem; font-weight:900; }
+
+  /* Panels */
+  .pipeline,.info,.review,.team-card,.row,.job-card{
+    border-radius: 1.2rem;
+    border: 1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.84);
+  }
+  .pipeline,.info,.review,.team-card{ padding: 1rem; }
+  .pipeline-kpi{ font-size: 1.25rem; font-weight: 950; color: rgb(15 23 42); }
+  .pipeline-label{ font-size: .85rem; color: rgb(71 85 105); margin-top: .25rem; font-weight:900; }
+  .info-label{ font-size:.72rem; color: rgb(100 116 139); font-weight: 950; text-transform: uppercase; letter-spacing: .10em; }
+  .info-value{ margin-top:.25rem; font-weight:950; color: rgb(15 23 42); }
+
+  .job-card{ padding: 1rem; transition:.18s ease; }
+  .job-card:hover{ transform: translateY(-2px); box-shadow: 0 16px 44px rgba(15,23,42,.10); }
+
+  .row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  /* Tiles */
+  .tile, .tile-link{
+    width:100%;
+    display:flex;
+    gap: 1rem;
+    align-items:center;
+    padding: 1rem;
+    border-radius: 1.2rem;
+    border: 1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.86);
+    transition:.18s ease;
+    text-align:left;
+  }
+  .tile:hover, .tile-link:hover{
+    background: rgba(37,99,235,.06);
+    border-color: rgba(37,99,235,.22);
+    transform: translateY(-1px);
+  }
+  .tile-ico{
+    height: 44px; width: 44px;
+    border-radius: 16px;
+    border: 1px solid rgba(226,232,240,.95);
+    background: rgba(255,255,255,.92);
+    display:flex; align-items:center; justify-content:center;
+    color: rgb(37 99 235);
+    flex: 0 0 auto;
+  }
+
+  /* Badges/links */
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    padding:.26rem .68rem;
+    border-radius:999px;
+    font-size:.75rem;
+    font-weight:950;
+    border:1px solid;
+  }
+  .badge-green{ background: rgba(16,185,129,.10); color: rgb(5,150,105); border-color: rgba(16,185,129,.25); }
+  .badge-blue{ background: rgba(37,99,235,.10); color: rgb(37,99,235); border-color: rgba(37,99,235,.25); }
+  .badge-gray{ background: rgba(148,163,184,.18); color: rgb(71,85,105); border-color: rgba(148,163,184,.35); }
+
+  .link{ font-weight: 950; color: rgb(37 99 235); font-size: .875rem; }
+  .link:hover{ text-decoration: underline; }
+
+  .count-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width: 32px;
+    height: 26px;
+    padding: 0 .6rem;
+    border-radius: 999px;
+    border: 1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.88);
+    color: rgb(51,65,85);
+    font-weight: 950;
+    font-size:.75rem;
+  }
+
+  /* Contact row */
+  .contact-row{
+    display:flex; align-items:center; gap:.75rem;
+    padding:.75rem .75rem;
+    border-radius: 1.1rem;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.86);
+  }
+  .contact-ico{
+    height: 36px; width: 36px;
+    border-radius: 14px;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(255,255,255,.92);
+    display:flex; align-items:center; justify-content:center;
+    color: rgb(100,116,139);
+    flex: 0 0 auto;
+  }
+
+  /* Highlights */
+  .hl-row{ display:flex; align-items:center; gap:.6rem; padding:.6rem .75rem; border-radius: 1rem; border:1px solid rgba(226,232,240,.95); background: rgba(248,250,252,.86); }
+  .hl-dot{ height:10px; width:10px; border-radius:999px; display:inline-block; }
+
+  /* Legend dots */
+  .dot{ height:8px; width:8px; border-radius:999px; display:inline-block; }
+  .dot-blue{ background: rgb(37,99,235); }
+  .dot-amber{ background: rgb(245,158,11); }
+  .dot-emerald{ background: rgb(16,185,129); }
+
+  /* Social */
+  .social{
+    height: 40px; width: 40px;
+    border-radius: 999px;
+    display:flex; align-items:center; justify-content:center;
+    border: 1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.86);
+    color: rgb(15 23 42);
+    transition:.18s ease;
+  }
+  .social:hover{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.22); color: rgb(37 99 235); transform: translateY(-1px); }
+
+  /* Toast */
+  .toast{
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15,23,42,.92);
+    color: white;
+    padding: .6rem 1rem;
+    border-radius: 999px;
+    box-shadow: 0 16px 44px rgba(2,6,23,.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+    z-index: 90;
+  }
+  .toast.show{ opacity: 1; transform: translateX(-50%) translateY(-2px); }
+
+  /* Compact jobs mode */
+  .compact #jobsGrid{ gap: .75rem!important; }
+  .compact .job-card{ padding: .85rem!important; }
+
+  /* Modal */
+  .modal.hidden{ display:none; }
+  .modal{ position:fixed; inset:0; z-index:100; }
+  .modal-backdrop{ position:absolute; inset:0; background: rgba(2,6,23,.55); backdrop-filter: blur(6px); }
+  .modal-panel{
+    position: relative;
+    width: min(920px, calc(100% - 2rem));
+    margin: 5vh auto;
+    background: rgba(255,255,255,.94);
+    border: 1px solid rgba(226,232,240,.95);
+    border-radius: 22px;
+    box-shadow: 0 30px 120px rgba(2,6,23,.35);
+    overflow:hidden;
+    transform: translateY(6px);
+    animation: modalIn .16s ease-out forwards;
+  }
+  @keyframes modalIn{ to{ transform: translateY(0); } }
+  .modal-head{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap: 1rem;
+    padding: 1.15rem 1.2rem;
+    border-bottom: 1px solid rgba(226,232,240,.9);
+    background: linear-gradient(to bottom, rgba(248,250,252,.92), rgba(255,255,255,.65));
+  }
+  .modal-title{ font-weight: 950; color: rgb(15 23 42); letter-spacing: -0.01em; }
+  .modal-subtitle{ margin-top:.25rem; font-size:.85rem; color: rgb(100 116 139); }
+  .modal-x{
+    height: 42px; width: 42px;
+    border-radius: 999px;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(248,250,252,.90);
+    display:flex; align-items:center; justify-content:center;
+    transition:.18s ease;
+  }
+  .modal-x:hover{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.22); color: rgb(37 99 235); transform: translateY(-1px); }
+  .modal-body{ padding: 1.2rem; }
+  .modal-foot{
+    display:flex; justify-content:flex-end; gap:.75rem;
+    padding: 1.05rem 1.2rem;
+    border-top: 1px solid rgba(226,232,240,.9);
+    background: rgba(248,250,252,.72);
+  }
+
+  .field-label{
+    display:block;
+    font-size:.72rem;
+    font-weight: 950;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+    color: rgb(100 116 139);
+    margin-bottom:.45rem;
+  }
+  .field{
+    width:100%;
+    padding: .78rem .9rem;
+    border-radius: 14px;
+    border: 1px solid rgba(226,232,240,.95);
+    background: rgba(255,255,255,.92);
+    outline: none;
+    transition: .18s ease;
+  }
+  .field:focus{
+    border-color: rgba(37,99,235,.45);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.14);
+  }
+  .field-area{ resize: vertical; min-height: 120px; }
+
+  .toggle-pill{
+    display:inline-flex; align-items:center; gap:.55rem;
+    padding:.55rem .85rem;
+    border-radius: 999px;
+    border:1px solid rgba(226,232,240,.95);
+    background: rgba(255,255,255,.92);
+    color: rgb(15 23 42);
+    font-weight: 950;
+    font-size: .85rem;
+    transition: .18s ease;
+  }
+  .toggle-pill[aria-pressed="true"]{
+    border-color: rgba(37,99,235,.35);
+    background: rgba(37,99,235,.08);
+    color: rgb(37 99 235);
+  }
+  .toggle-dot{
+    height:10px; width:10px; border-radius:999px;
+    background: rgba(148,163,184,.85);
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.85);
+  }
+  .toggle-pill[aria-pressed="true"] .toggle-dot{ background: rgb(37 99 235); }
+
+  .no-scroll{ overflow: hidden; }
+</style>
+
+<script>
+  // Toast
+  function showToast(message){
+    const t = document.getElementById("toast");
+    if(!t) return;
+    t.textContent = message;
+    t.classList.add("show");
+    window.clearTimeout(window.__toastTimer);
+    window.__toastTimer = window.setTimeout(()=> t.classList.remove("show"), 1600);
+  }
+
+  // Copy helper
+  async function copyText(text){
+    if(!text){ showToast("Nothing to copy"); return; }
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(text);
+      }else{
+        const temp=document.createElement("textarea");
+        temp.value=text;
+        temp.setAttribute("readonly","");
+        temp.style.position="absolute";
+        temp.style.left="-9999px";
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+      }
+      showToast("Copied!");
+    }catch(e){
+      showToast("Copy failed");
+    }
+  }
+
+  // Share
+  async function shareCompany(){
+    const url = window.location.href;
+    const title = document.title || "Company";
+    const text = "Check out this company";
+    try{
+      if(navigator.share){
+        await navigator.share({ title, text, url });
+        showToast("Shared!");
+        return;
+      }
+      await copyText(url);
+      showToast("Link copied!");
+    }catch(e){
+      showToast("Could not share");
+    }
+  }
+
+  // Follow (UI only)
+  function toggleFollow(){
+    const btn = document.getElementById("followBtn");
+    const label = document.getElementById("followLabel");
+    const key = "follow_company_" + (window.location.pathname || "company");
+    const current = (localStorage.getItem(key) === "1");
+    const next = !current;
+
+    localStorage.setItem(key, next ? "1" : "0");
+    if(btn) btn.setAttribute("aria-pressed", next ? "true" : "false");
+    if(label) label.textContent = next ? "Following" : "Follow";
+    showToast(next ? "Following (UI only)" : "Unfollowed (UI only)");
+  }
+  (function initFollow(){
+    const btn = document.getElementById("followBtn");
+    const label = document.getElementById("followLabel");
+    if(!btn || !label) return;
+    const key = "follow_company_" + (window.location.pathname || "company");
+    const on = (localStorage.getItem(key) === "1");
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    label.textContent = on ? "Following" : "Follow";
+  })();
+
+  // Tabs indicator
+  function positionTabIndicator(){
+    const shell = document.getElementById("tabsShell");
+    const ind = document.getElementById("tabIndicator");
+    if(!shell || !ind) return;
+    const active = shell.querySelector(".tab-active");
+    if(!active){ ind.style.width = "0px"; return; }
+    const shellRect = shell.getBoundingClientRect();
+    const aRect = active.getBoundingClientRect();
+    const left = (aRect.left - shellRect.left) + shell.scrollLeft;
+    ind.style.width = aRect.width + "px";
+    ind.style.transform = `translateX(${left}px)`;
+  }
+  window.addEventListener("load", positionTabIndicator);
+  window.addEventListener("resize", positionTabIndicator);
+  const tabsShell = document.getElementById("tabsShell");
+  if(tabsShell){
+    tabsShell.addEventListener("scroll", () => window.requestAnimationFrame(positionTabIndicator));
+  }
+
+  // Jobs filter (UI only)
+  function filterJobs(){
+    const q = (document.getElementById("jobSearch")?.value || "").toLowerCase().trim();
+    const cards = Array.from(document.querySelectorAll("[data-job-card]"));
+    const empty = document.getElementById("jobsEmpty");
+    if(!cards.length) return;
+
+    let shown = 0;
+    cards.forEach(c=>{
+      const title = (c.dataset.title || "").toLowerCase();
+      const loc = (c.dataset.location || "").toLowerCase();
+      const type = (c.dataset.type || "").toLowerCase();
+      const ok = !q || title.includes(q) || loc.includes(q) || type.includes(q);
+      c.style.display = ok ? "" : "none";
+      if(ok) shown++;
+    });
+    if(empty) empty.classList.toggle("hidden", shown !== 0);
+  }
+
+  // Compact jobs
+  function toggleCompactJobs(){
+    const btn = document.getElementById("compactJobsBtn");
+    const root = document.documentElement;
+    const on = root.classList.toggle("compact");
+    btn?.setAttribute("aria-pressed", on ? "true" : "false");
+    showToast(on ? "Compact view on" : "Compact view off");
+  }
+
+  // Applicants density
+  function toggleTableDensity(){
+    const table = document.getElementById("appTable");
+    const btn = document.getElementById("densityBtn");
+    if(!table) return;
+    const on = table.classList.toggle("dense");
+    btn?.setAttribute("aria-pressed", on ? "true" : "false");
+    table.querySelectorAll("td").forEach(td => {
+      td.style.paddingTop = on ? ".55rem" : "";
+      td.style.paddingBottom = on ? ".55rem" : "";
+    });
+    showToast(on ? "Dense table" : "Comfortable table");
+  }
+
+  // Reviews
+  function scrollToReviewsEnd(){
+    const el = document.getElementById("reviewsList");
+    if(!el) return;
+    el.scrollIntoView({behavior:"smooth", block:"end"});
+  }
+
+  // Modal
+  function openEditCompanyModal(){
+    const m = document.getElementById("editCompanyModal");
+    if(!m) return;
+    m.classList.remove("hidden");
+    m.setAttribute("aria-hidden","false");
+    document.documentElement.classList.add("no-scroll");
+    setTimeout(()=> document.getElementById("edit_name")?.focus(), 60);
+  }
+  function closeEditCompanyModal(){
+    const m = document.getElementById("editCompanyModal");
+    if(!m) return;
+    m.classList.add("hidden");
+    m.setAttribute("aria-hidden","true");
+    document.documentElement.classList.remove("no-scroll");
+  }
+  window.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape"){
+      const m = document.getElementById("editCompanyModal");
+      if(m && !m.classList.contains("hidden")) closeEditCompanyModal();
+    }
+  });
+  function togglePill(btn){
+    const pressed = btn.getAttribute("aria-pressed") === "true";
+    btn.setAttribute("aria-pressed", (!pressed).toString());
+  }
+  function saveCompanyUIOnly(){
+    const name = document.getElementById("edit_name")?.value || "Company";
+    closeEditCompanyModal();
+    showToast(`Saved (UI only): ${name}`);
+  }
+</script>
+
+{% endblock %}

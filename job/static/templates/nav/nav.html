@@ -38,32 +38,32 @@
           Home
         </a>
 
-        <a href="/jobs"
+        <a href="/jobs/"
            class="px-4 py-2 rounded-xl text-sm font-semibold transition
-           {% if path|slice:':5' == '/jobs' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+           {% if path|slice:':6' == '/jobs/' or path|slice:':5' == '/jobs' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
           Jobs
         </a>
 
-        <a href="/courses"
+        <a href="/courses/"
            class="px-4 py-2 rounded-xl text-sm font-semibold transition
-           {% if path|slice:':8' == '/courses' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+           {% if path|slice:':9' == '/courses/' or path|slice:':8' == '/courses' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
           Courses
         </a>
 
-        <a href="/quizzes"
+        <a href="/quizzes/"
            class="px-4 py-2 rounded-xl text-sm font-semibold transition
-           {% if path|slice:':8' == '/quizzes' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+           {% if path|slice:':9' == '/quizzes/' or path|slice:':8' == '/quizzes' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
           Quizzes
         </a>
 
-        <a href="/about"
+        <a href="/about/"
            class="px-4 py-2 rounded-xl text-sm font-semibold transition
-           {% if path|slice:':6' == '/about' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+           {% if path|slice:':7' == '/about/' or path|slice:':6' == '/about' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
           About
         </a>
 
         {% if user.is_authenticated and user.customuser.user_type == 'employee' %}
-          <a href="{% url 'employee_view' %}"
+          <a href="{% url 'app:employee_dashboard' %}"
              class="px-4 py-2 rounded-xl text-sm font-semibold transition
              {% if path|slice:':10' == '/employee' %}bg-sky-600 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
             Dashboard
@@ -81,8 +81,6 @@
                     class="flex items-center gap-3 px-2 py-1.5 rounded-2xl hover:bg-slate-100 transition focus:outline-none">
               <!-- Avatar -->
               <div class="relative">
-                <!-- SAFE src even when no profile image exists -->
-                
                 <img
                   src="{% if user.customuser and user.customuser.image %}{{ user.customuser.image.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
                   onerror="this.onerror=null;this.src='{% static 'images/default-avatar.png' %}'"
@@ -126,7 +124,8 @@
               </div>
 
               <div class="p-2">
-                <a href="/profile"
+                <!-- ✅ FIX: Send to role-based router -->
+                <a href="{% url 'app:profile_router' %}"
                    class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
                   <span class="w-8 h-8 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -186,14 +185,21 @@
     >
       <div class="mt-2 grid gap-2 bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
         <a href="/" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">Home</a>
-        <a href="/jobs" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">Jobs</a>
-        <a href="/courses" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">Courses</a>
-        <a href="/quizzes" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">Quizzes</a>
-        <a href="/about" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">About</a>
+        <a href="/jobs/" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">Jobs</a>
+        <a href="/courses/" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">Courses</a>
+        <a href="/quizzes/" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">Quizzes</a>
+        <a href="/about/" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">About</a>
 
         {% if user.is_authenticated and user.customuser.user_type == 'employee' %}
-          <a href="{% url 'employee_view' %}" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">
+          <a href="{% url 'app:employee_dashboard' %}" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">
             Dashboard
+          </a>
+        {% endif %}
+
+        <!-- ✅ ALSO ADD profile link in mobile -->
+        {% if user.is_authenticated %}
+          <a href="{% url 'app:profile_router' %}" class="px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-slate-100">
+            My Profile
           </a>
         {% endif %}
       </div>
