@@ -1,0 +1,1285 @@
+{% extends 'base-admin.html' %}
+{% load static %}
+
+{% block content_admin %}
+
+<!--
+  ✅ Next-level Admin Dashboard (PRO UI/UX)
+  - Keeps ALL your features
+  - Adds: Command Palette (Ctrl/⌘ K), Toasts, Modals (Create/Export),
+          Live search filtering (Recent Users), Per-user Action Menu,
+          Theme toggle (Light/Dark), Sticky “mini KPI” header on scroll,
+          Sparkline mini charts, Better micro-interactions, Accessibility.
+  - No external libs required (works with Tailwind only)
+-->
+
+<div id="adminRoot" class="min-h-screen bg-slate-50 text-slate-900">
+  <!-- Top floating mini-bar (appears on scroll) -->
+  <div id="miniBar" class="fixed top-3 left-1/2 -translate-x-1/2 z-[60] hidden w-[min(960px,calc(100%-24px))]">
+    <div class="rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-[0_18px_60px_rgba(15,23,42,0.10)] px-3 py-2">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="h-9 w-9 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+            <span class="text-white">🛡️</span>
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-extrabold leading-tight truncate">Admin Dashboard</p>
+            <p class="text-[11px] text-slate-500 leading-tight truncate">SkillNet — quick controls</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            id="miniCmd"
+            type="button"
+            class="hidden sm:inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+          >
+            <span class="text-slate-400">⌕</span>
+            <span>Command</span>
+            <span class="ml-1 rounded-xl border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] text-slate-500">Ctrl K</span>
+          </button>
+
+          <button
+            id="miniTheme"
+            type="button"
+            class="inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+            aria-label="Toggle theme"
+            title="Toggle theme"
+          >🌓</button>
+
+          <button
+            id="miniToTop"
+            type="button"
+            class="inline-flex items-center justify-center h-10 w-10 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-blue-200"
+            aria-label="Scroll to top"
+            title="Top"
+          >↑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Container -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Top Shell -->
+    <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+      <!-- Subtle background -->
+      <div class="pointer-events-none absolute inset-0">
+        <div class="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl"></div>
+        <div class="absolute -bottom-28 -left-24 h-80 w-80 rounded-full bg-indigo-200/35 blur-3xl"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.10),transparent_55%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,0.10),transparent_55%)]"></div>
+      </div>
+
+      <div class="relative px-5 sm:px-7 lg:px-8 py-6 sm:py-7">
+        <!-- Header -->
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0">
+            <div class="flex items-center gap-3">
+              <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md">
+                <span class="text-white text-lg">🛡️</span>
+              </div>
+              <div class="min-w-0">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 truncate">
+                  Admin Dashboard
+                </h1>
+                <p class="mt-1 text-sm text-slate-600">
+                  SkillNet management, monitoring, and insights
+                </p>
+              </div>
+            </div>
+
+            <!-- quick signals -->
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                System Healthy
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-bold text-slate-700">
+                <span class="text-slate-500">Last sync:</span> <span id="lastSyncText">2 min ago</span>
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-bold text-slate-700">
+                <span class="text-slate-500">Region:</span> BD
+              </span>
+
+              <!-- NEW: live indicator + quick tips -->
+              <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">
+                <span class="h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+                Live dashboard
+              </span>
+              <button
+                id="showTips"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700 hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+              >
+                ✨ Tips
+              </button>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <!-- Search -->
+            <button
+              id="openCmd"
+              type="button"
+              class="relative w-full sm:w-80 rounded-2xl border border-slate-200 bg-white/80 px-3 py-2.5 text-left text-sm font-semibold text-slate-800 shadow-sm hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+              aria-label="Open command palette"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex items-center gap-2 text-slate-500">
+                  <span class="text-slate-400">⌕</span>
+                  Search users, jobs, courses…
+                </span>
+                <span class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-extrabold text-slate-500">Ctrl K</span>
+              </div>
+            </button>
+
+            <button
+              id="btnExport"
+              type="button"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-extrabold text-slate-800 shadow-sm hover:shadow-md hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              <span>📥</span>
+              <span>Export</span>
+            </button>
+
+            <button
+              id="btnCreate"
+              type="button"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-blue-200"
+            >
+              <span>＋</span>
+              <span>Create</span>
+            </button>
+
+            <!-- NEW: notifications + profile -->
+            <div class="flex items-center gap-2">
+              <div class="relative">
+                <button
+                  id="btnNotif"
+                  type="button"
+                  class="inline-flex items-center justify-center h-11 w-11 rounded-2xl border border-slate-200 bg-white/80 hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  aria-label="Notifications"
+                  title="Notifications"
+                >
+                  🔔
+                </button>
+                <span class="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-rose-600 text-white text-[11px] font-black flex items-center justify-center border-2 border-white">3</span>
+
+                <div
+                  id="notifMenu"
+                  class="hidden absolute right-0 mt-2 w-[320px] rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.12)] overflow-hidden z-50"
+                >
+                  <div class="px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+                    <div class="flex items-center justify-between">
+                      <p class="text-sm font-extrabold text-slate-900">Notifications</p>
+                      <button id="notifClear" type="button" class="text-xs font-extrabold text-blue-600 hover:text-blue-700">Clear</button>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500">Latest updates & alerts</p>
+                  </div>
+
+                  <div class="p-4 space-y-3">
+                    <div class="flex gap-3 rounded-2xl border border-slate-200 p-3">
+                      <span class="mt-1 h-2.5 w-2.5 rounded-full bg-amber-500 shrink-0"></span>
+                      <div class="min-w-0">
+                        <p class="text-sm font-extrabold text-slate-900 truncate">7 jobs pending review</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Action recommended</p>
+                      </div>
+                    </div>
+                    <div class="flex gap-3 rounded-2xl border border-slate-200 p-3">
+                      <span class="mt-1 h-2.5 w-2.5 rounded-full bg-blue-600 shrink-0"></span>
+                      <div class="min-w-0">
+                        <p class="text-sm font-extrabold text-slate-900 truncate">New users joined today (+24)</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Growth is up</p>
+                      </div>
+                    </div>
+                    <div class="flex gap-3 rounded-2xl border border-slate-200 p-3">
+                      <span class="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-600 shrink-0"></span>
+                      <div class="min-w-0">
+                        <p class="text-sm font-extrabold text-slate-900 truncate">SLA looks healthy</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Support queue stable</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="px-4 pb-4">
+                    <a href="#"
+                       class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-extrabold text-slate-800 hover:bg-white transition">
+                      View all logs
+                      <span>→</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                id="btnTheme"
+                type="button"
+                class="inline-flex items-center justify-center h-11 w-11 rounded-2xl border border-slate-200 bg-white/80 hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+                aria-label="Toggle theme"
+                title="Toggle theme"
+              >
+                🌓
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur px-4 py-3 shadow-sm relative overflow-hidden">
+            <div class="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-emerald-200/30 blur-2xl"></div>
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-slate-500">Today signups</p>
+              <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">↑ 8%</span>
+            </div>
+            <p class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
+              <span class="countUp" data-target="24">24</span>
+              <span class="text-base font-black text-slate-400">+</span>
+            </p>
+            <div class="mt-2 flex items-center justify-between">
+              <p class="text-xs text-slate-500">New users joined today</p>
+              <!-- Sparkline -->
+              <svg viewBox="0 0 100 24" class="h-6 w-20">
+                <path d="M0,18 L15,14 L30,16 L45,9 L60,11 L75,6 L90,8 L100,4" fill="none" stroke="currentColor" class="text-emerald-600" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur px-4 py-3 shadow-sm relative overflow-hidden">
+            <div class="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-amber-200/30 blur-2xl"></div>
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-slate-500">Jobs pending review</p>
+              <span class="text-xs font-extrabold text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">Needs attention</span>
+            </div>
+            <p class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900"><span class="countUp" data-target="7">7</span></p>
+            <div class="mt-2 flex items-center justify-between">
+              <p class="text-xs text-slate-500">Flagged or new submissions</p>
+              <svg viewBox="0 0 100 24" class="h-6 w-20">
+                <path d="M0,10 L15,9 L30,12 L45,8 L60,15 L75,14 L90,16 L100,18" fill="none" stroke="currentColor" class="text-amber-600" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur px-4 py-3 shadow-sm relative overflow-hidden">
+            <div class="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-blue-200/30 blur-2xl"></div>
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-slate-500">Support open</p>
+              <span class="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">SLA ok</span>
+            </div>
+            <p class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900"><span class="countUp" data-target="12">12</span></p>
+            <div class="mt-2 flex items-center justify-between">
+              <p class="text-xs text-slate-500">Tickets awaiting response</p>
+              <svg viewBox="0 0 100 24" class="h-6 w-20">
+                <path d="M0,16 L15,16 L30,14 L45,12 L60,12 L75,10 L90,10 L100,8" fill="none" stroke="currentColor" class="text-blue-600" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur px-4 py-3 shadow-sm relative overflow-hidden">
+            <div class="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-indigo-200/30 blur-2xl"></div>
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-slate-500">Revenue (MTD)</p>
+              <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">↑ 12%</span>
+            </div>
+            <p class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900"><span class="countUp" data-target="18">18</span>k</p>
+            <div class="mt-2 flex items-center justify-between">
+              <p class="text-xs text-slate-500">Month to date</p>
+              <svg viewBox="0 0 100 24" class="h-6 w-20">
+                <path d="M0,20 L15,17 L30,16 L45,14 L60,10 L75,9 L90,6 L100,5" fill="none" stroke="currentColor" class="text-indigo-600" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW: “Insights” tiny row -->
+        <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-extrabold text-slate-500">Security posture</p>
+              <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">Good</span>
+            </div>
+            <p class="mt-2 text-sm text-slate-700">
+              2FA enabled, no critical alerts. <button id="securityToast" class="text-blue-600 font-extrabold hover:text-blue-700">Review</button>
+            </p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-extrabold text-slate-500">Content pipeline</p>
+              <span class="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">Stable</span>
+            </div>
+            <p class="mt-2 text-sm text-slate-700">
+              Courses + quizzes publishing rate steady. <a href="#" class="text-blue-600 font-extrabold hover:text-blue-700">Analytics</a>
+            </p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-extrabold text-slate-500">System note</p>
+              <span class="text-xs font-extrabold text-slate-700 bg-slate-50 border border-slate-200 rounded-full px-2 py-0.5">Auto</span>
+            </div>
+            <p class="mt-2 text-sm text-slate-700">
+              Smart actions enabled (toasts, modals, command palette).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="mt-6 sticky top-3 z-10">
+      <div class="rounded-3xl border border-slate-200 bg-white/70 backdrop-blur shadow-sm p-2 overflow-x-auto">
+        <div class="flex items-center gap-2 min-w-max">
+          <a href="#"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-extrabold bg-blue-50 text-blue-700 border border-blue-100">
+            <span>🏠</span> Overview
+          </a>
+          <a href="{% url 'admin_user' %}"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-100 transition">
+            <span>👥</span> Users
+          </a>
+          <a href="#"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-100 transition">
+            <span>📚</span> Content
+          </a>
+          <a href="#"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-100 transition">
+            <span>🎫</span> Support
+          </a>
+          <a href="#"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-100 transition">
+            <span>📈</span> Analytics
+          </a>
+          <a href="#"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-100 transition">
+            <span>⚙️</span> Settings
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Stats Cards -->
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <!-- Total users -->
+      <div class="group rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-extrabold text-slate-500">Total users</p>
+            <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:scale-105 transition">👤</div>
+          </div>
+          <div class="mt-3 flex items-end justify-between gap-3">
+            <p class="text-2xl font-extrabold tracking-tight text-slate-900">{{ total_users|default:"0" }}</p>
+            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 12.3%</span>
+          </div>
+          <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="72"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">Growth trend (approx)</p>
+        </div>
+      </div>
+
+      <!-- Active jobs -->
+      <div class="group rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-extrabold text-slate-500">Active jobs</p>
+            <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:scale-105 transition">💼</div>
+          </div>
+          <div class="mt-3 flex items-end justify-between gap-3">
+            <p class="text-2xl font-extrabold tracking-tight text-slate-900">{{ total_active_jobs|default:"0" }}</p>
+            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 22.9%</span>
+          </div>
+          <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="64"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">Listings stability</p>
+        </div>
+      </div>
+
+      <!-- Total courses -->
+      <div class="group rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-extrabold text-slate-500">Total courses</p>
+            <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:scale-105 transition">📚</div>
+          </div>
+          <div class="mt-3 flex items-end justify-between gap-3">
+            <p class="text-2xl font-extrabold tracking-tight text-slate-900">{{ total_courses|default:"0" }}</p>
+            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 17.5%</span>
+          </div>
+          <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="58"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">Content growth</p>
+        </div>
+      </div>
+
+      <!-- Revenue -->
+      <div class="group rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-extrabold text-slate-500">Total revenue</p>
+            <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:scale-105 transition">💰</div>
+          </div>
+          <div class="mt-3 flex items-end justify-between gap-3">
+            <p class="text-2xl font-extrabold tracking-tight text-slate-900">18k</p>
+            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 35.8%</span>
+          </div>
+          <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="76"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">Monthly momentum</p>
+        </div>
+      </div>
+
+      <!-- Conversion -->
+      <div class="group rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-extrabold text-slate-500">Conversion rate</p>
+            <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:scale-105 transition">📈</div>
+          </div>
+          <div class="mt-3 flex items-end justify-between gap-3">
+            <p class="text-2xl font-extrabold tracking-tight text-slate-900">12.4%</p>
+            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 12.3%</span>
+          </div>
+          <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="44"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">Funnel health</p>
+        </div>
+      </div>
+
+      <!-- Rating -->
+      <div class="group rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-extrabold text-slate-500">Avg rating</p>
+            <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:scale-105 transition">⭐</div>
+          </div>
+          <div class="mt-3 flex items-end justify-between gap-3">
+            <p class="text-2xl font-extrabold tracking-tight text-slate-900">4.8</p>
+            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-extrabold text-emerald-700">↑ 0.3%</span>
+          </div>
+          <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 w-0 progressBar" data-width="86"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">Quality signal</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <!-- Recent Users -->
+      <div class="lg:col-span-2 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+          <div>
+            <h3 class="text-sm font-extrabold tracking-tight text-slate-900">Recent Users</h3>
+            <p class="mt-1 text-xs text-slate-500">Latest registrations and status</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- NEW: local filter -->
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌕</span>
+              <input
+                id="userFilter"
+                type="text"
+                placeholder="Filter recent users…"
+                class="w-full sm:w-64 rounded-2xl border border-slate-200 bg-white px-9 py-2 text-sm font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <a href="{% url 'admin_user' %}" class="text-sm font-extrabold text-blue-600 hover:text-blue-700">View all</a>
+          </div>
+        </div>
+
+        <div class="p-5">
+          <div class="space-y-3" id="recentUsersList">
+            {% for u in recent_users %}
+              <div
+                class="recentUserRow group flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition"
+                data-name="{{ u.user.username|default:'' }}"
+                data-email="{{ u.user.email|default:'' }}"
+                data-type="{{ u.get_user_type_display|default:'' }}"
+                data-id="{{ u.user.id|default:'' }}"
+              >
+                <div class="flex items-center gap-4 min-w-0">
+                  <!-- Avatar -->
+                  <div class="relative">
+                    <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black shadow-sm">
+                      {{ u.user.username|default:"U"|slice:":1"|upper }}
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white {% if u.user.is_active %}bg-emerald-500{% else %}bg-slate-400{% endif %}"></span>
+                  </div>
+
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <p class="font-extrabold text-slate-900 truncate max-w-[18rem] sm:max-w-[26rem]">
+                        {{ u.user.username }}
+                      </p>
+
+                      <span class="hidden sm:inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-extrabold text-slate-700">
+                        {{ u.get_user_type_display }}
+                      </span>
+                    </div>
+
+                    <p class="text-sm text-slate-600 truncate max-w-[18rem] sm:max-w-[26rem]">
+                      {{ u.user.email|default:"No email" }}
+                    </p>
+
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                      <span class="inline-flex sm:hidden items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-extrabold text-slate-700">
+                        {{ u.get_user_type_display }}
+                      </span>
+                      <span class="text-xs text-slate-500">
+                        Joined {{ u.created_at|date:"M d, Y" }}
+                      </span>
+                      <span class="text-xs text-slate-400">•</span>
+                      <span class="text-xs text-slate-500">
+                        ID: {{ u.user.id }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="shrink-0 flex items-center gap-2">
+                  {% if u.user.is_active %}
+                    <span class="inline-flex items-center justify-center min-w-[94px] rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+                      Active
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center justify-center min-w-[94px] rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black text-rose-700">
+                      Inactive
+                    </span>
+                  {% endif %}
+
+                  <!-- NEW: per-user action menu -->
+                  <div class="relative">
+                    <button
+                      type="button"
+                      class="userMenuBtn inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+                      aria-label="User actions"
+                      data-user="{{ u.user.username|default:'User' }}"
+                      data-id="{{ u.user.id|default:'' }}"
+                    >
+                      ⋯
+                    </button>
+
+                    <div class="userMenu hidden absolute right-0 mt-2 w-56 rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.12)] overflow-hidden z-50">
+                      <div class="px-4 py-3 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+                        <p class="text-sm font-extrabold text-slate-900 truncate">{{ u.user.username }}</p>
+                        <p class="text-xs text-slate-500">ID: {{ u.user.id }}</p>
+                      </div>
+                      <div class="p-2">
+                        <button type="button" class="menuItem w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition text-sm font-bold text-slate-800" data-action="view">
+                          👁️ View profile
+                        </button>
+                        <button type="button" class="menuItem w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition text-sm font-bold text-slate-800" data-action="message">
+                          ✉️ Send message
+                        </button>
+                        <button type="button" class="menuItem w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition text-sm font-bold text-slate-800" data-action="toggle">
+                          🔒 Toggle active
+                        </button>
+                        <div class="h-px bg-slate-200 my-2"></div>
+                        <button type="button" class="menuItem w-full text-left px-3 py-2 rounded-2xl hover:bg-rose-50 transition text-sm font-black text-rose-700" data-action="flag">
+                          🚩 Flag account
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% empty %}
+              <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+                <div class="text-3xl">👤</div>
+                <p class="mt-3 font-extrabold text-slate-900">No recent users found</p>
+                <p class="mt-1 text-sm text-slate-600">Users will appear here after registration.</p>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- NEW: empty state for filter -->
+          <div id="userFilterEmpty" class="hidden mt-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
+            <div class="text-3xl">🧭</div>
+            <p class="mt-3 font-extrabold text-slate-900">No matches</p>
+            <p class="mt-1 text-sm text-slate-600">Try a different keyword (name / email / role / ID).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column: Health + Activity + Quick actions -->
+      <div class="space-y-4">
+        <!-- System Health -->
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+            <div>
+              <h3 class="text-sm font-extrabold tracking-tight text-slate-900">System Health</h3>
+              <p class="mt-1 text-xs text-slate-500">Performance overview</p>
+            </div>
+            <span class="inline-flex items-center gap-2 text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Live
+            </span>
+          </div>
+
+          <div class="p-5 space-y-4">
+            <!-- Metric -->
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-600 font-bold">Database</span>
+                <span class="font-extrabold text-slate-900">80%</span>
+              </div>
+              <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full w-0 progressBar" data-width="80"></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-600 font-bold">Server Uptime</span>
+                <span class="font-extrabold text-slate-900">70%</span>
+              </div>
+              <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full w-0 progressBar" data-width="70"></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-600 font-bold">API Response</span>
+                <span class="font-extrabold text-slate-900">75%</span>
+              </div>
+              <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full w-0 progressBar" data-width="75"></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-600 font-bold">Storage</span>
+                <span class="font-extrabold text-slate-900">55%</span>
+              </div>
+              <div class="mt-3 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full w-0 progressBar" data-width="55"></div>
+              </div>
+            </div>
+
+            <!-- NEW: quick diagnostics -->
+            <button
+              id="runDiagnostics"
+              type="button"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-extrabold text-slate-800 hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              🧪 Run diagnostics
+            </button>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+            <div>
+              <h3 class="text-sm font-extrabold tracking-tight text-slate-900">Recent Activity</h3>
+              <p class="mt-1 text-xs text-slate-500">Latest admin events</p>
+            </div>
+            <a href="#" class="text-sm font-extrabold text-blue-600 hover:text-blue-700">See logs</a>
+          </div>
+
+          <div class="p-5 space-y-3">
+            <div class="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <span class="mt-1 h-2.5 w-2.5 rounded-full bg-blue-600 shrink-0"></span>
+              <div class="min-w-0">
+                <p class="font-extrabold text-sm text-slate-900 truncate">New employer registration: Techcrop Inc.</p>
+                <p class="text-xs text-slate-500 mt-1">2 hours ago</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <span class="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-600 shrink-0"></span>
+              <div class="min-w-0">
+                <p class="font-extrabold text-sm text-slate-900 truncate">Course published: Advanced React Development</p>
+                <p class="text-xs text-slate-500 mt-1">5 hours ago</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <span class="mt-1 h-2.5 w-2.5 rounded-full bg-amber-500 shrink-0"></span>
+              <div class="min-w-0">
+                <p class="font-extrabold text-sm text-slate-900 truncate">Job flagged for review: Frontend Developer</p>
+                <p class="text-xs text-slate-500 mt-1">2 hours ago</p>
+              </div>
+            </div>
+
+            <!-- NEW: compact CTA -->
+            <button
+              id="activityToast"
+              type="button"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-extrabold text-slate-800 hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              ⚡ Create alert from activity
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+            <div>
+              <h3 class="text-sm font-extrabold tracking-tight text-slate-900">Quick Actions</h3>
+              <p class="mt-1 text-xs text-slate-500">Fast navigation</p>
+            </div>
+            <span class="text-xs font-extrabold text-slate-500">Shortcuts</span>
+          </div>
+
+          <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a href="{% url 'admin_user' %}"
+               class="group rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition flex gap-3">
+              <div class="h-11 w-11 rounded-2xl bg-blue-50 flex items-center justify-center text-lg group-hover:scale-105 transition">👥</div>
+              <div class="min-w-0">
+                <p class="font-extrabold text-sm text-slate-900 group-hover:text-blue-700">Manage users</p>
+                <p class="text-xs text-slate-500 mt-1 truncate">Roles, status, profiles</p>
+              </div>
+            </a>
+
+            <a href="#"
+               class="group rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition flex gap-3">
+              <div class="h-11 w-11 rounded-2xl bg-blue-50 flex items-center justify-center text-lg group-hover:scale-105 transition">💼</div>
+              <div class="min-w-0">
+                <p class="font-extrabold text-sm text-slate-900 group-hover:text-blue-700">Review jobs</p>
+                <p class="text-xs text-slate-500 mt-1 truncate">Approve / flag listings</p>
+              </div>
+            </a>
+
+            <a href="#"
+               class="group rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition flex gap-3">
+              <div class="h-11 w-11 rounded-2xl bg-blue-50 flex items-center justify-center text-lg group-hover:scale-105 transition">📚</div>
+              <div class="min-w-0">
+                <p class="font-extrabold text-sm text-slate-900 group-hover:text-blue-700">Approve courses</p>
+                <p class="text-xs text-slate-500 mt-1 truncate">Publish & manage</p>
+              </div>
+            </a>
+
+            <a href="#"
+               class="group rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition flex gap-3">
+              <div class="h-11 w-11 rounded-2xl bg-blue-50 flex items-center justify-center text-lg group-hover:scale-105 transition">🎫</div>
+              <div class="min-w-0">
+                <p class="font-extrabold text-sm text-slate-900 group-hover:text-blue-700">Support tickets</p>
+                <p class="text-xs text-slate-500 mt-1 truncate">Help & escalations</p>
+              </div>
+            </a>
+
+            <!-- NEW: extra actions without removing anything -->
+            <a href="#"
+               class="group sm:col-span-2 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-4 hover:shadow-md transition flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="h-11 w-11 rounded-2xl bg-indigo-50 flex items-center justify-center text-lg group-hover:scale-105 transition">🧩</div>
+                <div class="min-w-0">
+                  <p class="font-extrabold text-sm text-slate-900 group-hover:text-indigo-700">Open Command Center</p>
+                  <p class="text-xs text-slate-500 mt-1 truncate">Search + actions + shortcuts (Ctrl/⌘ K)</p>
+                </div>
+              </div>
+              <span class="rounded-xl border border-slate-200 bg-white px-2 py-1 text-[10px] font-extrabold text-slate-500">Ctrl K</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-500">
+      <span>© {{ now|date:"Y" }} SkillNet Admin</span>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-extrabold text-slate-700">
+          <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+          System status: OK
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============== Command Palette ============== -->
+  <div id="cmdOverlay" class="hidden fixed inset-0 z-[70]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+
+    <div class="relative mx-auto mt-24 w-[min(720px,calc(100%-24px))]">
+      <div class="rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-extrabold text-slate-900">Command Center</p>
+              <p class="text-xs text-slate-500">Search & run quick actions</p>
+            </div>
+            <button id="cmdClose" class="h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+          </div>
+
+          <div class="mt-3 relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+            <input id="cmdInput" type="text" placeholder="Type: users, jobs, export, create..."
+                   class="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+          </div>
+        </div>
+
+        <div class="p-2">
+          <div class="px-3 py-2 text-[11px] font-extrabold text-slate-500">SUGGESTED</div>
+
+          <div id="cmdList" class="space-y-1 p-2">
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="go-users">
+              <span class="font-extrabold text-slate-900">👥 Go to Users</span>
+              <span class="text-xs font-extrabold text-slate-400">Navigate</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="open-export">
+              <span class="font-extrabold text-slate-900">📥 Export report</span>
+              <span class="text-xs font-extrabold text-slate-400">Modal</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="open-create">
+              <span class="font-extrabold text-slate-900">＋ Create</span>
+              <span class="text-xs font-extrabold text-slate-400">Modal</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="run-diagnostics">
+              <span class="font-extrabold text-slate-900">🧪 Run diagnostics</span>
+              <span class="text-xs font-extrabold text-slate-400">Toast</span>
+            </button>
+            <button class="cmdItem w-full text-left px-3 py-3 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between gap-3" data-action="toggle-theme">
+              <span class="font-extrabold text-slate-900">🌓 Toggle theme</span>
+              <span class="text-xs font-extrabold text-slate-400">UI</span>
+            </button>
+          </div>
+
+          <div class="px-4 py-3 border-t border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-center justify-between">
+            <p class="text-xs text-slate-500">Press <span class="font-extrabold">Esc</span> to close</p>
+            <p class="text-xs text-slate-500">Enter to run • ↑↓ to move</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== Modal: Export ============== -->
+  <div id="exportModal" class="hidden fixed inset-0 z-[80]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="relative mx-auto mt-24 w-[min(560px,calc(100%-24px))]">
+      <div class="rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-extrabold text-slate-900">Export</p>
+            <p class="text-xs text-slate-500">Generate a quick admin report</p>
+          </div>
+          <button class="modalClose h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="rounded-2xl border border-slate-200 p-4 cursor-pointer hover:bg-slate-50 transition">
+              <input type="radio" name="exportType" class="mr-2" checked> Users summary
+              <p class="text-xs text-slate-500 mt-1">Counts + active/inactive</p>
+            </label>
+            <label class="rounded-2xl border border-slate-200 p-4 cursor-pointer hover:bg-slate-50 transition">
+              <input type="radio" name="exportType" class="mr-2"> Jobs snapshot
+              <p class="text-xs text-slate-500 mt-1">Active + pending review</p>
+            </label>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-sm font-extrabold text-slate-900">Note</p>
+            <p class="text-sm text-slate-600 mt-1">This is UI-only. Connect it to your backend export endpoint when ready.</p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button id="doExport" type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-extrabold text-white shadow-md hover:shadow-lg transition focus:outline-none focus:ring-4 focus:ring-blue-200">
+              📥 Generate export
+            </button>
+            <button type="button" class="modalClose inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== Modal: Create ============== -->
+  <div id="createModal" class="hidden fixed inset-0 z-[80]">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="relative mx-auto mt-24 w-[min(560px,calc(100%-24px))]">
+      <div class="rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.25)] overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-extrabold text-slate-900">Create</p>
+            <p class="text-xs text-slate-500">Quick create actions</p>
+          </div>
+          <button class="modalClose h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-blue-100" aria-label="Close">✕</button>
+        </div>
+        <div class="p-5 space-y-3">
+          <a href="#" class="rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50 hover:shadow-sm transition flex items-center justify-between">
+            <div>
+              <p class="text-sm font-extrabold text-slate-900">💼 Create job</p>
+              <p class="text-xs text-slate-500 mt-1">Post a new job listing</p>
+            </div>
+            <span class="text-slate-400 font-black">→</span>
+          </a>
+
+          <a href="/course_admin" class="rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50 hover:shadow-sm transition flex items-center justify-between">
+            <div>
+              <p class="text-sm font-extrabold text-slate-900">📚 Create course</p>
+              <p class="text-xs text-slate-500 mt-1">Add learning content</p>
+            </div>
+            <span class="text-slate-400 font-black">→</span>
+          </a>
+
+          <a href="#" class="rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50 hover:shadow-sm transition flex items-center justify-between">
+            <div>
+              <p class="text-sm font-extrabold text-slate-900">🎫 Create ticket</p>
+              <p class="text-xs text-slate-500 mt-1">Log an internal issue</p>
+            </div>
+            <span class="text-slate-400 font-black">→</span>
+          </a>
+
+          <button type="button" class="modalClose inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-extrabold text-slate-800 hover:bg-white transition focus:outline-none focus:ring-4 focus:ring-blue-100">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== Toasts ============== -->
+  <div id="toastHost" class="fixed bottom-4 right-4 z-[90] space-y-2 w-[min(360px,calc(100%-24px))]"></div>
+</div>
+
+<!-- ===========================
+  JS (no external libraries)
+=========================== -->
+<script>
+(function () {
+  const root = document.getElementById('adminRoot');
+  const miniBar = document.getElementById('miniBar');
+  const miniToTop = document.getElementById('miniToTop');
+  const miniCmd = document.getElementById('miniCmd');
+  const miniTheme = document.getElementById('miniTheme');
+
+  // Command palette
+  const cmdOverlay = document.getElementById('cmdOverlay');
+  const cmdClose = document.getElementById('cmdClose');
+  const cmdInput = document.getElementById('cmdInput');
+  const openCmd = document.getElementById('openCmd');
+
+  // Modals
+  const exportModal = document.getElementById('exportModal');
+  const createModal = document.getElementById('createModal');
+  const btnExport = document.getElementById('btnExport');
+  const btnCreate = document.getElementById('btnCreate');
+  const doExport = document.getElementById('doExport');
+
+  // Menus
+  const btnNotif = document.getElementById('btnNotif');
+  const notifMenu = document.getElementById('notifMenu');
+  const notifClear = document.getElementById('notifClear');
+
+  // Health buttons
+  const runDiagnostics = document.getElementById('runDiagnostics');
+  const activityToast = document.getElementById('activityToast');
+  const showTips = document.getElementById('showTips');
+  const securityToast = document.getElementById('securityToast');
+
+  // Filter recent users
+  const userFilter = document.getElementById('userFilter');
+  const userRows = Array.from(document.querySelectorAll('.recentUserRow'));
+  const userFilterEmpty = document.getElementById('userFilterEmpty');
+
+  // Progress bars animate
+  const progressBars = Array.from(document.querySelectorAll('.progressBar'));
+
+  // Count up
+  const counters = Array.from(document.querySelectorAll('.countUp'));
+
+  // Toast system
+  const toastHost = document.getElementById('toastHost');
+  function toast(message, type = 'info') {
+    const styles = {
+      info: 'border-slate-200 bg-white',
+      success: 'border-emerald-200 bg-emerald-50',
+      warn: 'border-amber-200 bg-amber-50',
+      danger: 'border-rose-200 bg-rose-50',
+    };
+    const t = document.createElement('div');
+    t.className = `rounded-3xl border ${styles[type] || styles.info} shadow-[0_18px_60px_rgba(15,23,42,0.12)] px-4 py-3`;
+    t.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-sm font-extrabold text-slate-900">Notification</p>
+          <p class="text-sm text-slate-700 mt-0.5">${message}</p>
+        </div>
+        <button class="h-9 w-9 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition" aria-label="Close">✕</button>
+      </div>
+    `;
+    const closeBtn = t.querySelector('button');
+    closeBtn.addEventListener('click', () => t.remove());
+    toastHost.appendChild(t);
+    setTimeout(() => {
+      if (t && t.parentNode) t.remove();
+    }, 5200);
+  }
+
+  // MiniBar show on scroll
+  function onScroll() {
+    const y = window.scrollY || document.documentElement.scrollTop;
+    if (y > 220) miniBar.classList.remove('hidden');
+    else miniBar.classList.add('hidden');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Scroll to top
+  function scrollTopSmooth() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  miniToTop.addEventListener('click', scrollTopSmooth);
+
+  // Theme toggle (UI-only using class on root)
+  function toggleTheme() {
+    // Simple dark mode: invert base surfaces
+    const isDark = root.classList.toggle('darkMode');
+    document.documentElement.classList.toggle('darkMode', isDark);
+
+    if (isDark) {
+      root.classList.add('bg-slate-950');
+      toast('Dark mode enabled (UI-only)', 'info');
+    } else {
+      root.classList.remove('bg-slate-950');
+      toast('Light mode enabled (UI-only)', 'info');
+    }
+  }
+  document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+  miniTheme.addEventListener('click', toggleTheme);
+
+  // DarkMode “skin” (pure Tailwind classes via inline style is hard; we apply minimal overrides)
+  // We’ll rely on a few CSS overrides for perfect readability.
+  const style = document.createElement('style');
+  style.textContent = `
+    .darkMode #adminRoot { background: #020617 !important; color: #e2e8f0 !important; }
+    .darkMode #adminRoot .bg-white { background: rgba(15,23,42,0.86) !important; }
+    .darkMode #adminRoot .bg-white\\/70 { background: rgba(15,23,42,0.72) !important; }
+    .darkMode #adminRoot .bg-white\\/80 { background: rgba(15,23,42,0.80) !important; }
+    .darkMode #adminRoot .border-slate-200 { border-color: rgba(148,163,184,0.25) !important; }
+    .darkMode #adminRoot .text-slate-900 { color: #e2e8f0 !important; }
+    .darkMode #adminRoot .text-slate-800 { color: #e2e8f0 !important; }
+    .darkMode #adminRoot .text-slate-700 { color: #cbd5e1 !important; }
+    .darkMode #adminRoot .text-slate-600 { color: #94a3b8 !important; }
+    .darkMode #adminRoot .text-slate-500 { color: #94a3b8 !important; }
+    .darkMode #adminRoot .bg-slate-50 { background: rgba(15,23,42,0.60) !important; }
+    .darkMode #adminRoot .bg-slate-100 { background: rgba(148,163,184,0.18) !important; }
+  `;
+  document.head.appendChild(style);
+
+  // Notif dropdown
+  function toggleMenu(menuEl) {
+    const isHidden = menuEl.classList.contains('hidden');
+    document.querySelectorAll('#notifMenu, .userMenu').forEach(m => m.classList.add('hidden'));
+    if (isHidden) menuEl.classList.remove('hidden');
+    else menuEl.classList.add('hidden');
+  }
+
+  btnNotif.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMenu(notifMenu);
+  });
+
+  notifClear?.addEventListener('click', (e) => {
+    e.preventDefault();
+    toast('Notifications cleared (UI-only).', 'success');
+    notifMenu.classList.add('hidden');
+  });
+
+  // User action menus
+  document.querySelectorAll('.userMenuBtn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const menu = btn.parentElement.querySelector('.userMenu');
+      toggleMenu(menu);
+    });
+  });
+
+  // User menu actions -> toast feedback (UI-only)
+  document.querySelectorAll('.userMenu .menuItem').forEach(item => {
+    item.addEventListener('click', (e) => {
+      const action = item.dataset.action;
+      const card = item.closest('.recentUserRow');
+      const name = card?.dataset?.name || 'User';
+      if (action === 'view') toast(`Open profile for ${name} (connect link).`, 'info');
+      if (action === 'message') toast(`Message ${name} (connect messaging).`, 'info');
+      if (action === 'toggle') toast(`Toggle active for ${name} (connect backend).`, 'warn');
+      if (action === 'flag') toast(`Flagged ${name} (connect moderation).`, 'danger');
+      item.closest('.userMenu')?.classList.add('hidden');
+    });
+  });
+
+  // Close menus when clicking outside
+  document.addEventListener('click', () => {
+    notifMenu.classList.add('hidden');
+    document.querySelectorAll('.userMenu').forEach(m => m.classList.add('hidden'));
+  });
+
+  // Modals
+  function openModal(el) { el.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+  function closeModal(el) { el.classList.add('hidden'); document.body.style.overflow = ''; }
+
+  btnExport.addEventListener('click', () => openModal(exportModal));
+  btnCreate.addEventListener('click', () => openModal(createModal));
+
+  exportModal.querySelectorAll('.modalClose').forEach(b => b.addEventListener('click', () => closeModal(exportModal)));
+  createModal.querySelectorAll('.modalClose').forEach(b => b.addEventListener('click', () => closeModal(createModal)));
+
+  exportModal.addEventListener('click', (e) => { if (e.target === exportModal) closeModal(exportModal); });
+  createModal.addEventListener('click', (e) => { if (e.target === createModal) closeModal(createModal); });
+
+  doExport.addEventListener('click', () => {
+    toast('Export generated (UI-only). Hook this button to your backend export endpoint.', 'success');
+    closeModal(exportModal);
+  });
+
+  // Command Palette open/close
+  function openCommand() {
+    cmdOverlay.classList.remove('hidden');
+    setTimeout(() => cmdInput.focus(), 0);
+  }
+  function closeCommand() {
+    cmdOverlay.classList.add('hidden');
+  }
+
+  openCmd.addEventListener('click', openCommand);
+  miniCmd?.addEventListener('click', openCommand);
+  cmdClose.addEventListener('click', closeCommand);
+  cmdOverlay.addEventListener('click', (e) => { if (e.target === cmdOverlay) closeCommand(); });
+
+  // Ctrl/Cmd + K
+  document.addEventListener('keydown', (e) => {
+    const isK = (e.key || '').toLowerCase() === 'k';
+    if ((e.ctrlKey || e.metaKey) && isK) {
+      e.preventDefault();
+      if (cmdOverlay.classList.contains('hidden')) openCommand();
+      else closeCommand();
+    }
+    if (e.key === 'Escape') {
+      closeCommand();
+      closeModal(exportModal);
+      closeModal(createModal);
+      notifMenu.classList.add('hidden');
+      document.querySelectorAll('.userMenu').forEach(m => m.classList.add('hidden'));
+    }
+  });
+
+  // Command actions
+  document.querySelectorAll('.cmdItem').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      runCmdAction(action);
+    });
+  });
+
+  function runCmdAction(action) {
+    if (action === 'go-users') {
+      closeCommand();
+      window.location.href = "{% url 'admin_user' %}";
+      return;
+    }
+    if (action === 'open-export') {
+      closeCommand();
+      openModal(exportModal);
+      return;
+    }
+    if (action === 'open-create') {
+      closeCommand();
+      openModal(createModal);
+      return;
+    }
+    if (action === 'run-diagnostics') {
+      closeCommand();
+      toast('Diagnostics started… (UI-only). Connect this to real health checks.', 'info');
+      return;
+    }
+    if (action === 'toggle-theme') {
+      toggleTheme();
+      closeCommand();
+      return;
+    }
+  }
+
+  // Simple command search (filter list)
+  const cmdList = document.getElementById('cmdList');
+  const cmdItems = Array.from(cmdList.querySelectorAll('.cmdItem'));
+  cmdInput.addEventListener('input', () => {
+    const q = cmdInput.value.trim().toLowerCase();
+    cmdItems.forEach(item => {
+      const t = item.textContent.toLowerCase();
+      item.classList.toggle('hidden', q && !t.includes(q));
+    });
+  });
+
+  // Diagnostics / tips buttons
+  runDiagnostics.addEventListener('click', () => toast('Diagnostics complete: no critical issues found (UI-only).', 'success'));
+  activityToast.addEventListener('click', () => toast('Alert draft created from latest activity (UI-only).', 'info'));
+  showTips.addEventListener('click', () => toast('Pro tip: Use Ctrl/⌘ K for instant actions and search.', 'info'));
+  securityToast.addEventListener('click', () => toast('Security review opened (UI-only). Add real security page link.', 'warn'));
+
+  // Recent users local filter
+  if (userFilter) {
+    userFilter.addEventListener('input', () => {
+      const q = userFilter.value.trim().toLowerCase();
+      let visible = 0;
+      userRows.forEach(row => {
+        const hay = `${row.dataset.name} ${row.dataset.email} ${row.dataset.type} ${row.dataset.id}`.toLowerCase();
+        const show = !q || hay.includes(q);
+        row.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      userFilterEmpty.classList.toggle('hidden', visible !== 0);
+    });
+  }
+
+  // Animate progress bars
+  function animateProgress() {
+    progressBars.forEach(bar => {
+      const w = Number(bar.dataset.width || 0);
+      bar.style.transition = 'width 900ms cubic-bezier(.2,.8,.2,1)';
+      requestAnimationFrame(() => {
+        bar.style.width = Math.max(0, Math.min(100, w)) + '%';
+      });
+    });
+  }
+
+  // CountUp animation
+  function animateCounters() {
+    counters.forEach(el => {
+      const target = Number(el.dataset.target || el.textContent || 0);
+      const duration = 900;
+      const start = 0;
+      const t0 = performance.now();
+
+      function tick(now) {
+        const p = Math.min(1, (now - t0) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const val = Math.round(start + (target - start) * eased);
+        el.textContent = val.toString();
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+
+  // Simulate “last sync” updating
+  const lastSyncText = document.getElementById('lastSyncText');
+  let syncMins = 2;
+  setInterval(() => {
+    syncMins++;
+    if (lastSyncText) lastSyncText.textContent = `${syncMins} min ago`;
+  }, 60000);
+
+  // Init
+  animateProgress();
+  animateCounters();
+  toast('Dashboard loaded successfully.', 'success');
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,1358 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto px-6 py-10">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero relative rounded-3xl p-8 md:p-10 text-white shadow-[0_30px_80px_rgba(2,6,23,0.40)] overflow-hidden mb-10">
+    <div class="hero-bg absolute inset-0"></div>
+
+    <!-- soft decorative blobs -->
+    <div aria-hidden="true" class="hero-deco absolute inset-0 pointer-events-none">
+      <span class="blob blob-1"></span>
+      <span class="blob blob-2"></span>
+      <span class="grid-glow"></span>
+    </div>
+
+    <div class="relative flex flex-col md:flex-row gap-8 items-center">
+      <img
+        src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}https://via.placeholder.com/200{% endif %}"
+        class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover ring-4 ring-white/20 shadow-xl"
+        alt="{{ profile_user.username }}"
+      />
+
+      <div class="flex-1 text-center md:text-left">
+        <div class="flex flex-col md:flex-row md:items-center gap-3 justify-center md:justify-start">
+          <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">
+            {{ profile_user.get_full_name|default:profile_user.username }}
+          </h1>
+
+          {% if profile.title %}
+            <span class="pill">
+              <i class="fas fa-badge-check mr-2"></i>{{ profile.title }}
+            </span>
+          {% endif %}
+        </div>
+
+        {% if profile.bio %}
+          <p class="text-white/80 mt-3 text-sm md:text-base leading-relaxed max-w-2xl mx-auto md:mx-0">
+            {{ profile.bio|truncatewords:35 }}
+          </p>
+        {% else %}
+          <p class="text-white/70 mt-3 text-sm md:text-base">
+            Professional profile • Keep it short, clear, and measurable.
+          </p>
+        {% endif %}
+
+        <div class="flex flex-wrap gap-3 mt-5 text-sm text-white/80 justify-center md:justify-start">
+          {% if profile.location %}
+            <span class="meta"><i class="fas fa-map-marker-alt mr-2"></i>{{ profile.location }}</span>
+          {% endif %}
+          {% if profile_user.email %}
+            <span class="meta"><i class="fas fa-envelope mr-2"></i>{{ profile_user.email }}</span>
+          {% endif %}
+          {% if profile.phone %}
+            <span class="meta"><i class="fas fa-phone mr-2"></i>{{ profile.phone }}</span>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-wrap gap-2.5 mt-6 justify-center md:justify-start">
+          {% if profile.github %}
+            <a href="{{ profile.github }}" target="_blank" class="icon-btn" title="GitHub" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          {% endif %}
+          {% if profile.linkedin %}
+            <a href="{{ profile.linkedin }}" target="_blank" class="icon-btn" title="LinkedIn" rel="noopener">
+              <i class="fab fa-linkedin"></i>
+            </a>
+          {% endif %}
+          {% if profile.website %}
+            <a href="{{ profile.website }}" target="_blank" class="icon-btn" title="Website" rel="noopener">
+              <i class="fas fa-globe"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if is_own_profile %}
+        <div class="flex flex-col gap-3 w-full md:w-auto">
+          <a href="{% url 'app:edit_profile' %}" class="btn-primary w-full md:w-auto">
+            <i class="fas fa-edit mr-2"></i>Edit Profile
+          </a>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" onclick="openCvModal()" class="btn-secondary">
+              <i class="fas fa-file-pdf mr-2"></i>Create CV
+            </button>
+
+            <button type="button" id="downloadCvBtn" onclick="downloadLastCv()" class="btn-secondary hidden">
+              <i class="fas fa-download mr-2"></i>Download
+            </button>
+          </div>
+
+          <button type="button" onclick="shareProfile()" class="btn-ghost w-full">
+            <i class="fas fa-share-alt mr-2"></i>Share Profile
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- ================= QUICK STATS ================= -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="stat-card">
+      <p class="stat-num">{{ experiences|length|default:"0" }}</p>
+      <p class="stat-label">Experiences</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-num">{{ projects|length|default:"0" }}</p>
+      <p class="stat-label">Projects</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-num">{{ skills|length|default:"0" }}</p>
+      <p class="stat-label">Skills</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-num">{{ certificates|length|default:"0" }}</p>
+      <p class="stat-label">Certificates</p>
+    </div>
+  </section>
+
+  <!-- ================= TABS ================= -->
+  <nav class="sticky top-6 z-30 mb-8">
+    <div class="tabs-wrap">
+      <a href="?tab=overview" class="tab {% if active_tab == 'overview' %}tab-active{% endif %}">
+        <i class="fas fa-sparkles mr-2"></i>Overview
+      </a>
+      <a href="?tab=experience" class="tab {% if active_tab == 'experience' %}tab-active{% endif %}">
+        <i class="fas fa-briefcase mr-2"></i>Experience
+      </a>
+      <a href="?tab=education" class="tab {% if active_tab == 'education' %}tab-active{% endif %}">
+        <i class="fas fa-graduation-cap mr-2"></i>Education
+      </a>
+      <a href="?tab=skills" class="tab {% if active_tab == 'skills' %}tab-active{% endif %}">
+        <i class="fas fa-bolt mr-2"></i>Skills
+      </a>
+      <a href="?tab=projects" class="tab {% if active_tab == 'projects' %}tab-active{% endif %}">
+        <i class="fas fa-diagram-project mr-2"></i>Projects
+      </a>
+      <a href="?tab=certificates" class="tab {% if active_tab == 'certificates' %}tab-active{% endif %}">
+        <i class="fas fa-award mr-2"></i>Certificates
+      </a>
+
+      <!-- Optional -->
+      <a href="?tab=courses" class="tab {% if active_tab == 'courses' %}tab-active{% endif %}">
+        <i class="fas fa-play-circle mr-2"></i>Enrolled
+      </a>
+      <a href="?tab=saved" class="tab {% if active_tab == 'saved' %}tab-active{% endif %}">
+        <i class="fas fa-bookmark mr-2"></i>Saved
+      </a>
+    </div>
+  </nav>
+
+  <!-- ================= CONTENT GRID ================= -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    {% if active_tab == "overview" %}
+      <!-- Main -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <div class="card">
+          <div class="card-head">
+            <h3 class="card-title">About</h3>
+            {% if is_own_profile %}
+              <a href="{% url 'app:edit_profile' %}#sec-basic" class="link-soft">
+                Edit <i class="fas fa-arrow-right ml-1 text-xs"></i>
+              </a>
+            {% endif %}
+          </div>
+
+          <p class="text-slate-600 text-sm leading-relaxed">
+            {{ profile.bio|default:"No bio added yet." }}
+          </p>
+
+          {% if profile.website or profile.github or profile.linkedin %}
+            <div class="mt-4 flex flex-wrap gap-2">
+              {% if profile.website %}
+                <a class="pill-link" target="_blank" rel="noopener" href="{{ profile.website }}">
+                  <i class="fas fa-globe mr-2"></i>Website
+                </a>
+              {% endif %}
+              {% if profile.github %}
+                <a class="pill-link" target="_blank" rel="noopener" href="{{ profile.github }}">
+                  <i class="fab fa-github mr-2"></i>GitHub
+                </a>
+              {% endif %}
+              {% if profile.linkedin %}
+                <a class="pill-link" target="_blank" rel="noopener" href="{{ profile.linkedin }}">
+                  <i class="fab fa-linkedin mr-2"></i>LinkedIn
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3 class="card-title">Highlights</h3>
+            <span class="chip">Auto</span>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="mini-card">
+              <p class="mini-title">Most Recent Role</p>
+              {% with exp=experiences|first %}
+                {% if exp %}
+                  <p class="mini-main">{{ exp.position }}</p>
+                  <p class="mini-sub">{{ exp.company }}</p>
+                {% else %}
+                  <p class="mini-sub text-slate-500">Add experience to show here.</p>
+                {% endif %}
+              {% endwith %}
+            </div>
+
+            <div class="mini-card">
+              <p class="mini-title">Top Skill</p>
+              {% with s=skills|first %}
+                {% if s %}
+                  <p class="mini-main">{{ s.name }}</p>
+                  <p class="mini-sub">{{ s.get_proficiency_display }} • {{ s.percentage }}%</p>
+                {% else %}
+                  <p class="mini-sub text-slate-500">Add skills to show here.</p>
+                {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3 class="card-title">Recent Experience</h3>
+            <a href="?tab=experience" class="link-soft">View all</a>
+          </div>
+
+          <div class="space-y-5">
+            {% for experience in experiences|slice:":3" %}
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-body">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <h4 class="font-semibold text-slate-900">{{ experience.position }}</h4>
+                      <p class="text-blue-700 text-sm font-semibold">{{ experience.company }}</p>
+                    </div>
+                    <p class="text-xs text-slate-500 font-semibold whitespace-nowrap">
+                      {{ experience.start_date|date:"M Y" }} —
+                      {% if experience.current %}Present{% else %}{{ experience.end_date|date:"M Y" }}{% endif %}
+                    </p>
+                  </div>
+                  <p class="text-sm text-slate-600 mt-2">
+                    {{ experience.description|truncatewords:28 }}
+                  </p>
+                </div>
+              </div>
+            {% empty %}
+              <p class="text-slate-500">No experience added.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="space-y-6">
+
+        <div class="card">
+          <div class="card-head">
+            <h3 class="card-title">Top Skills</h3>
+            <a href="?tab=skills" class="link-soft">View</a>
+          </div>
+
+          {% for skill in skills|slice:":6" %}
+            <div class="mb-3">
+              <div class="flex justify-between text-sm font-semibold text-slate-700">
+                <span>{{ skill.name }}</span>
+                <span class="text-slate-500">{{ skill.percentage }}%</span>
+              </div>
+              <div class="mt-1 h-2.5 bg-slate-200/70 rounded-full overflow-hidden">
+                <div class="h-2.5 bg-blue-600 rounded-full" style="width: {{ skill.percentage }}%"></div>
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-slate-500">No skills added.</p>
+          {% endfor %}
+        </div>
+
+        <!-- Courses snapshot -->
+        <div class="card">
+          <div class="card-head">
+            <h3 class="card-title">Learning</h3>
+            <a href="?tab=courses" class="link-soft">Open</a>
+          </div>
+
+          {% if enrolled_courses %}
+            {% for c in enrolled_courses|slice:":3" %}
+              <div class="course-row">
+                <div class="course-icon"><i class="fas fa-play"></i></div>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-slate-900">{{ c.title|default:"Course" }}</p>
+                  <p class="text-xs text-slate-500">
+                    {% if c.instructor %}{{ c.instructor }} • {% endif %}
+                    {% if c.progress is not None %}{{ c.progress }}% progress{% else %}Enrolled{% endif %}
+                  </p>
+                  {% if c.progress is not None %}
+                    <div class="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div class="h-2 bg-emerald-600 rounded-full" style="width: {{ c.progress }}%"></div>
+                    </div>
+                  {% endif %}
+                </div>
+                {% if c.url %}
+                  <a href="{{ c.url }}" class="text-blue-700 text-xs font-semibold" rel="noopener">Resume</a>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-slate-500 text-sm">No enrolled courses yet.</p>
+          {% endif %}
+        </div>
+
+        <!-- Saved snapshot -->
+        <div class="card">
+          <div class="card-head">
+            <h3 class="card-title">Saved</h3>
+            <a href="?tab=saved" class="link-soft">Open</a>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="mini-stat">
+              <p class="mini-stat-num">{{ saved_courses|length|default:"0" }}</p>
+              <p class="mini-stat-label">Saved Courses</p>
+            </div>
+            <div class="mini-stat">
+              <p class="mini-stat-num">{{ saved_jobs|length|default:"0" }}</p>
+              <p class="mini-stat-label">Saved Jobs</p>
+            </div>
+          </div>
+
+          {% if saved_courses %}
+            <div class="mt-4 space-y-2">
+              {% for s in saved_courses|slice:":2" %}
+                <div class="saved-row">
+                  <i class="fas fa-bookmark text-slate-400"></i>
+                  <p class="text-sm font-semibold text-slate-700 truncate">{{ s.title|default:"Saved Course" }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    {% elif active_tab == "experience" %}
+      <div class="lg:col-span-3 card">
+        <div class="card-head">
+          <h3 class="card-title">Experience</h3>
+          {% if is_own_profile %}
+            <a href="{% url 'app:edit_profile' %}#sec-exp" class="btn-soft">
+              <i class="fas fa-plus mr-2"></i>Add / Edit
+            </a>
+          {% endif %}
+        </div>
+
+        {% for experience in experiences %}
+          <div class="split-row">
+            <div>
+              <h4 class="font-semibold text-slate-900">{{ experience.position }}</h4>
+              <p class="text-blue-700 font-semibold">{{ experience.company }}</p>
+              <p class="text-sm text-slate-500">
+                {{ experience.start_date|date:"M Y" }} —
+                {% if experience.current %}Present{% else %}{{ experience.end_date|date:"M Y" }}{% endif %}
+              </p>
+            </div>
+            <div class="text-slate-600 text-sm leading-relaxed mt-3 md:mt-0 md:max-w-3xl">
+              {{ experience.description }}
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-slate-500">No experience added.</p>
+        {% endfor %}
+      </div>
+
+    {% elif active_tab == "education" %}
+      <div class="lg:col-span-3 card">
+        <div class="card-head">
+          <h3 class="card-title">Education</h3>
+          {% if is_own_profile %}
+            <a href="{% url 'app:edit_profile' %}#sec-edu" class="btn-soft">
+              <i class="fas fa-plus mr-2"></i>Add / Edit
+            </a>
+          {% endif %}
+        </div>
+
+        {% for education in educations %}
+          <div class="split-row">
+            <div>
+              <h4 class="font-semibold text-slate-900">{{ education.degree }}</h4>
+              <p class="text-emerald-700 font-semibold">{{ education.institution }}</p>
+              <p class="text-sm text-slate-500">
+                {{ education.start_date|date:"M Y" }} —
+                {% if education.current %}Present{% else %}{{ education.end_date|date:"M Y" }}{% endif %}
+              </p>
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-slate-500">No education added.</p>
+        {% endfor %}
+      </div>
+
+    {% elif active_tab == "skills" %}
+      <div class="lg:col-span-3 card">
+        <div class="card-head">
+          <h3 class="card-title">Skills</h3>
+          {% if is_own_profile %}
+            <a href="{% url 'app:edit_profile' %}#sec-skill" class="btn-soft">
+              <i class="fas fa-plus mr-2"></i>Add / Edit
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          {% for skill in skills %}
+            <div class="skill-tile">
+              <div class="flex justify-between text-sm font-semibold text-slate-800">
+                <span>{{ skill.name }}</span>
+                <span class="text-slate-500">{{ skill.get_proficiency_display }}</span>
+              </div>
+              <div class="mt-2 h-3 bg-slate-200 rounded-full overflow-hidden">
+                <div class="h-3 bg-blue-600 rounded-full" style="width: {{ skill.percentage }}%"></div>
+              </div>
+              <p class="mt-2 text-xs text-slate-500 font-semibold">{{ skill.percentage }}% strength</p>
+            </div>
+          {% empty %}
+            <p class="text-slate-500">No skills added.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    {% elif active_tab == "projects" %}
+      <div class="lg:col-span-3 card">
+        <div class="card-head">
+          <h3 class="card-title">Projects</h3>
+          {% if is_own_profile %}
+            <a href="{% url 'app:edit_profile' %}#sec-proj" class="btn-soft">
+              <i class="fas fa-plus mr-2"></i>Add / Edit
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          {% for project in projects %}
+            <div class="project-tile">
+              <div class="flex items-start justify-between gap-3">
+                <h4 class="font-semibold text-slate-900">{{ project.title }}</h4>
+                <span class="chip">Project</span>
+              </div>
+              <p class="text-sm text-slate-600 mt-2">
+                {{ project.description|truncatewords:26 }}
+              </p>
+
+              <div class="flex gap-3 mt-4">
+                {% if project.project_url %}
+                  <a href="{{ project.project_url }}" target="_blank" rel="noopener" class="pill-link">
+                    <i class="fas fa-arrow-up-right-from-square mr-2"></i>Live
+                  </a>
+                {% endif %}
+                {% if project.github_url %}
+                  <a href="{{ project.github_url }}" target="_blank" rel="noopener" class="pill-link">
+                    <i class="fab fa-github mr-2"></i>GitHub
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-slate-500">No projects added.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    {% elif active_tab == "certificates" %}
+      <div class="lg:col-span-3 card">
+        <div class="card-head">
+          <h3 class="card-title">Certificates</h3>
+          {% if is_own_profile %}
+            <a href="{% url 'app:edit_profile' %}#sec-cert" class="btn-soft">
+              <i class="fas fa-plus mr-2"></i>Add / Edit
+            </a>
+          {% endif %}
+        </div>
+
+        {% for certificate in certificates %}
+          <div class="cert-row">
+            <div>
+              <p class="font-semibold text-slate-900">{{ certificate.title }}</p>
+              <p class="text-sm text-slate-500">{{ certificate.issuing_organization }}</p>
+            </div>
+            {% if certificate.credential_url %}
+              <a href="{{ certificate.credential_url }}" target="_blank" rel="noopener" class="icon-soft" title="Credential link">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="text-slate-500">No certificates added.</p>
+        {% endfor %}
+      </div>
+
+    {% elif active_tab == "courses" %}
+      <div class="lg:col-span-3 card">
+        <div class="card-head">
+          <h3 class="card-title">Enrolled Courses</h3>
+          <span class="chip">Learning</span>
+        </div>
+
+        {% if enrolled_courses %}
+          <div class="grid md:grid-cols-2 gap-5">
+            {% for c in enrolled_courses %}
+              <div class="course-tile">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="font-semibold text-slate-900">{{ c.title|default:"Course" }}</p>
+                    <p class="text-xs text-slate-500 font-semibold">
+                      {% if c.instructor %}{{ c.instructor }} • {% endif %}
+                      {% if c.level %}{{ c.level }}{% else %}Enrolled{% endif %}
+                    </p>
+                  </div>
+                  {% if c.url %}
+                    <a href="{{ c.url }}" class="btn-soft-sm" rel="noopener">Resume</a>
+                  {% endif %}
+                </div>
+
+                {% if c.progress is not None %}
+                  <div class="mt-4">
+                    <div class="flex justify-between text-xs font-bold text-slate-600">
+                      <span>Progress</span><span>{{ c.progress }}%</span>
+                    </div>
+                    <div class="mt-2 h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div class="h-2.5 bg-emerald-600 rounded-full" style="width: {{ c.progress }}%"></div>
+                    </div>
+                  </div>
+                {% endif %}
+
+                {% if c.started_at or c.last_accessed %}
+                  <p class="mt-3 text-xs text-slate-500">
+                    {% if c.last_accessed %}Last active: {{ c.last_accessed|date:"M d, Y" }}{% endif %}
+                  </p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">
+            <p class="font-semibold text-slate-900">No enrolled courses yet</p>
+            <p class="text-sm text-slate-600 mt-1">Enroll in a course to see it here.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    {% elif active_tab == "saved" %}
+      <div class="lg:col-span-3 card">
+        <div class="card-head">
+          <h3 class="card-title">Saved Items</h3>
+          <span class="chip">Personal</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="subcard">
+            <div class="card-head">
+              <p class="font-semibold text-slate-900">Saved Courses</p>
+              <span class="chip">{{ saved_courses|length|default:"0" }}</span>
+            </div>
+
+            {% if saved_courses %}
+              <div class="space-y-3 mt-3">
+                {% for s in saved_courses %}
+                  <div class="saved-line">
+                    <i class="fas fa-bookmark text-slate-400"></i>
+                    <p class="text-sm font-semibold text-slate-700 truncate">{{ s.title|default:"Saved Course" }}</p>
+                    {% if s.url %}
+                      <a href="{{ s.url }}" class="text-blue-700 text-xs font-semibold" rel="noopener">Open</a>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-sm text-slate-600 mt-2">No saved courses.</p>
+            {% endif %}
+          </div>
+
+          <div class="subcard">
+            <div class="card-head">
+              <p class="font-semibold text-slate-900">Saved Jobs</p>
+              <span class="chip">{{ saved_jobs|length|default:"0" }}</span>
+            </div>
+
+            {% if saved_jobs %}
+              <div class="space-y-3 mt-3">
+                {% for j in saved_jobs %}
+                  <div class="saved-line">
+                    <i class="fas fa-briefcase text-slate-400"></i>
+                    <p class="text-sm font-semibold text-slate-700 truncate">{{ j.title|default:"Saved Job" }}</p>
+                    {% if j.url %}
+                      <a href="{{ j.url }}" class="text-blue-700 text-xs font-semibold" rel="noopener">Open</a>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-sm text-slate-600 mt-2">No saved jobs.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </section>
+</main>
+
+<!-- ================= CV MODAL ================= -->
+<div id="cvModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-slate-900">Create CV (PDF)</h3>
+      <button type="button" onclick="closeCvModal()" class="icon-soft" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <p class="text-sm text-slate-600 mb-4">
+      Select sections to include, then generate.
+    </p>
+
+    <div class="grid sm:grid-cols-2 gap-3 text-sm">
+      <label class="cv-check"><input type="checkbox" id="cv_about" checked> About</label>
+      <label class="cv-check"><input type="checkbox" id="cv_contact" checked> Contact</label>
+      <label class="cv-check"><input type="checkbox" id="cv_experience" checked> Experience</label>
+      <label class="cv-check"><input type="checkbox" id="cv_education" checked> Education</label>
+      <label class="cv-check"><input type="checkbox" id="cv_skills" checked> Skills</label>
+      <label class="cv-check"><input type="checkbox" id="cv_projects" checked> Projects</label>
+      <label class="cv-check"><input type="checkbox" id="cv_certificates" checked> Certificates</label>
+    </div>
+
+    <div class="flex gap-3 mt-6 justify-end">
+      <button type="button" onclick="closeCvModal()" class="btn-secondary">
+        Cancel
+      </button>
+      <button type="button" onclick="generateCvPdf()" class="btn-primary">
+        <i class="fas fa-file-pdf mr-2"></i>Generate PDF
+      </button>
+    </div>
+
+    <p class="text-xs text-slate-500 mt-4">
+      PDF is generated in your browser (no server changes).
+    </p>
+  </div>
+</div>
+
+<!-- ================= TOAST ================= -->
+<div id="toast"
+     class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-full shadow-xl opacity-0 pointer-events-none transition duration-300 z-50">
+</div>
+
+<!-- ================= STYLES ================= -->
+<style>
+  /* ========= Premium tokens ========= */
+  :root{
+    --brand: #2563eb;        /* blue-600 */
+    --brand-700: #1d4ed8;    /* blue-700 */
+    --ink: #0f172a;          /* slate-900 */
+    --muted: #64748b;        /* slate-500 */
+    --border: rgba(226,232,240,1);
+    --card: rgba(255,255,255,.90);
+    --glass: rgba(255,255,255,.08);
+  }
+
+  /* ========= HERO ========= */
+  .hero{
+    background:
+      radial-gradient(1100px 520px at 14% 12%, rgba(37,99,235,.38), transparent 55%),
+      radial-gradient(900px 460px at 88% 26%, rgba(99,102,241,.26), transparent 55%),
+      linear-gradient(135deg, #0b1220 0%, #0a1b3a 45%, #14163f 100%);
+  }
+  .hero-bg{
+    background: linear-gradient(to bottom, rgba(255,255,255,.08), rgba(255,255,255,.02));
+    backdrop-filter: blur(18px);
+  }
+  .hero-deco .blob{
+    position:absolute; border-radius:999px; filter: blur(34px); opacity:.55;
+  }
+  .hero-deco .blob-1{
+    width:260px;height:260px; left:-90px; top:-90px;
+    background: rgba(37,99,235,.55);
+  }
+  .hero-deco .blob-2{
+    width:280px;height:280px; right:-110px; bottom:-120px;
+    background: rgba(99,102,241,.45);
+  }
+  .hero-deco .grid-glow{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,.08), transparent 40%),
+      radial-gradient(circle at 85% 40%, rgba(255,255,255,.06), transparent 42%);
+    opacity:.85;
+  }
+
+  /* ========= Pills / meta ========= */
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    padding:.44rem .78rem;
+    border-radius:999px;
+    font-size:.82rem;
+    font-weight:600;
+    letter-spacing:.01em;
+    background: rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.18);
+    color: rgba(255,255,255,.92);
+  }
+  .meta{
+    display:inline-flex;
+    align-items:center;
+    gap:.35rem;
+    padding:.34rem .62rem;
+    border-radius:999px;
+    background: rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.14);
+  }
+
+  /* ========= Buttons ========= */
+  .icon-btn{
+    width:42px;height:42px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:999px;
+    background: rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.18);
+    color: white;
+    transition: transform .15s ease, background .2s ease, border-color .2s ease;
+  }
+  .icon-btn:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.26); }
+
+  .btn-primary{
+    background: var(--brand);
+    color:white;
+    padding:.78rem 1.1rem;
+    border-radius:999px;
+    font-weight:600;
+    display:inline-flex;align-items:center;justify-content:center;
+    transition: transform .15s ease, filter .2s ease, box-shadow .2s ease;
+    box-shadow: 0 14px 44px rgba(37,99,235,.30);
+  }
+  .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); box-shadow: 0 16px 52px rgba(37,99,235,.36); }
+
+  .btn-secondary{
+    background: rgba(255,255,255,.94);
+    color: var(--ink);
+    padding:.78rem 1.1rem;
+    border-radius:999px;
+    font-weight:600;
+    border:1px solid rgba(15,23,42,.10);
+    display:inline-flex;align-items:center;justify-content:center;
+    transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+    box-shadow: 0 10px 26px rgba(2,6,23,.10);
+  }
+  .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.98); }
+
+  .btn-ghost{
+    background: rgba(255,255,255,.08);
+    color: rgba(255,255,255,.92);
+    padding:.78rem 1.1rem;
+    border-radius:999px;
+    font-weight:600;
+    border:1px solid rgba(255,255,255,.18);
+    display:inline-flex;align-items:center;justify-content:center;
+    transition: transform .15s ease, background .2s ease, border-color .2s ease;
+  }
+  .btn-ghost:hover{ transform: translateY(-2px); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.26); }
+
+  .btn-soft{
+    background: rgba(15,23,42,.05);
+    border: 1px solid rgba(15,23,42,.10);
+    padding:.55rem .9rem;
+    border-radius:999px;
+    font-weight:600;
+    color: var(--ink);
+    display:inline-flex;align-items:center;
+    transition: transform .15s ease, background .2s ease;
+  }
+  .btn-soft:hover{ transform: translateY(-2px); background: rgba(15,23,42,.07); }
+
+  .btn-soft-sm{
+    background: rgba(15,23,42,.06);
+    border: 1px solid rgba(15,23,42,.12);
+    padding:.35rem .7rem;
+    border-radius:999px;
+    font-weight:600;
+    color: var(--ink);
+    font-size:.75rem;
+  }
+
+  /* ========= Tabs ========= */
+  .tabs-wrap{
+    display:flex;
+    gap:.4rem;
+    padding:.45rem;
+    border-radius:999px;
+    background: rgba(255,255,255,.86);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 16px 44px rgba(2,6,23,.10);
+    overflow-x:auto;
+  }
+  .tab{
+    white-space: nowrap;
+    padding:.6rem 1rem;
+    border-radius:999px;
+    font-size:.875rem;
+    font-weight:600;
+    color:#475569;
+    transition: .18s ease;
+    display:inline-flex;align-items:center;
+  }
+  .tab:hover{ color: var(--brand-700); background: rgba(37,99,235,.07); }
+  .tab-active{
+    background: white;
+    color: var(--brand-700);
+    box-shadow: 0 12px 28px rgba(2,6,23,.12);
+    border: 1px solid var(--border);
+  }
+
+  /* ========= Cards ========= */
+  .card{
+    background: var(--card);
+    backdrop-filter: blur(14px);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 14px 42px rgba(2,6,23,.08);
+  }
+  .card-head{
+    display:flex;align-items:center;justify-content:space-between;
+    gap: 1rem; margin-bottom: 1rem;
+  }
+  .card-title{ font-weight:600; color: var(--ink); }
+  .link-soft{ font-size:.8rem; font-weight:600; color: var(--brand-700); }
+  .link-soft:hover{ text-decoration: underline; }
+
+  .chip{
+    font-size:.72rem;
+    font-weight:600;
+    color: var(--ink);
+    background: rgba(15,23,42,.06);
+    border: 1px solid rgba(15,23,42,.10);
+    padding:.25rem .6rem;
+    border-radius:999px;
+  }
+
+  /* ========= Stats ========= */
+  .stat-card{
+    border-radius: 1.25rem;
+    background: rgba(255,255,255,.88);
+    border: 1px solid var(--border);
+    padding: 1rem 1.1rem;
+    box-shadow: 0 12px 34px rgba(2,6,23,.06);
+  }
+  .stat-num{ font-size:1.35rem; font-weight:700; color: var(--ink); }
+  .stat-label{ font-size:.8rem; font-weight:600; color: var(--muted); margin-top:.12rem; }
+
+  /* ========= Mini cards ========= */
+  .mini-card{
+    border-radius: 1.1rem;
+    background: rgba(248,250,252,1);
+    border: 1px solid var(--border);
+    padding: 1rem;
+  }
+  .mini-title{ font-size:.75rem; font-weight:600; color: var(--muted); }
+  .mini-main{ font-size:1rem; font-weight:700; color: var(--ink); margin-top:.35rem; }
+  .mini-sub{ font-size:.84rem; font-weight:600; color:#475569; margin-top:.12rem; }
+
+  /* ========= Timeline ========= */
+  .timeline-item{ display:flex; gap: 12px; }
+  .timeline-dot{
+    width:10px;height:10px;border-radius:999px;margin-top:7px;
+    background: var(--brand);
+    box-shadow: 0 0 0 6px rgba(37,99,235,.14);
+  }
+  .timeline-body{ flex:1; }
+
+  /* ========= Split rows ========= */
+  .split-row{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  @media(min-width:768px){
+    .split-row{ grid-template-columns: 260px 1fr; align-items: start; }
+  }
+  .split-row:last-child{ border-bottom: none; }
+
+  .skill-tile{
+    border-radius: 1.1rem;
+    background: rgba(248,250,252,1);
+    border: 1px solid var(--border);
+    padding: 1rem;
+  }
+
+  .project-tile{
+    border-radius: 1.1rem;
+    background: rgba(248,250,252,1);
+    border: 1px solid var(--border);
+    padding: 1.1rem;
+    transition: transform .15s ease, box-shadow .2s ease;
+  }
+  .project-tile:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 18px 55px rgba(2,6,23,.12);
+  }
+
+  .pill-link{
+    display:inline-flex;align-items:center;
+    padding:.45rem .75rem;
+    border-radius:999px;
+    font-size:.82rem;
+    font-weight:600;
+    color: var(--ink);
+    background: white;
+    border:1px solid var(--border);
+    box-shadow: 0 10px 24px rgba(2,6,23,.06);
+  }
+  .pill-link:hover{ background: rgba(248,250,252,1); }
+
+  .cert-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cert-row:last-child{ border-bottom:none; }
+
+  .icon-soft{
+    width:38px;height:38px;border-radius:999px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background: rgba(15,23,42,.06);
+    border: 1px solid rgba(15,23,42,.10);
+    color: var(--ink);
+    transition: background .15s ease;
+  }
+  .icon-soft:hover{ background: rgba(15,23,42,.08); }
+
+  /* ========= Courses / saved ========= */
+  .course-row{
+    display:flex; gap: 12px;
+    padding: 12px;
+    border-radius: 1rem;
+    background: rgba(248,250,252,1);
+    border: 1px solid var(--border);
+    margin-top: 10px;
+  }
+  .course-icon{
+    width:38px;height:38px;border-radius: 14px;
+    display:flex;align-items:center;justify-content:center;
+    background: rgba(16,185,129,.12);
+    border: 1px solid rgba(16,185,129,.20);
+    color: rgb(4,120,87);
+    flex:0 0 auto;
+  }
+  .course-tile{
+    border-radius: 1.15rem;
+    background: rgba(248,250,252,1);
+    border: 1px solid var(--border);
+    padding: 1rem;
+  }
+
+  .mini-stat{
+    border-radius: 1rem;
+    background: rgba(248,250,252,1);
+    border: 1px solid var(--border);
+    padding: 1rem;
+  }
+  .mini-stat-num{ font-size:1.2rem; font-weight:700; color: var(--ink); }
+  .mini-stat-label{ font-size:.75rem; font-weight:600; color: var(--muted); margin-top:.15rem; }
+
+  .subcard{
+    border-radius: 1.25rem;
+    background: rgba(248,250,252,1);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+  }
+  .saved-line, .saved-row{
+    display:flex; align-items:center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: 1rem;
+    background: white;
+    border: 1px solid var(--border);
+  }
+  .saved-line{ justify-content:space-between; }
+
+  .empty{
+    border-radius: 1.25rem;
+    background: rgba(248,250,252,1);
+    border: 1px dashed rgba(148,163,184,1);
+    padding: 1.4rem;
+    text-align: center;
+  }
+
+  /* ========= Modal ========= */
+  .modal-overlay{
+    position: fixed; inset: 0;
+    background: rgba(2,6,23,.55);
+    backdrop-filter: blur(10px);
+    display:flex;align-items:center;justify-content:center;
+    z-index: 60;
+    padding: 18px;
+  }
+  .modal-card{
+    width:100%;
+    max-width: 560px;
+    background: rgba(255,255,255,.98);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 34px 110px rgba(0,0,0,.30);
+  }
+  .cv-check{
+    display:flex; gap:10px; align-items:center;
+    background: rgba(248,250,252,1);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+  .hidden{ display:none; }
+
+  @media (prefers-reduced-motion: reduce){
+    .icon-btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-soft, .project-tile { transition: none !important; }
+  }
+</style>
+
+<!-- ✅ PDF Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+/* ================= TOAST ================= */
+function showToast(message) {
+  const t = document.getElementById("toast");
+  t.textContent = message;
+  t.classList.remove("opacity-0");
+  t.classList.add("opacity-100");
+  setTimeout(() => {
+    t.classList.remove("opacity-100");
+    t.classList.add("opacity-0");
+  }, 1800);
+}
+
+/* ================= SHARE ================= */
+async function shareProfile() {
+  const url = window.location.href;
+  const title = document.title || "Profile";
+  const text = "Check out this profile";
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, text, url });
+      showToast("Shared successfully!");
+      return;
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url);
+      showToast("Profile link copied!");
+      return;
+    }
+
+    const temp = document.createElement("input");
+    temp.value = url;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand("copy");
+    document.body.removeChild(temp);
+    showToast("Profile link copied!");
+  } catch (e) {
+    showToast("Could not share. Try copying the link.");
+  }
+}
+
+/* ================= CV MODAL ================= */
+function openCvModal() { document.getElementById("cvModal").classList.remove("hidden"); }
+function closeCvModal() { document.getElementById("cvModal").classList.add("hidden"); }
+
+/* ================= CV DATA (Django vars) ================= */
+const CV_DATA = {
+  name: `{{ profile_user.get_full_name|default:profile_user.username|escapejs }}`,
+  title: `{{ profile.title|default:"Professional Profile"|escapejs }}`,
+  location: `{{ profile.location|default:""|escapejs }}`,
+  email: `{{ profile_user.email|default:""|escapejs }}`,
+  phone: `{{ profile.phone|default:""|escapejs }}`,
+  bio: `{{ profile.bio|default:"No bio added yet."|escapejs }}`,
+  socials: {
+    github: `{{ profile.github|default:""|escapejs }}`,
+    linkedin: `{{ profile.linkedin|default:""|escapejs }}`,
+    website: `{{ profile.website|default:""|escapejs }}`
+  },
+  experiences: [
+    {% for experience in experiences %}
+    {
+      position: `{{ experience.position|default:""|escapejs }}`,
+      company: `{{ experience.company|default:""|escapejs }}`,
+      start: `{{ experience.start_date|date:"M Y"|default:""|escapejs }}`,
+      end: `{% if experience.current %}Present{% else %}{{ experience.end_date|date:"M Y"|default:""|escapejs }}{% endif %}`,
+      description: `{{ experience.description|default:""|escapejs }}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}{% endfor %}
+  ],
+  educations: [
+    {% for education in educations %}
+    {
+      degree: `{{ education.degree|default:""|escapejs }}`,
+      institution: `{{ education.institution|default:""|escapejs }}`,
+      start: `{{ education.start_date|date:"M Y"|default:""|escapejs }}`,
+      end: `{% if education.current %}Present{% else %}{{ education.end_date|date:"M Y"|default:""|escapejs }}{% endif %}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}{% endfor %}
+  ],
+  skills: [
+    {% for skill in skills %}
+    {
+      name: `{{ skill.name|default:""|escapejs }}`,
+      level: `{{ skill.get_proficiency_display|default:""|escapejs }}`,
+      percentage: `{{ skill.percentage|default:"0"|escapejs }}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}{% endfor %}
+  ],
+  projects: [
+    {% for project in projects %}
+    {
+      title: `{{ project.title|default:""|escapejs }}`,
+      description: `{{ project.description|default:""|escapejs }}`,
+      live: `{{ project.project_url|default:""|escapejs }}`,
+      github: `{{ project.github_url|default:""|escapejs }}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}{% endfor %}
+  ],
+  certificates: [
+    {% for certificate in certificates %}
+    {
+      title: `{{ certificate.title|default:""|escapejs }}`,
+      org: `{{ certificate.issuing_organization|default:""|escapejs }}`,
+      url: `{{ certificate.credential_url|default:""|escapejs }}`
+    }{% if not forloop.last %},{% endif %}
+    {% empty %}{% endfor %}
+  ]
+};
+
+let LAST_CV_BLOB = null;
+function pick(id){ return document.getElementById(id)?.checked; }
+
+function addSectionTitle(doc, text, y) {
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text(text, 14, y);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+}
+
+async function generateCvPdf() {
+  try {
+    closeCvModal();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("p", "mm", "a4");
+
+    // Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(CV_DATA.name || "CV", 14, 18);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text((CV_DATA.title || "").toString(), 14, 25);
+
+    let y = 34;
+
+    if (pick("cv_contact")) {
+      const parts = [];
+      if (CV_DATA.location) parts.push(CV_DATA.location);
+      if (CV_DATA.email) parts.push(CV_DATA.email);
+      if (CV_DATA.phone) parts.push(CV_DATA.phone);
+
+      const socialParts = [];
+      if (CV_DATA.socials.github) socialParts.push(`GitHub: ${CV_DATA.socials.github}`);
+      if (CV_DATA.socials.linkedin) socialParts.push(`LinkedIn: ${CV_DATA.socials.linkedin}`);
+      if (CV_DATA.socials.website) socialParts.push(`Website: ${CV_DATA.socials.website}`);
+
+      if (parts.length || socialParts.length) {
+        addSectionTitle(doc, "CONTACT", y);
+        y += 6;
+        if (parts.length) {
+          doc.text(parts.join(" | "), 14, y);
+          y += 6;
+        }
+        if (socialParts.length) {
+          const lines = doc.splitTextToSize(socialParts.join(" | "), 180);
+          doc.text(lines, 14, y);
+          y += (lines.length * 5) + 2;
+        }
+        y += 3;
+      }
+    }
+
+    if (pick("cv_about")) {
+      addSectionTitle(doc, "ABOUT", y);
+      y += 6;
+      const aboutLines = doc.splitTextToSize(CV_DATA.bio || "", 180);
+      doc.text(aboutLines, 14, y);
+      y += (aboutLines.length * 5) + 6;
+    }
+
+    if (pick("cv_experience")) {
+      addSectionTitle(doc, "EXPERIENCE", y);
+      y += 4;
+      const rows = (CV_DATA.experiences || []).map(e => [
+        (e.position || "-"),
+        (e.company || "-"),
+        `${e.start || ""} - ${e.end || ""}`,
+        (e.description || "")
+      ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Position", "Company", "Duration", "Description"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235] },
+          columnStyles: { 0: { cellWidth: 34 }, 1: { cellWidth: 34 }, 2: { cellWidth: 28 }, 3: { cellWidth: 74 } },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No experience added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    if (pick("cv_education")) {
+      addSectionTitle(doc, "EDUCATION", y);
+      y += 4;
+      const rows = (CV_DATA.educations || []).map(ed => [
+        (ed.degree || "-"),
+        (ed.institution || "-"),
+        `${ed.start || ""} - ${ed.end || ""}`
+      ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Degree", "Institution", "Duration"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [22, 163, 74] },
+          columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 70 }, 2: { cellWidth: 40 } },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No education added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    if (pick("cv_skills")) {
+      addSectionTitle(doc, "SKILLS", y);
+      y += 4;
+      const rows = (CV_DATA.skills || []).map(s => [ (s.name || "-"), (s.level || "-"), `${s.percentage || "0"}%` ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Skill", "Level", "Strength"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235] },
+          columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 70 }, 2: { cellWidth: 30 } },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No skills added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    if (pick("cv_projects")) {
+      addSectionTitle(doc, "PROJECTS", y);
+      y += 4;
+      const rows = (CV_DATA.projects || []).map(p => [ (p.title || "-"), (p.description || "-"), (p.live ? "Live" : ""), (p.github ? "GitHub" : "") ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Title", "Description", "Live", "GitHub"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235] },
+          columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 90 }, 2: { cellWidth: 20 }, 3: { cellWidth: 20 } },
+          margin: { left: 14, right: 14 }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      } else {
+        doc.text("No projects added.", 14, y + 6);
+        y += 14;
+      }
+    }
+
+    if (pick("cv_certificates")) {
+      addSectionTitle(doc, "CERTIFICATES", y);
+      y += 4;
+      const rows = (CV_DATA.certificates || []).map(c => [ (c.title || "-"), (c.org || "-"), (c.url ? "Link" : "") ]);
+
+      if (rows.length) {
+        doc.autoTable({
+          startY: y,
+          head: [["Title", "Organization", "Credential"]],
+          body: rows,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235] },
+          columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 70 }, 2: { cellWidth: 30 } },
+          margin: { left: 14, right: 14 }
+        });
+      } else {
+        doc.text("No certificates added.", 14, y + 6);
+      }
+    }
+
+    const filename = `CV_${(CV_DATA.name || "Profile").replace(/\s+/g, "_")}.pdf`;
+    const pdfBlob = doc.output("blob");
+    LAST_CV_BLOB = pdfBlob;
+    document.getElementById("downloadCvBtn")?.classList.remove("hidden");
+    doc.save(filename);
+    showToast("CV generated & downloaded!");
+  } catch (err) {
+    console.error(err);
+    showToast("CV generation failed. Please try again.");
+  }
+}
+
+function downloadLastCv() {
+  if (!LAST_CV_BLOB) return showToast("Please generate your CV first.");
+  const url = URL.createObjectURL(LAST_CV_BLOB);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `CV_${(CV_DATA.name || "Profile").replace(/\s+/g, "_")}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast("CV downloaded!");
+}
+</script>
+
+{% endblock %}

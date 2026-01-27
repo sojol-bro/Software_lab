@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .line-clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+
+  /* Premium motion */
+  .tab-content{animation: fadeIn .32s ease both;}
+  @keyframes fadeIn{from{opacity:0; transform: translateY(8px);}to{opacity:1; transform: translateY(0);} }
+
+  /* Tabs (premium pills) */
+  .tab-button{
+    display:flex; align-items:center; gap:.55rem;
+    padding:.7rem 1rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: .92rem;
+    color: rgb(71 85 105);
+    border: 1px solid transparent;
+    transition: .18s ease;
+    user-select:none;
+    white-space: nowrap;
+  }
+  .tab-button i{font-size:.95rem; opacity:.75;}
+  .tab-button:hover{
+    background: rgb(248 250 252);
+    border-color: rgb(226 232 240);
+    color: rgb(15 23 42);
+  }
+  .tab-button.is-active{
+    background: rgba(14,165,233,.10); /* sky tint */
+    border-color: rgba(14,165,233,.22);
+    color: rgb(2 132 199);
+  }
+  #tab-indicator{
+    bottom: 10px;
+    height: 3px;
+    border-radius: 999px;
+  }
+
+  /* Tiny focus polish */
+  .focus-sky:focus{
+    outline:none;
+    box-shadow: 0 0 0 4px rgba(14,165,233,.18);
+    border-color: rgba(14,165,233,.35);
+  }
+</style>
+
+<div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 py-8">
+  <div class="container mx-auto px-4 max-w-6xl">
+
+    <!-- ================= HERO ================= -->
+    <section class="rounded-3xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-[0_16px_45px_rgba(2,6,23,0.08)] overflow-hidden mb-8">
+      <div class="grid md:grid-cols-12">
+
+        <!-- Media -->
+        <div class="md:col-span-5 relative">
+          <img
+            src="{% if course.thumbnail %}{{ course.thumbnail.url }}{% else %}https://via.placeholder.com/900x600?text={{ course.title|slice:':10' }}{% endif %}"
+            alt="{{ course.title }}"
+            class="w-full h-64 md:h-full object-cover"
+          />
+
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/15 to-transparent"></div>
+
+          <!-- Top badges -->
+          <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white/90 text-slate-900 border border-white/60 shadow-sm">
+              {{ course.category.name }}
+            </span>
+            <span class="px-3 py-1 text-xs font-semibold rounded-full {{ course.get_difficulty_badge_class }} shadow-sm">
+              {{ course.get_difficulty_display }}
+            </span>
+          </div>
+
+          {% if enrollment %}
+          <!-- Progress -->
+          <div class="absolute left-4 bottom-4 right-4">
+            <div class="bg-white/90 backdrop-blur rounded-2xl border border-white/60 p-4 shadow-sm">
+              <div class="flex items-center justify-between text-xs text-slate-700 mb-2">
+                <span class="font-semibold">Your Progress</span>
+                <span class="font-semibold">{{ progress_percentage }}%</span>
+              </div>
+
+              <div class="w-full bg-slate-200/70 rounded-full h-2.5 overflow-hidden">
+                <div class="h-2.5 rounded-full bg-gradient-to-r from-sky-600/90 to-sky-500"
+                     style="width: {{ progress_percentage }}%"></div>
+              </div>
+
+              <span class="hidden" id="progressMarker" data-progress="{{ progress_percentage }}"></span>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Info -->
+        <div class="md:col-span-7 p-6 md:p-9">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
+              {{ course.title }}
+            </h1>
+
+            {% if course.price == 0 %}
+              <span class="shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                FREE
+              </span>
+            {% else %}
+              <span class="shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-100">
+                {{ course.price }} Tk
+              </span>
+            {% endif %}
+          </div>
+
+          <p class="text-slate-600 text-base md:text-lg leading-relaxed mb-6">
+            {{ course.short_description }}
+          </p>
+
+          <!-- Instructor -->
+          <div class="flex items-center gap-4 mb-6">
+            <img
+              src="{% if course.instructor_photo %}{{ course.instructor_photo.url }}{% else %}https://via.placeholder.com/80x80?text={{ course.instructor|slice:':2' }}{% endif %}"
+              alt="{{ course.instructor }}"
+              class="w-12 h-12 rounded-2xl object-cover border border-slate-200 shadow-sm"
+            />
+            <div class="min-w-0">
+              <p class="font-semibold text-slate-900 leading-tight truncate">{{ course.instructor }}</p>
+              <p class="text-sm text-slate-500">Instructor</p>
+            </div>
+          </div>
+
+          <!-- Stats (soft, minimal) -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7">
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition">
+              <div class="text-xl font-bold text-slate-900">{{ course.rating }}</div>
+              <div class="text-xs text-slate-500 mt-1">Rating</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition">
+              <div class="text-xl font-bold text-slate-900">{{ course.students_count }}</div>
+              <div class="text-xs text-slate-500 mt-1">Students</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition">
+              <div class="text-xl font-bold text-slate-900">{{ course.lessons_count }}</div>
+              <div class="text-xs text-slate-500 mt-1">Lessons</div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 hover:shadow-md transition">
+              <div class="text-xl font-bold text-slate-900">{{ course.duration_weeks }}</div>
+              <div class="text-xs text-slate-500 mt-1">Weeks</div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            {% if enrollment %}
+              {% if progress_percentage == 100 %}
+                <button class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition shadow-sm">
+                  🎉 Completed
+                </button>
+                <a href="{% url 'app:course_list' %}?tab=my_courses"
+                   class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition shadow-sm text-center">
+                  Back to My Courses
+                </a>
+              {% else %}
+                <a id="startLearningBtn"
+                   href="{% url 'app:continue_learning' course.id %}"
+                   class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600/90 text-white font-semibold shadow-sm
+                          hover:bg-sky-700/90 active:scale-[0.99] transition text-center">
+                  {% if progress_percentage > 0 %}Continue Learning{% else %}Start Learning{% endif %}
+                </a>
+
+                <button id="viewCurriculumBtn" type="button"
+                        class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-800 font-semibold
+                               hover:bg-slate-50 transition text-center focus-sky">
+                  View Curriculum
+                </button>
+              {% endif %}
+            {% else %}
+              {% if user.is_authenticated %}
+                <a href="{% url 'app:enroll_course' course.id %}"
+                   class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600/90 text-white font-semibold shadow-sm
+                          hover:bg-sky-700/90 active:scale-[0.99] transition text-center">
+                  Enroll Now
+                </a>
+              {% else %}
+                <a href="{% url 'login' %}?next={% url 'app:course_detail' course.id %}"
+                   class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600/90 text-white font-semibold shadow-sm
+                          hover:bg-sky-700/90 active:scale-[0.99] transition text-center">
+                  Login to Enroll
+                </a>
+              {% endif %}
+              <button class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-800 font-semibold hover:bg-slate-50 transition focus-sky">
+                <i class="far fa-heart mr-2 opacity-70"></i>Wishlist
+              </button>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TABS ================= -->
+    <section id="courseTabsSection" class="bg-white rounded-3xl shadow-[0_14px_40px_rgba(2,6,23,0.06)] border border-slate-200 mb-8 overflow-hidden">
+      <div class="sticky top-16 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+        <nav class="relative flex flex-wrap gap-2 p-3 overflow-x-auto no-scrollbar" role="tablist" aria-label="Course tabs">
+          <button data-tab="overview" class="tab-button is-active" role="tab" aria-selected="true" tabindex="0">
+            <i class="fas fa-info-circle"></i><span>Overview</span>
+          </button>
+          <button data-tab="curriculum" class="tab-button" role="tab" aria-selected="false" tabindex="-1">
+            <i class="fas fa-list-ol"></i><span>Curriculum</span>
+          </button>
+          <button data-tab="reviews" class="tab-button" role="tab" aria-selected="false" tabindex="-1">
+            <i class="fas fa-star"></i><span>Reviews</span>
+          </button>
+          <button data-tab="instructor" class="tab-button" role="tab" aria-selected="false" tabindex="-1">
+            <i class="fas fa-user"></i><span>Instructor</span>
+          </button>
+
+          <span id="tab-indicator" class="absolute bg-sky-600/90 transition-all duration-300"></span>
+        </nav>
+      </div>
+
+      <div class="p-6 md:p-9">
+
+        <!-- Overview -->
+        <div id="overview" class="tab-content">
+          <div class="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-slate-900">Course Overview</h3>
+              <p class="text-slate-500 mt-1">Everything you need to know before you start.</p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 mb-8">
+            <p class="text-slate-700 leading-relaxed">
+              {{ course.description }}
+            </p>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="rounded-2xl border border-slate-200 bg-white p-6">
+              <h4 class="text-lg font-semibold text-slate-900 mb-4">What You'll Learn</h4>
+              <div class="space-y-3">
+                {% for skill in course.get_skills_list %}
+                <div class="flex items-start gap-3">
+                  <span class="mt-1 inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
+                    <i class="fas fa-check text-xs"></i>
+                  </span>
+                  <span class="text-slate-700">{{ skill }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-6">
+              <h4 class="text-lg font-semibold text-slate-900 mb-3">Requirements</h4>
+              <ul class="text-slate-600 space-y-2 list-disc list-inside mb-6">
+                <li>Basic computer skills</li>
+                <li>Internet connection</li>
+                <li>Consistency and practice</li>
+              </ul>
+
+              <h4 class="text-lg font-semibold text-slate-900 mb-2">Who This Is For</h4>
+              <p class="text-slate-600">
+                Perfect for beginners who want to build confidence in
+                <span class="font-semibold text-slate-900">{{ course.category.name }}</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Curriculum -->
+        <div id="curriculum" class="tab-content hidden">
+          <div class="flex items-end justify-between gap-3 mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-slate-900">Curriculum</h3>
+              <p class="text-slate-500 mt-1">Step-by-step lessons, clean and structured.</p>
+            </div>
+            {% if enrollment %}
+              <span class="text-sm text-slate-500">
+                {{ enrollment.get_completed_lessons_count }}/{{ course.lessons.count }} completed
+              </span>
+            {% endif %}
+          </div>
+
+          {% if lessons_with_completion %}
+          <div class="space-y-3" id="curriculumList">
+            {% for lesson_data in lessons_with_completion %}
+            <div class="group rounded-2xl border border-slate-200 bg-white hover:shadow-md transition overflow-hidden lesson-card"
+                 data-lesson-id="{{ lesson_data.lesson.id }}"
+                 data-completed="{% if enrollment and lesson_data.completion and lesson_data.completion.completed %}1{% else %}0{% endif %}">
+              <div class="p-4 md:p-5 flex items-center justify-between gap-4">
+                <div class="flex items-start gap-4 min-w-0">
+                  <div class="shrink-0 mt-0.5">
+                    {% if enrollment %}
+                      {% if lesson_data.completion and lesson_data.completion.completed %}
+                        <span class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                          <i class="fas fa-check"></i>
+                        </span>
+                      {% else %}
+                        <span class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center">
+                          <i class="far fa-circle"></i>
+                        </span>
+                      {% endif %}
+                    {% else %}
+                      <span class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                        <i class="fas fa-lock"></i>
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  <div class="min-w-0">
+                    <h5 class="font-semibold text-slate-900 truncate">
+                      {{ lesson_data.lesson.title }}
+                    </h5>
+                    <p class="text-sm text-slate-500 mt-1">
+                      <i class="fas fa-clock mr-1 opacity-70"></i>{{ lesson_data.lesson.duration_minutes }} minutes
+                    </p>
+                  </div>
+                </div>
+
+                <div class="shrink-0 flex items-center gap-2">
+                  {% if enrollment %}
+                    {% if lesson_data.completion and lesson_data.completion.completed %}
+                      <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Completed
+                      </span>
+                    {% else %}
+                      <a href="{% url 'app:learn_lesson' course.id lesson_data.lesson.id %}"
+                         class="px-4 py-2 rounded-2xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition shadow-sm">
+                        Open
+                      </a>
+                    {% endif %}
+                  {% else %}
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                      Enroll to access
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-10 rounded-2xl border border-slate-200 bg-slate-50">
+            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 inline-flex items-center justify-center mb-4 shadow-sm">
+              <i class="fas fa-book-open text-2xl text-slate-400"></i>
+            </div>
+            <p class="text-slate-600">Curriculum details will be available soon.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Reviews -->
+        <div id="reviews" class="tab-content hidden">
+          <h3 class="text-2xl font-bold text-slate-900 mb-6">Reviews</h3>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+            <div class="flex items-center justify-between gap-6 flex-wrap">
+              <div>
+                <div class="text-4xl font-bold text-slate-900">{{ course.rating }}</div>
+                <p class="text-slate-600 mt-2">Based on {{ course.rating_count }} reviews</p>
+              </div>
+              <div class="text-right text-slate-600">
+                <p><span class="font-semibold text-slate-900">{{ course.students_count }}</span> students enrolled</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instructor -->
+        <div id="instructor" class="tab-content hidden">
+          <div class="flex flex-col md:flex-row gap-6 items-start">
+            <img
+              src="{% if course.instructor_photo %}{{ course.instructor_photo.url }}{% else %}https://via.placeholder.com/300x300?text={{ course.instructor|slice:':2' }}{% endif %}"
+              alt="{{ course.instructor }}"
+              class="w-32 h-32 rounded-3xl object-cover border border-slate-200 shadow-sm mx-auto md:mx-0"
+            />
+            <div class="flex-1">
+              <h3 class="text-2xl font-bold text-slate-900">{{ course.instructor }}</h3>
+              <p class="text-slate-500 mt-1">Professional Instructor</p>
+              <p class="text-slate-600 mt-4 leading-relaxed">
+                {{ course.instructor }} is an experienced professional in {{ course.category.name }} with a passion for hands-on teaching and real-world outcomes.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= Related Courses ================= -->
+    <section class="bg-white rounded-3xl shadow-[0_14px_40px_rgba(2,6,23,0.06)] border border-slate-200 p-6 md:p-9">
+      <div class="flex items-end justify-between gap-4 mb-6">
+        <div>
+          <h3 class="text-2xl font-bold text-slate-900">Related Courses</h3>
+          <p class="text-slate-500 mt-1">More courses you may like.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for related_course in related_courses %}
+        <article class="group rounded-3xl border border-slate-200 bg-white overflow-hidden hover:shadow-lg transition">
+          <div class="relative">
+            <img
+              src="{% if related_course.thumbnail %}{{ related_course.thumbnail.url }}{% else %}https://via.placeholder.com/700x450?text={{ related_course.title|slice:':10' }}{% endif %}"
+              alt="{{ related_course.title }}"
+              class="w-full h-44 object-cover group-hover:scale-[1.02] transition duration-300"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/25 via-transparent to-transparent opacity-80"></div>
+          </div>
+
+          <div class="p-5">
+            <h4 class="font-semibold text-slate-900 leading-tight line-clamp-2">{{ related_course.title }}</h4>
+            <p class="text-sm text-slate-500 mt-2">{{ related_course.instructor }}</p>
+
+            <div class="flex items-center justify-between mt-5">
+              <span class="font-bold text-sky-700">
+                {% if related_course.price == 0 %}FREE{% else %}{{ related_course.price }} Tk{% endif %}
+              </span>
+              <a href="{% url 'app:course_detail' related_course.id %}"
+                 class="text-sm font-semibold text-slate-900 hover:text-sky-700 transition">
+                View →
+              </a>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  const tabButtons = () => Array.from(document.querySelectorAll(".tab-button"));
+  const tabContents = () => Array.from(document.querySelectorAll(".tab-content"));
+  const indicator = () => document.getElementById("tab-indicator");
+
+  function setActiveTab(tabName, { scrollToTabs = false } = {}) {
+    tabContents().forEach(el => el.classList.add("hidden"));
+    const activeContent = document.getElementById(tabName);
+    if (activeContent) activeContent.classList.remove("hidden");
+
+    tabButtons().forEach(btn => {
+      const isActive = btn.dataset.tab === tabName;
+      btn.classList.toggle("is-active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+      btn.setAttribute("tabindex", isActive ? "0" : "-1");
+    });
+
+    const activeBtn = tabButtons().find(b => b.dataset.tab === tabName);
+    if (activeBtn && indicator()) {
+      const nav = activeBtn.parentElement;
+      const navRect = nav.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
+      indicator().style.left = (btnRect.left - navRect.left) + "px";
+      indicator().style.width = btnRect.width + "px";
+    }
+
+    if (scrollToTabs) {
+      const section = document.getElementById("courseTabsSection");
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function highlightNextLesson() {
+    const cards = Array.from(document.querySelectorAll(".lesson-card"));
+    if (!cards.length) return;
+
+    const next = cards.find(c => c.dataset.completed === "0") || cards[0];
+    cards.forEach(c => c.classList.remove("ring-2","ring-sky-500","animate-pulse"));
+    next.classList.add("ring-2","ring-sky-500","animate-pulse");
+
+    setTimeout(() => next.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab-button");
+    if (!btn) return;
+    setActiveTab(btn.dataset.tab);
+  });
+
+  window.addEventListener("load", () => {
+    setActiveTab("overview");
+
+    const viewBtn = document.getElementById("viewCurriculumBtn");
+    if (viewBtn) {
+      viewBtn.addEventListener("click", () => {
+        setActiveTab("curriculum", { scrollToTabs: true });
+        setTimeout(highlightNextLesson, 250);
+      });
+    }
+
+    const startBtn = document.getElementById("startLearningBtn");
+    if (startBtn) {
+      startBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        setActiveTab("curriculum", { scrollToTabs: true });
+        setTimeout(() => {
+          highlightNextLesson();
+          setTimeout(() => window.location.href = startBtn.href, 650);
+        }, 220);
+      });
+    }
+
+    window.addEventListener("resize", () => {
+      const activeBtn = document.querySelector(".tab-button.is-active");
+      if (activeBtn) setActiveTab(activeBtn.dataset.tab);
+    });
+  });
+</script>
+
+{% endblock %}

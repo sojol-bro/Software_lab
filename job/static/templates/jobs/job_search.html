@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="max-w-6xl mx-auto px-4 py-10">
+  <!-- Header -->
+  <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div class="p-6 md:p-8 bg-gradient-to-br from-sky-50 via-white to-indigo-50">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
+            Job Search
+          </h1>
+          <p class="text-slate-600 mt-1">
+            Find roles that match your skills — filter by keyword and location.
+          </p>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="flex items-center gap-3">
+          <div class="px-4 py-2 rounded-2xl bg-white/70 border border-slate-200">
+            <div class="text-xs text-slate-500">Results</div>
+            <div class="text-lg font-bold text-slate-900" id="resultCount">
+              {% if jobs %}{{ jobs|length }}{% else %}0{% endif %}
+            </div>
+          </div>
+          <a href="{% url 'app:job_list' %}" class="px-4 py-2 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition">
+            Browse All
+          </a>
+        </div>
+      </div>
+
+      <!-- Search Form -->
+      <form method="GET" action="{% url 'app:search_jobs' %}" class="mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <!-- Keyword -->
+          <div class="md:col-span-6">
+            <label class="text-sm font-medium text-slate-700">Keyword</label>
+            <div class="mt-1 relative">
+              <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+                <!-- search icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-4.35-4.35m1.6-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+              <input
+                name="q"
+                value="{{ query|default_if_none:'' }}"
+                placeholder="e.g., Django, UI/UX, Data Analyst"
+                class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-300"
+              />
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="md:col-span-4">
+            <label class="text-sm font-medium text-slate-700">Location</label>
+            <div class="mt-1 relative">
+              <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+                <!-- pin icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 11.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19.5 10c0 7-7.5 12-7.5 12S4.5 17 4.5 10a7.5 7.5 0 1115 0z" />
+                </svg>
+              </span>
+              <input
+                name="location"
+                value="{{ location|default_if_none:'' }}"
+                placeholder="e.g., Dhaka, Remote"
+                class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-300"
+              />
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="md:col-span-2 flex md:flex-col gap-3 md:gap-2 md:justify-end">
+            <button
+              type="submit"
+              class="w-full px-4 py-3 rounded-2xl bg-sky-600 text-white font-semibold hover:bg-sky-700 transition"
+            >
+              Search
+            </button>
+            <a
+              href="{% url 'app:search_jobs' %}"
+              class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition text-center font-semibold"
+            >
+              Reset
+            </a>
+          </div>
+        </div>
+
+        <!-- Tiny helper -->
+        <div class="mt-3 text-sm text-slate-500">
+          Tip: Press <kbd class="px-2 py-0.5 rounded border bg-white">Enter</kbd> to search quickly.
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="mt-8">
+    {% if jobs %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="jobsGrid">
+        {% for job in jobs %}
+          <article class="group rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden job-card">
+            <div class="p-6">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="text-lg font-extrabold text-slate-900 group-hover:text-sky-700 transition">
+                    {{ job.title }}
+                  </h2>
+
+                  <p class="text-sm text-slate-600 mt-1">
+                    {% if job.company and job.company.name %}
+                      {{ job.company.name }}
+                    {% else %}
+                      Company
+                    {% endif %}
+                    <span class="mx-2 text-slate-300">•</span>
+                    <span class="inline-flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 11.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19.5 10c0 7-7.5 12-7.5 12S4.5 17 4.5 10a7.5 7.5 0 1115 0z" />
+                      </svg>
+                      {{ job.location|default:"Not specified" }}
+                    </span>
+                  </p>
+                </div>
+
+                {% if job.job_type %}
+                  <span class="shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-100">
+                    {{ job.job_type }}
+                  </span>
+                {% endif %}
+              </div>
+
+              {% if job.description %}
+                <p class="text-slate-700 mt-4 line-clamp-3">
+                  {{ job.description|striptags|truncatechars:180 }}
+                </p>
+              {% endif %}
+
+              <div class="mt-5 flex items-center justify-between gap-3">
+                <div class="text-xs text-slate-500">
+                  {% if job.created_at %}
+                    Posted: {{ job.created_at|date:"M d, Y" }}
+                  {% endif %}
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <a
+                    href="{% url 'app:job_detail' job.id %}"
+                    class="px-4 py-2 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
+                  >
+                    View
+                  </a>
+                  <a
+                    href="{% url 'app:apply_job' job.id %}"
+                    class="px-4 py-2 rounded-2xl border border-slate-200 bg-white font-semibold hover:bg-slate-50 transition"
+                  >
+                    Apply
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- hover footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 text-sm text-slate-600 hidden md:block">
+              <span class="font-semibold text-slate-800">Quick actions:</span>
+              Open details • Apply • Save (coming soon)
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+
+      <!-- Client-side filter (extra interactivity) -->
+      <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-5">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="font-bold text-slate-900">Live filter (no reload)</div>
+            <div class="text-sm text-slate-600">Type to filter current results instantly.</div>
+          </div>
+          <input
+            id="liveFilter"
+            placeholder="Filter by title/company/location…"
+            class="w-full md:w-96 px-4 py-3 rounded-2xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-300"
+          />
+        </div>
+      </div>
+    {% else %}
+      <div class="mt-8 rounded-3xl border border-slate-200 bg-white p-10 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-4.35-4.35m1.6-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-extrabold text-slate-900 mt-4">No jobs found</h2>
+        <p class="text-slate-600 mt-2">
+          Try a different keyword or location, or reset filters.
+        </p>
+        <div class="mt-6 flex items-center justify-center gap-3">
+          <a href="{% url 'app:search_jobs' %}" class="px-5 py-3 rounded-2xl bg-sky-600 text-white font-semibold hover:bg-sky-700 transition">
+            Reset Search
+          </a>
+          <a href="{% url 'app:job_list' %}" class="px-5 py-3 rounded-2xl border border-slate-200 bg-white font-semibold hover:bg-slate-50 transition">
+            Browse All Jobs
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+  (function () {
+    const input = document.getElementById("liveFilter");
+    const cards = document.querySelectorAll(".job-card");
+    const countEl = document.getElementById("resultCount");
+
+    if (!input || cards.length === 0) return;
+
+    const allCount = cards.length;
+
+    function updateCount(visible) {
+      if (!countEl) return;
+      countEl.textContent = String(visible);
+    }
+
+    input.addEventListener("input", () => {
+      const q = input.value.trim().toLowerCase();
+      let visible = 0;
+
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        const show = text.includes(q);
+        card.style.display = show ? "" : "none";
+        if (show) visible++;
+      });
+
+      updateCount(q ? visible : allCount);
+    });
+  })();
+</script>
+{% endblock %}

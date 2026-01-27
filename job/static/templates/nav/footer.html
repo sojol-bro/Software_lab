@@ -1,0 +1,224 @@
+<!-- ===========================
+  FOOTER — SOFT PREMIUM (EYE SOOTHING)
+  - Matches HOME sky/cyan palette
+  - Calm contrast, no harsh black
+  - Same structure, same comments
+=========================== -->
+<footer id="top"
+  class="relative overflow-hidden
+         bg-gradient-to-br from-[#0b1a2a] via-[#0f2236] to-[#0a1828]
+         text-slate-200 border-t border-sky-200/10">
+
+  <style>
+    /* ========= SOFT NOISE ENGINE ========= */
+    .sn-noise-wrap{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+    }
+
+    .sn-noise-grain{
+      position:absolute;
+      inset:-40%;
+      opacity:.14;
+      mix-blend-mode: screen;
+      transform: rotate(2deg);
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+      background-size: 300px 300px;
+    }
+
+    .sn-noise-speckle{
+      position:absolute;
+      inset:-20%;
+      opacity:.10;
+      mix-blend-mode: screen;
+      background-image:
+        radial-gradient(circle at 15% 25%, rgba(255,255,255,.20) 0 1px, transparent 2px),
+        radial-gradient(circle at 75% 15%, rgba(255,255,255,.16) 0 1px, transparent 2px),
+        radial-gradient(circle at 35% 80%, rgba(255,255,255,.18) 0 1px, transparent 2px);
+      background-size: 260px 260px;
+      filter: blur(.3px);
+    }
+
+    .sn-vignette{
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(900px 500px at 20% 20%, rgba(125,211,252,.10), transparent 60%),
+        radial-gradient(900px 500px at 85% 75%, rgba(165,243,252,.08), transparent 65%),
+        radial-gradient(circle at 50% 55%, transparent 45%, rgba(0,0,0,.55) 82%);
+    }
+
+    /* Glass cards */
+    .sn-card{
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(186,230,253,0.12);
+      box-shadow:
+        0 18px 50px rgba(0,0,0,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+    }
+
+    .sn-link{
+      color: rgba(226,232,240,0.72);
+      transition: color .18s ease, transform .18s ease;
+    }
+    .sn-link:hover{
+      color:#ffffff;
+      transform: translateX(2px);
+    }
+
+    .sn-icon{
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(186,230,253,0.18);
+      transition: all .18s ease;
+    }
+    .sn-icon:hover{
+      background: rgba(125,211,252,0.14);
+      border-color: rgba(125,211,252,0.32);
+      transform: translateY(-1px);
+    }
+
+    .sn-input{
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(186,230,253,0.20);
+      color: rgba(255,255,255,0.92);
+    }
+    .sn-input::placeholder{
+      color: rgba(148,163,184,0.75);
+    }
+    .sn-input:focus{
+      outline:none;
+      box-shadow: 0 0 0 3px rgba(125,211,252,0.22);
+      border-color: rgba(125,211,252,0.45);
+    }
+
+    .sn-btn{
+      background: linear-gradient(180deg, rgba(56,189,248,.90), rgba(2,132,199,.92));
+      color:#fff;
+      box-shadow: 0 14px 36px rgba(56,189,248,0.22);
+      transition: all .18s ease;
+    }
+    .sn-btn:hover{
+      filter: brightness(1.03);
+      box-shadow: 0 18px 42px rgba(56,189,248,0.30);
+    }
+  </style>
+
+  <!-- Background layers -->
+  <div class="sn-noise-wrap" aria-hidden="true">
+    <div class="sn-noise-grain"></div>
+    <div class="sn-noise-speckle"></div>
+    <div class="sn-vignette"></div>
+  </div>
+
+  <div class="relative container mx-auto px-6 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+
+      <!-- Brand -->
+      <div class="sn-card rounded-3xl p-6">
+        <div class="flex items-center gap-4">
+          <div class="h-12 w-12 rounded-2xl grid place-items-center bg-sky-400/10 border border-sky-200/20">
+            <span class="font-black text-lg text-white">SN</span>
+          </div>
+          <div>
+            <h3 class="text-2xl font-extrabold tracking-tight text-white">SkillNet</h3>
+            <p class="text-xs text-slate-400 mt-1">AI-powered job & skill platform</p>
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-300/80 leading-relaxed mt-5">
+          Connecting professionals with top companies through intelligent matching,
+          skill assessments, and career-ready learning.
+        </p>
+
+        <!-- Social -->
+        <div class="flex gap-3 mt-6">
+          <!-- TODO: Facebook link -->
+          <a href="#" class="sn-icon h-10 w-10 rounded-xl grid place-items-center">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <!-- TODO: Instagram link -->
+          <a href="#" class="sn-icon h-10 w-10 rounded-xl grid place-items-center">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <!-- TODO: LinkedIn link -->
+          <a href="#" class="sn-icon h-10 w-10 rounded-xl grid place-items-center">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+          <!-- TODO: Twitter link -->
+          <a href="#" class="sn-icon h-10 w-10 rounded-xl grid place-items-center">
+            <i class="fab fa-twitter"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="sn-card rounded-3xl p-6">
+        <h4 class="text-sm font-semibold tracking-wider text-white/90 mb-5 uppercase">Quick Links</h4>
+        <ul class="space-y-3 text-sm">
+          <li><!-- TODO: Home link --><a href="#" class="sn-link">Home</a></li>
+          <li><!-- TODO: Browse Jobs link --><a href="#" class="sn-link">Browse Jobs</a></li>
+          <li><!-- TODO: Online Courses link --><a href="#" class="sn-link">Online Courses</a></li>
+          <li><!-- TODO: Skill Quizzes link --><a href="#" class="sn-link">Skill Quizzes</a></li>
+          <li><!-- TODO: About Us link --><a href="#" class="sn-link">About Us</a></li>
+        </ul>
+      </div>
+
+      <!-- Features -->
+      <div class="sn-card rounded-3xl p-6">
+        <h4 class="text-sm font-semibold tracking-wider text-white/90 mb-5 uppercase">Features</h4>
+        <ul class="space-y-3 text-sm">
+          <li><!-- TODO: Post a Job link --><a href="#" class="sn-link">Post a Job</a></li>
+          <li><!-- TODO: Pricing Plan link --><a href="#" class="sn-link">Pricing Plan</a></li>
+          <li><!-- TODO: Talent Search link --><a href="#" class="sn-link">Talent Search</a></li>
+          <li><!-- TODO: Create Quizzes link --><a href="#" class="sn-link">Create Quizzes</a></li>
+          <li><!-- TODO: Employer Resources link --><a href="#" class="sn-link">Employer Resources</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div class="sn-card rounded-3xl p-6">
+        <h4 class="text-sm font-semibold tracking-wider text-white/90 mb-5 uppercase">Contact & Support</h4>
+
+        <div class="space-y-4 text-sm text-slate-300/80">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-envelope text-sky-200/80"></i>
+            <!-- TODO: Email link -->
+            <a href="#" class="sn-link">skillnet@gmail.com</a>
+          </div>
+          <div class="flex items-center gap-3">
+            <i class="fas fa-phone text-sky-200/80"></i>
+            <!-- TODO: Phone link -->
+            <a href="#" class="sn-link">+880 1701-234567</a>
+          </div>
+          <div class="flex items-center gap-3">
+            <i class="fas fa-map-marker-alt text-sky-200/80"></i>
+            <span>UIU, Dhaka, Bangladesh</span>
+          </div>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="mt-6">
+          <p class="text-sm font-semibold text-white">Get updates</p>
+          <form class="mt-3 flex gap-2">
+            <input type="email" placeholder="you@example.com"
+              class="sn-input w-full rounded-xl px-4 py-2 text-sm" />
+            <button type="button"
+              class="sn-btn rounded-xl px-4 py-2 text-sm font-semibold">
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom -->
+    <div class="mt-14 pt-6 border-t border-sky-200/10 text-center text-xs text-slate-400/80">
+      © 2026 <span class="text-white font-semibold">SkillNet</span>. All rights reserved.
+    </div>
+  </div>
+</footer>
+git 

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="min-h-screen bg-slate-50 py-8">
+  <div class="container mx-auto px-4 max-w-6xl">
+
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-5">
+      <div>
+        <p class="text-sm text-slate-500">
+          <a href="{% url 'app:course_detail' course.id %}" class="hover:text-slate-900 font-semibold">Course</a>
+          <span class="mx-2">/</span>
+          <a href="{% url 'app:continue_learning' course.id %}" class="hover:text-slate-900 font-semibold">Learning</a>
+        </p>
+        <h1 class="text-3xl font-extrabold text-slate-900 mt-1">{{ lesson.title }}</h1>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-8">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          {% if lesson.video_url %}
+          <div class="aspect-video bg-black">
+            <iframe class="w-full h-full"
+                    src="{{ lesson.video_url }}"
+                    title="Lesson video"
+                    frameborder="0"
+                    allowfullscreen></iframe>
+          </div>
+          {% endif %}
+
+          <div class="p-6 md:p-8 prose max-w-none">
+            {% if lesson.content %}
+              {{ lesson.content|safe }}
+            {% else %}
+              <p>This lesson content will be added soon.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mt-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center justify-between gap-3 flex-wrap">
+          <div class="text-sm text-slate-600">
+            Progress: <span class="font-extrabold text-slate-900">{{ progress_percentage }}%</span>
+          </div>
+
+          <div class="flex gap-2">
+            {% if prev_lesson %}
+            <a href="{% url 'app:learn_lesson' course.id prev_lesson.id %}"
+               class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition font-semibold">
+              ← Previous
+            </a>
+            {% endif %}
+
+            {% if not is_completed %}
+            <a href="{% url 'app:mark_lesson_complete_by_course' course.id lesson.id %}"
+               class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold hover:bg-emerald-700 transition shadow">
+              Mark Complete ✓
+            </a>
+            {% else %}
+            <span class="px-4 py-2 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200 font-extrabold">
+              Completed
+            </span>
+            {% endif %}
+
+            {% if next_lesson %}
+            <a href="{% url 'app:learn_lesson' course.id next_lesson.id %}"
+               class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-extrabold hover:bg-blue-700 transition shadow">
+              Next →
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sticky top-24">
+          <h2 class="text-lg font-extrabold text-slate-900">Lesson Checklist</h2>
+          <ul class="mt-4 space-y-2 text-slate-600 text-sm">
+            <li>✅ Watch / read the content</li>
+            <li>✅ Take notes</li>
+            <li>✅ Practice</li>
+            <li>✅ Mark complete</li>
+          </ul>
+
+          <div class="mt-6">
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-wide mb-2">Course progress</p>
+            <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+              <div class="h-2.5 rounded-full bg-blue-600" style="width: {{ progress_percentage }}%"></div>
+            </div>
+            <p class="text-sm text-slate-600 mt-2">
+              {{ completed_count }}/{{ total_count }} lessons completed
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

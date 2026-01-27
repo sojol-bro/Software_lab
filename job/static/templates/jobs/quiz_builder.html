@@ -1,0 +1,1187 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- =========================================================
+  QUIZ BUILDER v3 (Next-level UI/UX + FULL logic)
+  - Better cards + actions: Duplicate, Collapse, Drag reorder
+  - MCQ: single/multi correct toggle
+  - Auto-save draft (localStorage) + Restore draft
+  - Live preview + Preview modal (candidate view)
+  - Keyboard shortcuts: Ctrl+K search, Ctrl+Enter add, Ctrl+P modal
+  - Strong validation + smooth error focus
+========================================================= -->
+
+<section class="bg-gradient-to-b from-slate-50 via-white to-slate-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Top Header -->
+    <div class="mb-8">
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+        <div class="min-w-0">
+          <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 backdrop-blur px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
+            <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+            Quiz Builder • For: {{ job.title }}
+          </div>
+
+          <h1 class="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+            Build a quiz
+          </h1>
+
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed max-w-3xl">
+            Create questions, set passing score and duration, and preview the candidate view in real-time.
+          </p>
+        </div>
+
+        <!-- Header actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="btn-restore-draft"
+                  class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Restore draft
+          </button>
+
+          <button type="button" id="btn-save-draft"
+                  class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Save draft
+          </button>
+
+          <a href="{% url 'app:publish_job' job.id %}"
+             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Skip → Review & Publish
+          </a>
+
+          <button type="button" id="preview-toggle"
+                  class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Toggle preview
+          </button>
+
+          <button type="button" id="btn-preview-modal"
+                  class="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 transition focus:outline-none focus:ring-4 focus:ring-indigo-200">
+            Candidate preview
+          </button>
+        </div>
+      </div>
+
+      <!-- Info strip -->
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-xs text-slate-500">Questions</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900"><span id="qCount">0</span></p>
+          <p class="mt-2 text-xs text-slate-500">Aim for 3–10 for best completion rate.</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-xs text-slate-500">Passing score</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900"><span id="miniPass">70</span>%</p>
+          <p class="mt-2 text-xs text-slate-500">Typical: 60–80 depending on role.</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-xs text-slate-500">Duration</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900"><span id="miniTime">30</span>m</p>
+          <p class="mt-2 text-xs text-slate-500">Short quizzes get more completions.</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-xs text-slate-500">Total points</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900"><span id="totalPoints">0</span></p>
+          <p class="mt-2 text-xs text-slate-500">Weights matter for fairness.</p>
+        </div>
+      </div>
+    </div>
+
+    <form id="quiz-form" method="post" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {% csrf_token %}
+
+      <!-- LEFT: Builder -->
+      <div class="lg:col-span-8 space-y-6">
+
+        <!-- Quiz Meta -->
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.07)] overflow-hidden">
+          <div class="p-6 sm:p-8">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-base font-semibold text-slate-900">Quiz settings</h2>
+                <p class="mt-1 text-sm text-slate-600">A clear title and sensible scoring improves trust.</p>
+              </div>
+
+              <div class="hidden sm:flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span class="text-xs font-medium text-slate-700" id="draftState">Draft</span>
+              </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Quiz Title <span class="text-red-500">*</span></label>
+                <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                  <input id="quiz_title" type="text" name="quiz_title" placeholder="e.g. Frontend Skills Quiz" />
+                </div>
+                <p class="mt-2 text-xs text-slate-500">Keep it short and role-specific.</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Passing Score (%)</label>
+                <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                  <input id="passing_score" type="number" min="0" max="100" name="passing_score" value="70" />
+                </div>
+                <p class="mt-2 text-xs text-slate-500">Common range: 60–80.</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Duration (minutes)</label>
+                <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                  <input id="duration_minutes" type="number" min="1" name="duration_minutes" value="30" />
+                </div>
+                <p class="mt-2 text-xs text-slate-500">Typical: 15–45 minutes.</p>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Description (optional)</label>
+              <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                <textarea id="quiz_description" name="quiz_description" rows="3" placeholder="What does this quiz measure?"></textarea>
+              </div>
+            </div>
+
+            <!-- Search -->
+            <div class="mt-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+              <div class="relative w-full sm:max-w-md">
+                <input id="searchQ" type="text"
+                       class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:ring-4 focus:ring-slate-200"
+                       placeholder="Search questions… (Ctrl + K)" />
+                <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">⌘K</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" id="btn-expand"
+                        class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">
+                  Expand all
+                </button>
+                <button type="button" id="btn-collapse"
+                        class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">
+                  Collapse all
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Questions Panel -->
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.07)] overflow-hidden">
+          <div class="p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div>
+                <h2 class="text-base font-semibold text-slate-900">Questions</h2>
+                <p class="mt-1 text-sm text-slate-600">Add questions and define scoring.</p>
+              </div>
+
+              <!-- Type pills -->
+              <div class="flex flex-wrap gap-2">
+                <button type="button" class="add-q-btn pill" data-type="multiple_choice">+ Multiple Choice</button>
+                <button type="button" class="add-q-btn pill" data-type="true_false">+ True/False</button>
+                <button type="button" class="add-q-btn pill" data-type="short_answer">+ Short Answer</button>
+                <button type="button" class="add-q-btn pill pill-primary" data-type="numeric">+ Numeric</button>
+              </div>
+            </div>
+
+            <div id="builderAlert" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 mb-4"></div>
+
+            <div id="questions" class="space-y-4"></div>
+
+            <div id="emptyState" class="mt-4 rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+              <p class="text-sm text-slate-700">No questions yet.</p>
+              <p class="mt-1 text-xs text-slate-500">Pick a question type above to start building.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <button type="submit" id="saveBtn"
+                  class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-medium text-white shadow-[0_14px_35px_rgba(15,23,42,0.16)] hover:bg-slate-800 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Save Quiz and Continue
+          </button>
+
+          <a href="{% url 'app:publish_job' job.id %}"
+             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition focus:outline-none focus:ring-4 focus:ring-slate-200">
+            Skip
+          </a>
+
+          <span class="sm:ml-auto text-xs text-slate-500">Validation runs before saving.</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Preview -->
+      <aside class="lg:col-span-4 space-y-6" id="previewPane">
+        <div class="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">Candidate preview</h3>
+              <p class="mt-1 text-sm text-slate-600">Live view while you edit.</p>
+            </div>
+            <div class="h-10 w-10 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center">👁️</div>
+          </div>
+
+          <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-xs text-slate-500">Title</p>
+            <p class="text-sm text-slate-900" id="pvTitle">—</p>
+
+            <div class="mt-3 grid grid-cols-3 gap-2">
+              <div class="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <p class="text-[11px] text-slate-500">Pass</p>
+                <p class="text-sm text-slate-900" id="pvPass">70%</p>
+              </div>
+              <div class="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <p class="text-[11px] text-slate-500">Time</p>
+                <p class="text-sm text-slate-900" id="pvTime">30m</p>
+              </div>
+              <div class="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <p class="text-[11px] text-slate-500">Qs</p>
+                <p class="text-sm text-slate-900" id="pvQs">0</p>
+              </div>
+            </div>
+
+            <p class="mt-3 text-xs text-slate-500">Description</p>
+            <p class="text-sm text-slate-700 leading-relaxed" id="pvDesc">—</p>
+          </div>
+
+          <div class="mt-4 space-y-3" id="pvQuestions"></div>
+        </div>
+
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+          <h3 class="text-sm font-semibold text-slate-900">Quality checklist</h3>
+          <ul class="mt-3 space-y-2 text-sm text-slate-700">
+            <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span><span>Keep questions short & specific</span></li>
+            <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span><span>Use MCQ for objective scoring</span></li>
+            <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span><span>Always set correct answer(s)</span></li>
+            <li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span><span>Time limit should match difficulty</span></li>
+          </ul>
+        </div>
+      </aside>
+    </form>
+  </div>
+</section>
+
+<!-- Preview Modal -->
+<div id="previewModal" class="fixed inset-0 z-[999] hidden">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+  <div class="relative h-full w-full flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl rounded-3xl bg-white shadow-[0_30px_120px_rgba(0,0,0,0.35)] overflow-hidden">
+      <div class="px-6 md:px-8 py-5 border-b border-slate-200 flex items-center justify-between">
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-slate-500">Candidate Preview</p>
+          <h3 class="text-lg md:text-xl font-semibold text-slate-900 truncate" id="modalTitle">Quiz Preview</h3>
+        </div>
+        <button id="closeModal" type="button"
+                class="rounded-2xl px-3 py-2 text-sm font-medium ring-1 ring-slate-200 hover:bg-slate-50 transition">
+          Close
+        </button>
+      </div>
+      <div class="p-6 md:p-8 max-h-[75vh] overflow-auto">
+        <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-4 mb-6">
+          <div class="flex flex-wrap items-center gap-2 text-sm">
+            <span class="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-slate-200 px-3 py-1">
+              ⏱ <span class="font-semibold" id="modalTime">30</span> min
+            </span>
+            <span class="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-slate-200 px-3 py-1">
+              ✅ Pass <span class="font-semibold" id="modalPass">70</span>%
+            </span>
+            <span class="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-slate-200 px-3 py-1">
+              ⭐ Points <span class="font-semibold" id="modalPoints">0</span>
+            </span>
+          </div>
+          <p class="text-sm text-slate-600 mt-3" id="modalDesc"></p>
+        </div>
+        <div id="modalBody" class="space-y-6"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ui-field input,
+  .ui-field select,
+  .ui-field textarea{
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #0f172a;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    padding: 0.35rem 0.35rem;
+  }
+  .ui-field textarea{ min-height: 110px; resize: vertical; }
+  .ui-field select{ cursor:pointer; }
+  .ui-field:focus-within{
+    border-color: rgba(100,116,139,0.55);
+    box-shadow: 0 0 0 4px rgba(15,23,42,0.06);
+    background: rgba(255,255,255,0.96);
+  }
+
+  .pill{
+    border: 1px solid rgba(226,232,240,1);
+    background: white;
+    color: #334155;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    transition: 180ms;
+  }
+  .pill:hover{ background: #f8fafc; }
+  .pill-primary{
+    background: #0f172a;
+    color: white;
+    border-color: #0f172a;
+  }
+  .pill-primary:hover{ background: #111827; }
+
+  .q-card{ animation: fadeIn 180ms ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+
+  .toast{
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 18px;
+    z-index: 9999;
+    background: rgba(15,23,42,0.96);
+    color: white;
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 18px 70px rgba(0,0,0,0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+  .toast.show{ opacity: 1; }
+</style>
+
+<script>
+  // ---------------------------
+  // QUIZ BUILDER v3 LOGIC
+  // ---------------------------
+
+  let qIndex = 1;
+
+  const questionsDiv = document.getElementById('questions');
+  const emptyState = document.getElementById('emptyState');
+  const builderAlert = document.getElementById('builderAlert');
+
+  const pvTitle = document.getElementById('pvTitle');
+  const pvPass = document.getElementById('pvPass');
+  const pvTime = document.getElementById('pvTime');
+  const pvQs = document.getElementById('pvQs');
+  const pvDesc = document.getElementById('pvDesc');
+  const pvQuestions = document.getElementById('pvQuestions');
+
+  const quizTitleEl = document.getElementById('quiz_title');
+  const passEl = document.getElementById('passing_score');
+  const timeEl = document.getElementById('duration_minutes');
+  const descEl = document.getElementById('quiz_description');
+
+  const qCountEl = document.getElementById('qCount');
+  const miniPass = document.getElementById('miniPass');
+  const miniTime = document.getElementById('miniTime');
+  const totalPointsEl = document.getElementById('totalPoints');
+  const draftState = document.getElementById('draftState');
+
+  const previewToggle = document.getElementById('preview-toggle');
+  const previewPane = document.getElementById('previewPane');
+
+  const searchQ = document.getElementById('searchQ');
+  const btnExpand = document.getElementById('btn-expand');
+  const btnCollapse = document.getElementById('btn-collapse');
+
+  const btnSaveDraft = document.getElementById('btn-save-draft');
+  const btnRestoreDraft = document.getElementById('btn-restore-draft');
+
+  const btnPreviewModal = document.getElementById('btn-preview-modal');
+  const previewModal = document.getElementById('previewModal');
+  const closeModal = document.getElementById('closeModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalTime = document.getElementById('modalTime');
+  const modalPass = document.getElementById('modalPass');
+  const modalPoints = document.getElementById('modalPoints');
+  const modalDesc = document.getElementById('modalDesc');
+  const modalBody = document.getElementById('modalBody');
+
+  const DRAFT_KEY = 'skillnet_quiz_builder_draft_v3';
+
+  // toast
+  const toastEl = document.createElement('div');
+  toastEl.className = 'toast';
+  document.body.appendChild(toastEl);
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(()=> toastEl.classList.remove('show'), 1600);
+  }
+
+  function showAlert(msg) {
+    builderAlert.textContent = msg;
+    builderAlert.classList.remove('hidden');
+    setTimeout(() => builderAlert.classList.add('hidden'), 3500);
+  }
+
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[m]));
+  }
+
+  function updateCounts() {
+    const cards = [...questionsDiv.querySelectorAll('.q-card')].filter(c => !c.classList.contains('hidden'));
+    const allCards = [...questionsDiv.querySelectorAll('.q-card')];
+    qCountEl.textContent = allCards.length;
+    pvQs.textContent = allCards.length;
+
+    emptyState.classList.toggle('hidden', allCards.length !== 0);
+
+    const totalPts = allCards.reduce((acc, card) => {
+      const qi = card.dataset.qi;
+      const v = parseInt(card.querySelector(`[name="q-${qi}-points"]`)?.value || '1', 10);
+      return acc + (isNaN(v) ? 0 : v);
+    }, 0);
+    totalPointsEl.textContent = totalPts;
+
+    return allCards.length;
+  }
+
+  function refreshPreview() {
+    pvTitle.textContent = quizTitleEl.value.trim() || '—';
+    pvPass.textContent = (passEl.value || '0') + '%';
+    pvTime.textContent = (timeEl.value || '0') + 'm';
+    pvDesc.textContent = descEl.value.trim() || '—';
+
+    if (miniPass) miniPass.textContent = passEl.value || '0';
+    if (miniTime) miniTime.textContent = timeEl.value || '0';
+
+    const cards = [...questionsDiv.querySelectorAll('.q-card')].filter(c => !c.classList.contains('hidden'));
+    pvQuestions.innerHTML = cards.map((card, i) => {
+      const type = card.dataset.type;
+      const text = card.querySelector(`[name="q-${card.dataset.qi}-text"]`)?.value || '';
+      const pts = card.querySelector(`[name="q-${card.dataset.qi}-points"]`)?.value || '1';
+
+      let subtitle = '';
+      if (type === 'multiple_choice') subtitle = 'Multiple choice';
+      if (type === 'true_false') subtitle = 'True/False';
+      if (type === 'short_answer') subtitle = 'Short answer';
+      if (type === 'numeric') subtitle = 'Numeric';
+
+      return `
+        <div class="rounded-2xl border border-slate-200 bg-white p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-xs text-slate-500">Q${i+1} • ${subtitle}</p>
+            <span class="text-xs font-semibold text-amber-800 bg-amber-50 ring-1 ring-amber-200 px-2 py-0.5 rounded-full">${escapeHtml(pts)} pt</span>
+          </div>
+          <p class="mt-1 text-sm text-slate-900">${escapeHtml(text || '—')}</p>
+        </div>
+      `;
+    }).join('');
+
+    updateCounts();
+    markDirty();
+    autoSaveDraftSoft();
+  }
+
+  function renumber() {
+    const cards = [...questionsDiv.querySelectorAll('.q-card')];
+    cards.forEach((card, idx) => {
+      card.querySelector('.q-num').textContent = `Question ${idx + 1}`;
+    });
+    updateCounts();
+    refreshPreview();
+  }
+
+  function toggleCollapse(card, force=null){
+    const body = card.querySelector('.q-body');
+    const btn = card.querySelector('.q-collapse');
+    const isCollapsed = body.classList.contains('hidden');
+    const next = (force === null) ? !isCollapsed : force;
+    body.classList.toggle('hidden', next);
+    btn.textContent = next ? 'Expand' : 'Collapse';
+  }
+
+  // drag reorder
+  let dragging = null;
+  function initDrag(card){
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', (e) => {
+      dragging = card;
+      card.classList.add('ring-2','ring-indigo-200');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('ring-2','ring-indigo-200');
+      dragging = null;
+      renumber();
+    });
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (!dragging || dragging === card) return;
+      const rect = card.getBoundingClientRect();
+      const after = (e.clientY - rect.top) > rect.height / 2;
+      if (after) card.after(dragging); else card.before(dragging);
+    });
+  }
+
+  function makeBaseCard(qi, type) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'q-card rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm';
+    wrapper.dataset.qi = qi;
+    wrapper.dataset.type = type;
+
+    const typeLabel =
+      type === 'multiple_choice' ? 'Multiple Choice' :
+      type === 'true_false' ? 'True / False' :
+      type === 'short_answer' ? 'Short Answer' :
+      'Numeric';
+
+    wrapper.innerHTML = `
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div class="min-w-0 flex items-start gap-3">
+          <div class="mt-0.5 text-slate-300 cursor-grab select-none" title="Drag to reorder">☰</div>
+          <div>
+            <p class="q-num text-sm font-semibold text-slate-900">Question</p>
+            <p class="mt-1 text-xs text-slate-500">${typeLabel}</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="q-collapse rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">Collapse</button>
+          <button type="button" class="q-dup rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">Duplicate</button>
+          <button type="button" class="q-up rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">↑</button>
+          <button type="button" class="q-down rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">↓</button>
+          <button type="button" class="q-remove rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100 transition">Remove</button>
+        </div>
+      </div>
+
+      <div class="mt-4 q-body space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Question text <span class="text-red-500">*</span></label>
+          <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+            <input type="text" name="q-${qi}-text" placeholder="Enter question text" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Points</label>
+            <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+              <input type="number" min="1" name="q-${qi}-points" value="1" />
+            </div>
+            <p class="mt-2 text-xs text-slate-500">Default scoring weight.</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Required</label>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" name="q-${qi}-required" class="accent-slate-900" checked />
+                Candidates must answer this.
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="q-type-body"></div>
+      </div>
+    `;
+
+    wrapper.querySelector('.q-remove').addEventListener('click', () => {
+      wrapper.remove();
+      renumber();
+      toast('Question removed');
+    });
+
+    wrapper.querySelector('.q-up').addEventListener('click', () => {
+      const prev = wrapper.previousElementSibling;
+      if (prev) questionsDiv.insertBefore(wrapper, prev);
+      renumber();
+    });
+
+    wrapper.querySelector('.q-down').addEventListener('click', () => {
+      const next = wrapper.nextElementSibling;
+      if (next) questionsDiv.insertBefore(next, wrapper);
+      renumber();
+    });
+
+    wrapper.querySelector('.q-collapse').addEventListener('click', () => toggleCollapse(wrapper));
+    wrapper.querySelector('.q-dup').addEventListener('click', () => {
+      const clone = cloneCard(wrapper);
+      wrapper.after(clone);
+      renumber();
+      toast('Duplicated');
+    });
+
+    wrapper.addEventListener('input', refreshPreview);
+
+    initDrag(wrapper);
+    return wrapper;
+  }
+
+  function addChoiceRow(qi, container, idx, allowMulti) {
+    const row = document.createElement('div');
+    row.className = 'choice-row flex items-start gap-2';
+
+    row.innerHTML = `
+      <div class="flex-1 ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+        <input type="text" name="q-${qi}-choice-${idx}-text" placeholder="Choice ${idx}" />
+      </div>
+
+      <label class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        ${allowMulti
+          ? `<input type="checkbox" name="q-${qi}-correct_multi" value="${idx}" class="accent-slate-900 correct-multi" />`
+          : `<input type="radio" name="q-${qi}-correct" value="${idx}" class="accent-slate-900 correct-one" />`
+        }
+        Correct
+      </label>
+
+      <button type="button" class="remove-choice rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 transition">
+        ✕
+      </button>
+    `;
+
+    row.querySelector('.remove-choice').addEventListener('click', () => {
+      row.remove();
+      const rows = container.querySelectorAll('.choice-row');
+      if (rows.length === 0) {
+        addChoiceRow(qi, container, 1, allowMulti);
+        addChoiceRow(qi, container, 2, allowMulti);
+      }
+      refreshPreview();
+    });
+
+    container.appendChild(row);
+  }
+
+  function rebuildChoices(qi, card, allowMulti){
+    const body = card.querySelector('.q-type-body');
+    const oldContainer = body.querySelector(`[data-choices="${qi}"]`);
+    const oldRows = oldContainer ? [...oldContainer.querySelectorAll('.choice-row')] : [];
+    const data = oldRows.map((r, idx) => {
+      const t = r.querySelector(`input[name^="q-${qi}-choice-"][name$="-text"]`)?.value || '';
+      const one = r.querySelector('.correct-one')?.checked || false;
+      const mul = r.querySelector('.correct-multi')?.checked || false;
+      return { text: t, correct: allowMulti ? mul : one };
+    });
+
+    // rebuild UI
+    body.innerHTML = `
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <p class="text-sm font-medium text-slate-900">Choices</p>
+            <p class="mt-1 text-xs text-slate-500">${allowMulti ? 'Select one or more correct answers.' : 'Select exactly one correct answer.'}</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="inline-flex items-center gap-2 text-xs font-medium text-slate-700 rounded-2xl border border-slate-200 bg-white px-3 py-2">
+              <input type="checkbox" class="accent-slate-900" name="q-${qi}-allow_multi" ${allowMulti ? 'checked' : ''} />
+              Multiple correct
+            </label>
+
+            <button type="button" class="add-choice rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">
+              + Add choice
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-4 space-y-2" data-choices="${qi}"></div>
+      </div>
+    `;
+
+    const choicesContainer = body.querySelector(`[data-choices="${qi}"]`);
+
+    const initial = data.length ? data : [{text:'', correct:false},{text:'', correct:false}];
+    initial.forEach((c, i) => {
+      addChoiceRow(qi, choicesContainer, i+1, allowMulti);
+      const row = choicesContainer.querySelectorAll('.choice-row')[i];
+      row.querySelector(`input[name="q-${qi}-choice-${i+1}-text"]`).value = c.text || '';
+      if (!allowMulti) row.querySelector('.correct-one').checked = !!c.correct;
+      if (allowMulti) row.querySelector('.correct-multi').checked = !!c.correct;
+    });
+
+    body.querySelector('.add-choice').addEventListener('click', () => {
+      const count = choicesContainer.querySelectorAll('.choice-row').length + 1;
+      addChoiceRow(qi, choicesContainer, count, allowMulti);
+      refreshPreview();
+    });
+
+    // toggle allow multi
+    body.querySelector(`input[name="q-${qi}-allow_multi"]`).addEventListener('change', (e) => {
+      rebuildChoices(qi, card, e.target.checked);
+      refreshPreview();
+    });
+  }
+
+  function addQuestion(type, preset=null) {
+    const qi = qIndex++;
+    const card = makeBaseCard(qi, type);
+    const body = card.querySelector('.q-type-body');
+
+    if (type === 'multiple_choice') {
+      rebuildChoices(qi, card, false);
+
+    } else if (type === 'true_false') {
+      body.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-sm font-medium text-slate-900">Correct answer</p>
+          <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <input type="radio" name="q-${qi}-correct_tf" value="true" class="accent-slate-900" />
+              True
+            </label>
+            <label class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <input type="radio" name="q-${qi}-correct_tf" value="false" class="accent-slate-900" />
+              False
+            </label>
+          </div>
+        </div>
+      `;
+
+    } else if (type === 'short_answer') {
+      body.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-sm font-medium text-slate-900">Short answer</p>
+          <p class="mt-1 text-xs text-slate-500">Optional keywords for reviewer guidance.</p>
+
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-slate-700 mb-2">Suggested keywords (optional)</label>
+            <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+              <input type="text" name="q-${qi}-keywords" placeholder="e.g. REST, status code, authentication" />
+            </div>
+            <p class="mt-2 text-xs text-slate-500">Comma-separated.</p>
+          </div>
+        </div>
+      `;
+
+    } else if (type === 'numeric') {
+      body.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-sm font-medium text-slate-900">Numeric answer</p>
+          <p class="mt-1 text-xs text-slate-500">Exact answer with optional tolerance.</p>
+
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Correct value <span class="text-red-500">*</span></label>
+              <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                <input type="number" step="any" name="q-${qi}-correct_num" placeholder="e.g. 3.14" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Tolerance (optional)</label>
+              <div class="ui-field rounded-2xl border border-slate-200 bg-white px-3 py-2 transition">
+                <input type="number" step="any" name="q-${qi}-tolerance" placeholder="e.g. 0.01" />
+              </div>
+              <p class="mt-2 text-xs text-slate-500">If empty, exact match required.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    questionsDiv.appendChild(card);
+
+    // apply preset values (for draft restore)
+    if (preset) applyPreset(card, preset);
+
+    renumber();
+    showAlert('Question added.');
+    toast('Added');
+    setTimeout(() => card.querySelector(`input[name="q-${qi}-text"]`)?.focus(), 50);
+  }
+
+  function applyPreset(card, preset){
+    const qi = card.dataset.qi;
+    if (preset.text) card.querySelector(`[name="q-${qi}-text"]`).value = preset.text;
+    if (preset.points) card.querySelector(`[name="q-${qi}-points"]`).value = preset.points;
+    if (typeof preset.required === 'boolean') card.querySelector(`[name="q-${qi}-required"]`).checked = preset.required;
+
+    if (card.dataset.type === 'multiple_choice') {
+      const allow = !!preset.allowMulti;
+      rebuildChoices(qi, card, allow);
+      const container = card.querySelector(`[data-choices="${qi}"]`);
+      const rows = preset.choices || [];
+      container.innerHTML = '';
+      const minRows = Math.max(rows.length, 2);
+
+      for (let i=1; i<=minRows; i++){
+        addChoiceRow(qi, container, i, allow);
+        const r = rows[i-1] || {text:'', correct:false};
+        container.querySelector(`input[name="q-${qi}-choice-${i}-text"]`).value = r.text || '';
+        if (!allow) container.querySelectorAll('.correct-one')[i-1].checked = !!r.correct;
+        if (allow) container.querySelectorAll('.correct-multi')[i-1].checked = !!r.correct;
+      }
+      // keep allow toggle checked
+      card.querySelector(`input[name="q-${qi}-allow_multi"]`).checked = allow;
+
+    } else if (card.dataset.type === 'true_false') {
+      if (preset.correctTf === 'true' || preset.correctTf === 'false') {
+        card.querySelector(`input[name="q-${qi}-correct_tf"][value="${preset.correctTf}"]`).checked = true;
+      }
+
+    } else if (card.dataset.type === 'short_answer') {
+      if (preset.keywords) card.querySelector(`[name="q-${qi}-keywords"]`).value = preset.keywords;
+
+    } else if (card.dataset.type === 'numeric') {
+      if (preset.correctNum !== undefined) card.querySelector(`[name="q-${qi}-correct_num"]`).value = preset.correctNum;
+      if (preset.tolerance !== undefined) card.querySelector(`[name="q-${qi}-tolerance"]`).value = preset.tolerance;
+    }
+  }
+
+  // clone card values
+  function cloneCard(card){
+    const qiOld = card.dataset.qi;
+    const type = card.dataset.type;
+
+    const preset = serializeCard(card);
+    addQuestion(type, preset);
+
+    // return the last card (just added)
+    return questionsDiv.lastElementChild;
+  }
+
+  function serializeCard(card){
+    const qi = card.dataset.qi;
+    const type = card.dataset.type;
+
+    const base = {
+      type,
+      text: card.querySelector(`[name="q-${qi}-text"]`)?.value || '',
+      points: card.querySelector(`[name="q-${qi}-points"]`)?.value || '1',
+      required: card.querySelector(`[name="q-${qi}-required"]`)?.checked ?? true,
+    };
+
+    if (type === 'multiple_choice') {
+      const allow = !!card.querySelector(`input[name="q-${qi}-allow_multi"]`)?.checked;
+      const rows = [...card.querySelectorAll(`[data-choices="${qi}"] .choice-row`)];
+      base.allowMulti = allow;
+      base.choices = rows.map((r, idx) => {
+        const t = r.querySelector(`input[name="q-${qi}-choice-${idx+1}-text"]`)?.value || '';
+        const correct = allow
+          ? (r.querySelector('.correct-multi')?.checked || false)
+          : (r.querySelector('.correct-one')?.checked || false);
+        return { text: t, correct };
+      });
+    }
+
+    if (type === 'true_false') {
+      const c = card.querySelector(`input[name="q-${qi}-correct_tf"]:checked`);
+      base.correctTf = c ? c.value : '';
+    }
+
+    if (type === 'short_answer') {
+      base.keywords = card.querySelector(`[name="q-${qi}-keywords"]`)?.value || '';
+    }
+
+    if (type === 'numeric') {
+      base.correctNum = card.querySelector(`[name="q-${qi}-correct_num"]`)?.value ?? '';
+      base.tolerance = card.querySelector(`[name="q-${qi}-tolerance"]`)?.value ?? '';
+    }
+
+    return base;
+  }
+
+  // Add question buttons
+  document.querySelectorAll('.add-q-btn').forEach(btn => {
+    btn.addEventListener('click', () => addQuestion(btn.dataset.type));
+  });
+
+  // Toggle preview pane
+  previewToggle.addEventListener('click', () => {
+    previewPane.classList.toggle('hidden');
+  });
+
+  // Expand/Collapse all
+  btnExpand.addEventListener('click', () => {
+    [...questionsDiv.querySelectorAll('.q-card')].forEach(c => toggleCollapse(c, false));
+  });
+  btnCollapse.addEventListener('click', () => {
+    [...questionsDiv.querySelectorAll('.q-card')].forEach(c => toggleCollapse(c, true));
+  });
+
+  // Search filter
+  function filterQuestions(){
+    const q = (searchQ.value || '').trim().toLowerCase();
+    const cards = [...questionsDiv.querySelectorAll('.q-card')];
+    cards.forEach(card => {
+      const qi = card.dataset.qi;
+      const text = (card.querySelector(`[name="q-${qi}-text"]`)?.value || '').toLowerCase();
+      const match = !q || text.includes(q);
+      card.classList.toggle('hidden', !match);
+    });
+    refreshPreview();
+  }
+  searchQ.addEventListener('input', filterQuestions);
+
+  // Meta live preview
+  [quizTitleEl, passEl, timeEl, descEl].forEach(el => el.addEventListener('input', refreshPreview));
+
+  // Candidate preview modal
+  function openModal(){
+    modalTitle.textContent = quizTitleEl.value.trim() || 'Quiz Preview';
+    modalTime.textContent = timeEl.value || '0';
+    modalPass.textContent = passEl.value || '0';
+    modalDesc.textContent = descEl.value.trim() || 'No description provided.';
+    modalPoints.textContent = totalPointsEl.textContent || '0';
+
+    const cards = [...questionsDiv.querySelectorAll('.q-card')].filter(c => !c.classList.contains('hidden'));
+    modalBody.innerHTML = cards.map((card, i) => {
+      const qi = card.dataset.qi;
+      const type = card.dataset.type;
+      const qText = card.querySelector(`[name="q-${qi}-text"]`)?.value || `Question ${i+1}`;
+      const pts = card.querySelector(`[name="q-${qi}-points"]`)?.value || '1';
+
+      let inner = '';
+      if (type === 'multiple_choice') {
+        const rows = [...card.querySelectorAll(`[data-choices="${qi}"] .choice-row`)];
+        const choices = rows.map((r, idx) => r.querySelector(`input[name="q-${qi}-choice-${idx+1}-text"]`)?.value || '').filter(Boolean);
+        inner = `
+          <div class="mt-4 space-y-2">
+            ${choices.map(c => `
+              <label class="flex items-center gap-3 rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3">
+                <input type="radio" disabled />
+                <span class="text-sm text-slate-800">${escapeHtml(c)}</span>
+              </label>
+            `).join('') || `<p class="text-sm text-slate-500">No choices yet.</p>`}
+          </div>
+        `;
+      } else if (type === 'true_false') {
+        inner = `
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="flex items-center gap-3 rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3"><input type="radio" disabled /> True</label>
+            <label class="flex items-center gap-3 rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3"><input type="radio" disabled /> False</label>
+          </div>
+        `;
+      } else if (type === 'numeric') {
+        inner = `<div class="mt-4"><input disabled class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" placeholder="Type a number…" /></div>`;
+      } else {
+        inner = `<div class="mt-4"><input disabled class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" placeholder="Type your answer…" /></div>`;
+      }
+
+      return `
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 md:p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold text-slate-500">Question ${i+1}</p>
+              <h4 class="text-base md:text-lg font-semibold text-slate-900 mt-1">${escapeHtml(qText)}</h4>
+            </div>
+            <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-800 ring-1 ring-amber-200 px-3 py-1 text-xs font-bold">${escapeHtml(pts)} pt</span>
+          </div>
+          ${inner}
+        </div>
+      `;
+    }).join('');
+
+    previewModal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+  }
+  function closeModalFn(){
+    previewModal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+  btnPreviewModal.addEventListener('click', openModal);
+  closeModal.addEventListener('click', closeModalFn);
+  previewModal.addEventListener('click', (e) => { if (e.target === previewModal) closeModalFn(); });
+
+  // dirty state
+  let isDirty = false;
+  function markDirty(){
+    isDirty = true;
+    if (draftState) draftState.textContent = 'Draft • Unsaved';
+  }
+  function markSaved(){
+    isDirty = false;
+    if (draftState) draftState.textContent = 'Draft • Saved';
+  }
+
+  // draft serialize/restore
+  function serializeDraft(){
+    return {
+      meta: {
+        title: quizTitleEl.value || '',
+        pass: passEl.value || '70',
+        time: timeEl.value || '30',
+        desc: descEl.value || '',
+      },
+      questions: [...questionsDiv.querySelectorAll('.q-card')].map(card => serializeCard(card)),
+      qIndex
+    };
+  }
+
+  function saveDraft(){
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(serializeDraft()));
+    markSaved();
+    toast('Draft saved');
+  }
+
+  function restoreDraft(){
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) { toast('No draft found'); return; }
+    try{
+      const data = JSON.parse(raw);
+      quizTitleEl.value = data?.meta?.title || '';
+      passEl.value = data?.meta?.pass || '70';
+      timeEl.value = data?.meta?.time || '30';
+      descEl.value = data?.meta?.desc || '';
+
+      questionsDiv.innerHTML = '';
+      qIndex = 1;
+
+      (data?.questions || []).forEach(q => addQuestion(q.type || 'multiple_choice', q));
+
+      markSaved();
+      refreshPreview();
+      toast('Draft restored');
+    }catch(e){
+      console.warn(e);
+      toast('Draft invalid');
+    }
+  }
+
+  // soft autosave (debounced)
+  function autoSaveDraftSoft(){
+    clearTimeout(autoSaveDraftSoft._t);
+    autoSaveDraftSoft._t = setTimeout(() => {
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(serializeDraft())); markSaved(); } catch(e){}
+    }, 900);
+  }
+
+  btnSaveDraft.addEventListener('click', saveDraft);
+  btnRestoreDraft.addEventListener('click', restoreDraft);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    const isMac = navigator.platform.toUpperCase().includes('MAC');
+    const ctrl = isMac ? e.metaKey : e.ctrlKey;
+
+    if (ctrl && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      searchQ.focus();
+    }
+    if (ctrl && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      openModal();
+    }
+    if (ctrl && e.key === 'Enter') {
+      e.preventDefault();
+      addQuestion('multiple_choice');
+    }
+  });
+
+  // Validation before submit
+  document.getElementById('quiz-form').addEventListener('submit', (e) => {
+    const title = quizTitleEl.value.trim();
+    const cards = [...questionsDiv.querySelectorAll('.q-card')];
+
+    if (!title) {
+      e.preventDefault();
+      showAlert('Please enter a quiz title.');
+      quizTitleEl.focus();
+      return;
+    }
+    if (cards.length === 0) {
+      e.preventDefault();
+      showAlert('Add at least 1 question (or click Skip).');
+      return;
+    }
+
+    for (const card of cards) {
+      const qi = card.dataset.qi;
+      const type = card.dataset.type;
+      const qText = card.querySelector(`[name="q-${qi}-text"]`)?.value.trim();
+
+      if (!qText) {
+        e.preventDefault();
+        showAlert('Each question must have text.');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.querySelector(`[name="q-${qi}-text"]`).focus();
+        return;
+      }
+
+      const points = parseInt(card.querySelector(`[name="q-${qi}-points"]`)?.value || '1', 10);
+      if (!points || points < 1) {
+        e.preventDefault();
+        showAlert('Points must be at least 1.');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      if (type === 'multiple_choice') {
+        const allowMulti = !!card.querySelector(`input[name="q-${qi}-allow_multi"]`)?.checked;
+        const choices = [...card.querySelectorAll(`[name^="q-${qi}-choice-"][name$="-text"]`)];
+        const filled = choices.map(c => c.value.trim()).filter(Boolean);
+
+        if (filled.length < 2) {
+          e.preventDefault();
+          showAlert('Multiple choice needs at least 2 filled choices.');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        if (!allowMulti) {
+          const correct = card.querySelector(`input[type="radio"][name="q-${qi}-correct"]:checked`);
+          if (!correct) {
+            e.preventDefault();
+            showAlert('Select one correct answer for each multiple choice question.');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+          }
+        } else {
+          const corrects = [...card.querySelectorAll(`input[type="checkbox"][name="q-${qi}-correct_multi"]:checked`)];
+          if (corrects.length === 0) {
+            e.preventDefault();
+            showAlert('Select at least one correct answer for multi-correct MCQ.');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+          }
+        }
+      }
+
+      if (type === 'true_false') {
+        const correct = card.querySelector(`input[type="radio"][name="q-${qi}-correct_tf"]:checked`);
+        if (!correct) {
+          e.preventDefault();
+          showAlert('Select True or False as the correct answer.');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+
+      if (type === 'numeric') {
+        const v = card.querySelector(`[name="q-${qi}-correct_num"]`)?.value;
+        if (v === '' || v === null || typeof v === 'undefined') {
+          e.preventDefault();
+          showAlert('Numeric questions need a correct value.');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+    }
+
+    // final: mark draft saved right before submit (client)
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(serializeDraft())); } catch(e){}
+  });
+
+  // Init
+  updateCounts();
+  refreshPreview();
+
+  // Auto restore if available (silent)
+  try{
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if ((data?.questions || []).length) {
+        // do not overwrite if user already started in this session
+        restoreDraft();
+      }
+    }
+  } catch(e){}
+</script>
+
+{% endblock %}

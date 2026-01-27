@@ -1,0 +1,15 @@
+Regular user
+    Regular
+    regular420@gmail.com
+    Password@420
+
+Employee
+    Employee
+    employee123@gmail.com
+    Password@420
+
+
+Admin
+    Admin
+    admin123@gmail.com
+    Password@420

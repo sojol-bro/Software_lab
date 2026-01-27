@@ -1,0 +1,1292 @@
+{% extends 'base-admin.html' %}
+{% load static %}
+{% block content_admin %}
+
+<div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ================= TOP HEADER / HERO ================= -->
+    <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 backdrop-blur shadow-[0_20px_70px_rgba(15,23,42,0.08)]">
+      <div class="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-purple-200/50 blur-3xl"></div>
+      <div class="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-200/50 blur-3xl"></div>
+
+      <div class="relative p-6 sm:p-8">
+        <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center shadow-lg ring-1 ring-black/5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13" />
+              </svg>
+            </div>
+
+            <div>
+              <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Create New Course</h1>
+              <p class="text-sm text-slate-600 mt-1">Add course details, build a lecture curriculum, and publish with a premium preview.</p>
+
+              <!-- Stepper -->
+              <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-purple-50 text-purple-700 px-3 py-1 ring-1 ring-purple-200">
+                  <span class="h-1.5 w-1.5 rounded-full bg-purple-600"></span>
+                  Step 1: Details
+                </span>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 text-blue-700 px-3 py-1 ring-1 ring-blue-200">
+                  <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                  Step 2: Curriculum
+                </span>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-50 text-slate-600 px-3 py-1 ring-1 ring-slate-200">
+                  <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                  Step 3: Publish
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="flex flex-wrap items-center gap-3">
+            <a href="/course_quiz"
+               class="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2.5 text-white text-sm font-semibold shadow hover:bg-blue-700 active:scale-[0.99] transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Questions
+              <span class="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-semibold">Optional</span>
+            </a>
+
+            <button type="button" onclick="history.back()"
+              class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-sm active:scale-[0.99] transition">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress / Completion -->
+        <div class="mt-6 rounded-2xl border border-slate-200 bg-white/70 px-5 py-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-slate-900">Completion</p>
+              <p class="text-xs text-slate-600 mt-0.5">Fill required fields + add at least 1 lecture for a strong course page.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-44 sm:w-56">
+                <div class="h-2.5 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+                  <div id="completionBar" class="h-full w-0 bg-gradient-to-r from-purple-600 to-purple-900"></div>
+                </div>
+                <p class="mt-1 text-xs text-slate-600"><span id="completionPct">0</span>% complete</p>
+              </div>
+              <span id="completionHint" class="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-full border"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= MAIN FORM ================= -->
+    <form id="courseForm" action="/create_course/" method="POST" enctype="multipart/form-data" class="mt-8">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- ================= LEFT: FORM ================= -->
+        <div class="lg:col-span-8 space-y-6">
+
+          <!-- ===== Card: Basic Info ===== -->
+          <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_16px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200 bg-slate-50/60">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-base font-bold text-slate-900">Basic Information</h2>
+                  <p class="text-sm text-slate-600 mt-1">These details appear on the course page.</p>
+                </div>
+                <span class="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-full">
+                  Required fields marked *
+                </span>
+              </div>
+            </div>
+
+            <div class="p-6 space-y-5">
+              <!-- Title -->
+              <div>
+                <label class="block text-sm font-semibold text-slate-800">
+                  Course Title <span class="text-red-500">*</span>
+                </label>
+                <p class="text-xs text-slate-500 mt-1">Short + clear titles perform better (SEO friendly).</p>
+                <input id="course_title" type="text" name="title" required
+                  class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                         focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                  placeholder="e.g., Mastering Django: From Zero to Deployment"
+                  oninput="updateAll()" />
+              </div>
+
+              <!-- Category + Instructor -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-800">
+                    Category <span class="text-red-500">*</span>
+                  </label>
+                  <select id="category" name="category" required
+                    class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                           focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                    onchange="updateAll()">
+                    <option value="">Select category</option>
+                    {% for cat in categories %}
+                      <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-800">
+                    Instructor <span class="text-red-500">*</span>
+                  </label>
+                  <input id="instructor_name" type="text" name="instructor" required
+                    class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                           focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                    placeholder="e.g., Shah Mehrab Hossain"
+                    oninput="updateAll()" />
+                </div>
+              </div>
+
+              <!-- Difficulty + Short Description -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-800">
+                    Difficulty <span class="text-red-500">*</span>
+                  </label>
+                  <select id="difficulty" name="difficulty" required
+                    class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                           focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                    onchange="updateAll()">
+                    <option value="">Select level</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-800">
+                    Short Description <span class="text-red-500">*</span>
+                  </label>
+                  <input id="short_description" type="text" name="short_description" required
+                    class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                           focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                    placeholder="One line pitch that sells the course"
+                    oninput="updateAll()" />
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div>
+                <label class="block text-sm font-semibold text-slate-800">
+                  Description <span class="text-red-500">*</span>
+                </label>
+                <p class="text-xs text-slate-500 mt-1">Use outcomes + who it's for + what projects you build.</p>
+                <textarea id="description" name="description" rows="5" required
+                  class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                         focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                  placeholder="Write a compelling description..."
+                  oninput="updateAll()"></textarea>
+
+                <!-- Optional: smart helper -->
+                <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p class="text-xs font-semibold text-slate-700">Fast structure (recommended)</p>
+                  <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
+                    <div class="rounded-xl bg-white border border-slate-200 p-3">
+                      <p class="font-semibold text-slate-700">Outcomes</p>
+                      <p class="mt-1">What students can do after finishing.</p>
+                    </div>
+                    <div class="rounded-xl bg-white border border-slate-200 p-3">
+                      <p class="font-semibold text-slate-700">Who it's for</p>
+                      <p class="mt-1">Beginner? Intermediate? Job-ready?</p>
+                    </div>
+                    <div class="rounded-xl bg-white border border-slate-200 p-3">
+                      <p class="font-semibold text-slate-700">Projects</p>
+                      <p class="mt-1">What they build / ship in this course.</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Duration + Lessons -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-800">
+                    Duration (weeks) <span class="text-red-500">*</span>
+                  </label>
+                  <input id="duration" type="number" name="duration_weeks" min="1" step="0.5" required
+                    class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                           focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                    placeholder="e.g., 6"
+                    oninput="updateAll()" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-800">
+                    Number of Lessons <span class="text-red-500">*</span>
+                  </label>
+                  <div class="mt-2 relative">
+                    <input id="lessons_count" type="number" name="lessons_count" min="1" required
+                      class="w-full rounded-2xl border-slate-200 bg-white px-4 py-3 pr-28 text-sm text-slate-900 shadow-sm
+                             focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                      placeholder="Auto from lectures"
+                      oninput="updateAll()" />
+                    <button type="button" onclick="syncLessonsFromLectures(true)"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-white">
+                      Sync from lectures
+                    </button>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-1">Tip: use Curriculum Builder below → lessons auto-sync.</p>
+                </div>
+              </div>
+
+              <!-- Skills + Price -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-800">
+                    Skills Covered <span class="text-red-500">*</span>
+                  </label>
+                  <input id="skills_covered" type="text" name="skills_covered" required
+                    class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                           focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                    placeholder="Django, REST API, PostgreSQL"
+                    oninput="updateAll()" />
+                  <p class="text-xs text-slate-500 mt-1">Comma separated</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-800">
+                    Price (USD) <span class="text-red-500">*</span>
+                  </label>
+                  <div class="mt-2 relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-500">$</span>
+                    <input id="price" type="number" name="price" min="0" step="0.01" required
+                      class="w-full rounded-2xl border-slate-200 bg-white pl-9 pr-4 py-3 text-sm text-slate-900 shadow-sm
+                             focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                      placeholder="e.g., 49.99"
+                      oninput="updateAll()" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ===== Card: Media ===== -->
+          <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_16px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200 bg-slate-50/60">
+              <h2 class="text-base font-bold text-slate-900">Course Media</h2>
+              <p class="text-sm text-slate-600 mt-1">A good thumbnail increases clicks a lot.</p>
+            </div>
+
+            <div class="p-6 space-y-6">
+              <!-- Thumbnail upload (drag & drop) -->
+              <div>
+                <label class="block text-sm font-semibold text-slate-800">
+                  Thumbnail <span class="text-red-500">*</span>
+                </label>
+
+                <div class="mt-2 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
+                  <div class="sm:col-span-8">
+                    <div id="thumbDrop"
+                         class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 transition p-5 cursor-pointer"
+                         role="button" tabindex="0"
+                         onclick="document.getElementById('thumbnail').click()"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('thumbnail').click()}">
+                      <div class="flex items-start gap-4">
+                        <div class="h-10 w-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                        </div>
+                        <div class="flex-1">
+                          <p class="text-sm font-semibold text-slate-900">Upload a thumbnail</p>
+                          <p class="text-xs text-slate-600 mt-1">Drag & drop or click. PNG/JPG, recommended 1280×720</p>
+                          <div class="mt-3 inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-700 shadow-sm">
+                            <span class="h-2 w-2 rounded-full bg-purple-600"></span>
+                            Choose file
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Mini preview -->
+                  <div class="sm:col-span-4">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                      <div class="aspect-video w-full overflow-hidden rounded-xl bg-slate-100">
+                        <img id="thumbnailPreview" class="h-full w-full object-cover hidden" alt="Thumbnail Preview" />
+                        <div id="thumbFallback" class="h-full w-full flex items-center justify-center text-xs text-slate-500">Preview</div>
+                      </div>
+                      <p id="thumbName" class="mt-2 text-xs text-slate-600 truncate">No file selected</p>
+                    </div>
+                  </div>
+                </div>
+
+                <input id="thumbnail" type="file" name="thumbnail" accept="image/*" required class="hidden"
+                       onchange="previewImage(event, 'thumbnailPreview', 'thumbFallback', 'thumbName', 'previewThumb', 'previewThumbFallback')" />
+              </div>
+
+              <!-- Instructor photo -->
+              <div>
+                <label class="block text-sm font-semibold text-slate-800">Instructor Photo</label>
+
+                <div class="mt-2 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
+                  <div class="sm:col-span-8">
+                    <div id="instDrop"
+                         class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 transition p-5 cursor-pointer"
+                         role="button" tabindex="0"
+                         onclick="document.getElementById('instructor_photo').click()"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('instructor_photo').click()}">
+                      <div class="flex items-start gap-4">
+                        <div class="h-10 w-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <div class="flex-1">
+                          <p class="text-sm font-semibold text-slate-900">Upload instructor photo</p>
+                          <p class="text-xs text-slate-600 mt-1">Drag & drop or click. Square works best (600×600)</p>
+                          <div class="mt-3 inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-700 shadow-sm">
+                            <span class="h-2 w-2 rounded-full bg-blue-600"></span>
+                            Choose file
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sm:col-span-4">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                      <div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100">
+                        <img id="instructorPreview" class="h-full w-full object-cover hidden" alt="Instructor Photo Preview" />
+                        <div id="instFallback" class="h-full w-full flex items-center justify-center text-xs text-slate-500">Preview</div>
+                      </div>
+                      <p id="instName" class="mt-2 text-xs text-slate-600 truncate">No file selected</p>
+                    </div>
+                  </div>
+                </div>
+
+                <input id="instructor_photo" type="file" name="instructor_photo" accept="image/*" class="hidden"
+                       onchange="previewImage(event, 'instructorPreview', 'instFallback', 'instName', 'previewInstructor', null)" />
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Card: Curriculum Builder (LECTURES UPLOAD) ===== -->
+          <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_16px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200 bg-slate-50/60">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h2 class="text-base font-bold text-slate-900">Curriculum Builder</h2>
+                  <p class="text-sm text-slate-600 mt-1">Add lectures with files (video/pdf/zip). This powers the preview + lesson count.</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-700">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                    <span id="lectureCountBadge">0 lectures</span>
+                  </span>
+                  <span class="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-700">
+                    <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+                    <span id="totalMinutesBadge">0 min</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <!-- Toolbar -->
+              <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" onclick="addLecture()"
+                    class="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-white text-sm font-semibold shadow hover:bg-slate-800 active:scale-[0.99] transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add lecture
+                  </button>
+
+                  <button type="button" onclick="addLecture(true)"
+                    class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 active:scale-[0.99] transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                    Add lecture + file
+                  </button>
+
+                  <button type="button" onclick="expandCollapseAll(true)"
+                    class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                    Expand all
+                  </button>
+                  <button type="button" onclick="expandCollapseAll(false)"
+                    class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                    Collapse all
+                  </button>
+                </div>
+
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700">
+                  Drag lectures to reorder (desktop).
+                </div>
+              </div>
+
+              <!-- List -->
+              <div class="mt-5 space-y-3" id="lecturesList"></div>
+
+              <!-- Empty state -->
+              <div id="lecturesEmpty"
+                   class="mt-5 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                <div class="mx-auto h-12 w-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <p class="mt-3 text-sm font-semibold text-slate-900">No lectures added yet</p>
+                <p class="mt-1 text-sm text-slate-600">Add at least 1 lecture for a complete course.</p>
+                <button type="button" onclick="addLecture()"
+                  class="mt-4 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-white text-sm font-semibold shadow hover:bg-slate-800">
+                  Add first lecture
+                </button>
+              </div>
+
+              <!-- NOTE: backend should read arrays:
+                   lecture_titles[] / lecture_files[] / lecture_durations[] / lecture_free_preview[] -->
+              <p class="mt-6 text-xs text-slate-500">
+                Backend tip: use <span class="font-semibold">request.POST.getlist('lecture_titles[]')</span> and <span class="font-semibold">request.FILES.getlist('lecture_files[]')</span>.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================= RIGHT: LIVE PREVIEW ================= -->
+        <div class="lg:col-span-4">
+          <div class="lg:sticky lg:top-6 space-y-6">
+
+            <!-- Preview Card -->
+            <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_16px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+              <div class="px-6 py-5 border-b border-slate-200 bg-slate-50/60">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-base font-bold text-slate-900">Live Preview</h3>
+                  <span id="difficultyBadge" class="hidden text-xs font-semibold px-3 py-1.5 rounded-full border"></span>
+                </div>
+                <p class="text-sm text-slate-600 mt-1">This is how it may look to users.</p>
+              </div>
+
+              <div class="p-6 space-y-4">
+                <div class="aspect-video w-full overflow-hidden rounded-2xl bg-slate-100 border border-slate-200">
+                  <img id="previewThumb" class="h-full w-full object-cover hidden" alt="Preview thumbnail" />
+                  <div id="previewThumbFallback" class="h-full w-full flex items-center justify-center text-xs text-slate-500">
+                    Thumbnail preview
+                  </div>
+                </div>
+
+                <div>
+                  <h4 id="pTitle" class="text-lg font-extrabold text-slate-900 leading-snug">Course title will appear here</h4>
+                  <p id="pShort" class="text-sm text-slate-600 mt-1">Short description will appear here</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                  <span class="inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-3 py-1.5">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                    <span id="pLessons">0 lessons</span>
+                  </span>
+                  <span class="inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-3 py-1.5">
+                    <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+                    <span id="pDuration">0 weeks</span>
+                  </span>
+                  <span class="inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-3 py-1.5">
+                    <span class="h-2 w-2 rounded-full bg-purple-500"></span>
+                    <span id="pTotalTime">0 min total</span>
+                  </span>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-200">
+                  <div class="flex items-center gap-2">
+                    <div class="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+                      <img id="previewInstructor" class="h-full w-full object-cover hidden" alt="Instructor" />
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-slate-900" id="pInstructor">Instructor Name</p>
+                      <p class="text-xs text-slate-500" id="pCategory">Category</p>
+                    </div>
+                  </div>
+                  <p class="text-base font-extrabold text-slate-900" id="pPrice">$0.00</p>
+                </div>
+
+                <div>
+                  <p class="text-xs font-semibold text-slate-700 mb-2">Skills</p>
+                  <div id="pSkills" class="flex flex-wrap gap-2">
+                    <span class="text-xs px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-600">Add skills…</span>
+                  </div>
+                </div>
+
+                <!-- Preview mini curriculum -->
+                <div class="pt-3 border-t border-slate-200">
+                  <div class="flex items-center justify-between">
+                    <p class="text-xs font-extrabold text-slate-900">Curriculum</p>
+                    <p class="text-xs text-slate-600"><span id="pLectureCount">0</span> items</p>
+                  </div>
+
+                  <div id="pLectureList" class="mt-3 space-y-2">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                      Add lectures to preview the curriculum.
+                    </div>
+                  </div>
+
+                  <p id="pFreePreviewHint" class="mt-3 text-xs text-slate-500 hidden">
+                    Some lectures marked as <span class="font-semibold">Free Preview</span>.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="rounded-3xl border border-slate-200 bg-white shadow-[0_16px_60px_rgba(15,23,42,0.06)] p-6">
+              <h4 class="text-sm font-extrabold text-slate-900">Quick tips (high impact)</h4>
+              <ul class="mt-3 space-y-2 text-sm text-slate-600">
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-purple-600"></span>
+                  Put the strongest outcome in the first line of description.
+                </li>
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-blue-600"></span>
+                  Add 1–3 free preview lectures → more conversions.
+                </li>
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-emerald-600"></span>
+                  Keep lecture titles action-focused (“Build X”, “Deploy Y”).
+                </li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= STICKY BOTTOM ACTION BAR ================= -->
+      <div class="mt-8">
+        <div class="sticky bottom-4 z-30">
+          <div class="rounded-3xl border border-slate-200 bg-white/80 backdrop-blur shadow-[0_20px_70px_rgba(15,23,42,0.10)] px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div class="text-sm text-slate-600">
+              <span class="font-semibold text-slate-900">Ready to publish?</span>
+              Add lectures + required fields. Preview updates live.
+            </div>
+            <div class="flex items-center gap-3 justify-end">
+              <button type="button" onclick="history.back()"
+                class="px-5 py-2.5 rounded-2xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 active:scale-[0.99] transition">
+                Cancel
+              </button>
+              <button type="button" onclick="saveDraft()"
+                class="px-5 py-2.5 rounded-2xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 active:scale-[0.99] transition">
+                Save Draft (local)
+              </button>
+              <button type="submit"
+                class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-900 text-white text-sm font-extrabold shadow-lg hover:opacity-95 active:scale-[0.99] transition">
+                Create Course
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  // =========================
+  // Media previews + drag/drop
+  // =========================
+  function previewImage(event, imgId, fallbackId, nameId, syncImgId, syncFallbackId) {
+    const file = event.target.files && event.target.files[0];
+    const img = document.getElementById(imgId);
+    const fallback = document.getElementById(fallbackId);
+    const nameEl = document.getElementById(nameId);
+
+    if (!file) return;
+    if (nameEl) nameEl.textContent = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      img.src = e.target.result;
+      img.classList.remove('hidden');
+      if (fallback) fallback.classList.add('hidden');
+
+      // Sync to live preview
+      if (syncImgId) {
+        const p = document.getElementById(syncImgId);
+        p.src = e.target.result;
+        p.classList.remove('hidden');
+      }
+      if (syncFallbackId) {
+        const pf = document.getElementById(syncFallbackId);
+        if (pf) pf.classList.add('hidden');
+      }
+      updateAll();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function wireDropzone(zoneId, inputId) {
+    const zone = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    if (!zone || !input) return;
+
+    const highlight = (on) => {
+      zone.classList.toggle('bg-slate-100', on);
+      zone.classList.toggle('ring-4', on);
+      zone.classList.toggle('ring-purple-100', on);
+      zone.classList.toggle('border-purple-300', on);
+    };
+
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); highlight(true); });
+    zone.addEventListener('dragleave', () => highlight(false));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault(); highlight(false);
+      const files = e.dataTransfer.files;
+      if (!files || !files.length) return;
+      input.files = files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+
+  wireDropzone('thumbDrop', 'thumbnail');
+  wireDropzone('instDrop', 'instructor_photo');
+
+  // =========================
+  // Live Preview (Details)
+  // =========================
+  function updatePreview() {
+    const title = document.getElementById('course_title')?.value || '';
+    const shortDesc = document.getElementById('short_description')?.value || '';
+    const instructor = document.getElementById('instructor_name')?.value || '';
+    const lessons = document.getElementById('lessons_count')?.value || '0';
+    const duration = document.getElementById('duration')?.value || '0';
+    const price = document.getElementById('price')?.value || '0';
+    const skills = document.getElementById('skills_covered')?.value || '';
+    const diff = document.getElementById('difficulty')?.value || '';
+    const catSelect = document.getElementById('category');
+    const catText = catSelect && catSelect.selectedOptions.length ? catSelect.selectedOptions[0].text : 'Category';
+
+    document.getElementById('pTitle').textContent = title.trim() || 'Course title will appear here';
+    document.getElementById('pShort').textContent = shortDesc.trim() || 'Short description will appear here';
+    document.getElementById('pInstructor').textContent = instructor.trim() || 'Instructor Name';
+    document.getElementById('pCategory').textContent = catText || 'Category';
+    document.getElementById('pLessons').textContent = `${lessons || 0} lessons`;
+    document.getElementById('pDuration').textContent = `${duration || 0} weeks`;
+    document.getElementById('pPrice').textContent = `$${Number(price || 0).toFixed(2)}`;
+
+    // Difficulty badge
+    const badge = document.getElementById('difficultyBadge');
+    badge.className = "text-xs font-semibold px-3 py-1.5 rounded-full border";
+    if (!diff) {
+      badge.classList.add('hidden');
+    } else {
+      badge.classList.remove('hidden');
+      if (diff === 'beginner') {
+        badge.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+        badge.textContent = 'Beginner';
+      } else if (diff === 'intermediate') {
+        badge.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200');
+        badge.textContent = 'Intermediate';
+      } else {
+        badge.classList.add('bg-rose-50', 'text-rose-700', 'border-rose-200');
+        badge.textContent = 'Advanced';
+      }
+    }
+
+    // Skills chips
+    const wrap = document.getElementById('pSkills');
+    wrap.innerHTML = '';
+    const parts = skills.split(',').map(s => s.trim()).filter(Boolean).slice(0, 10);
+    if (!parts.length) {
+      wrap.innerHTML = '<span class="text-xs px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-600">Add skills…</span>';
+      return;
+    }
+    parts.forEach(s => {
+      const span = document.createElement('span');
+      span.className = "text-xs px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-700";
+      span.textContent = s;
+      wrap.appendChild(span);
+    });
+  }
+
+  // =========================
+  // Curriculum Builder (Lectures)
+  // =========================
+  let lectureSeq = 0;
+
+  function formatMinutes(mins) {
+    mins = Number(mins || 0);
+    if (mins <= 0) return "0 min";
+    if (mins < 60) return `${mins} min`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m ? `${h}h ${m}m` : `${h}h`;
+  }
+
+  function lectureTemplate(id) {
+    return `
+      <div class="lectureItem rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden" draggable="true" data-lecture-id="${id}">
+        <div class="px-5 py-4 bg-white flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white text-xs font-extrabold">#</span>
+              <p class="text-sm font-extrabold text-slate-900 truncate" id="lectureTitleView_${id}">New lecture</p>
+              <span class="hidden text-xs font-semibold px-2.5 py-1 rounded-full border" id="lectureFreeBadge_${id}">Free Preview</span>
+            </div>
+            <p class="mt-1 text-xs text-slate-500" id="lectureMeta_${id}">No file • 0 min</p>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              onclick="toggleLecture('${id}')">
+              Details
+            </button>
+            <button type="button" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              onclick="duplicateLecture('${id}')">
+              Duplicate
+            </button>
+            <button type="button" class="rounded-xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-700"
+              onclick="removeLecture('${id}')">
+              Remove
+            </button>
+          </div>
+        </div>
+
+        <div id="lectureBody_${id}" class="border-t border-slate-200 bg-slate-50/60 px-5 py-5">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="md:col-span-6">
+              <label class="block text-xs font-semibold text-slate-700">Lecture Title <span class="text-red-500">*</span></label>
+              <input type="text" required name="lecture_titles[]"
+                class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                       focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                placeholder="e.g., Build your first Django app"
+                oninput="onLectureChange('${id}')"
+                id="lectureTitle_${id}">
+            </div>
+
+            <div class="md:col-span-3">
+              <label class="block text-xs font-semibold text-slate-700">Duration (minutes)</label>
+              <input type="number" min="0" name="lecture_durations[]"
+                class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm
+                       focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400"
+                placeholder="e.g., 18"
+                oninput="onLectureChange('${id}')"
+                id="lectureDuration_${id}">
+            </div>
+
+            <div class="md:col-span-3">
+              <label class="block text-xs font-semibold text-slate-700">Free Preview</label>
+              <div class="mt-2 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <label class="flex items-center justify-between gap-3 cursor-pointer">
+                  <span class="text-sm font-semibold text-slate-800">Allow preview</span>
+                  <input type="checkbox" name="lecture_free_preview[]" value="1"
+                    class="h-5 w-5"
+                    onchange="onLectureChange('${id}')"
+                    id="lectureFree_${id}">
+                </label>
+              </div>
+              <p class="mt-1 text-xs text-slate-500">Boosts trust & conversions</p>
+            </div>
+
+            <div class="md:col-span-12">
+              <label class="block text-xs font-semibold text-slate-700">Lecture File (video/pdf/zip)</label>
+              <div class="mt-2 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
+                <div class="sm:col-span-8">
+                  <label class="block cursor-pointer" for="lectureFile_${id}">
+                    <div class="rounded-2xl border border-dashed border-slate-300 bg-white hover:bg-slate-50 transition p-5">
+                      <div class="flex items-start gap-4">
+                        <div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shadow-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828L18 9.828M8 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                        </div>
+                        <div class="flex-1">
+                          <p class="text-sm font-semibold text-slate-900">Attach lecture file</p>
+                          <p class="text-xs text-slate-600 mt-1">Click to choose file (optional).</p>
+                          <div class="mt-3 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-1.5 text-xs text-white shadow-sm">
+                            Choose file
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                  <input type="file" name="lecture_files[]" class="hidden" id="lectureFile_${id}"
+                    onchange="onLectureFileChange('${id}', event)">
+                </div>
+
+                <div class="sm:col-span-4">
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p class="text-xs font-semibold text-slate-700">Selected file</p>
+                    <p class="mt-2 text-xs text-slate-600 truncate" id="lectureFileName_${id}">No file selected</p>
+                    <button type="button" class="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
+                      onclick="clearLectureFile('${id}')">
+                      Remove file
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p class="text-xs text-slate-500">
+              Tip: keep lecture titles consistent (verb + result). Example: “Deploy to Render”, “Build REST API”.
+            </p>
+            <button type="button" onclick="toggleLecture('${id}')"
+              class="text-xs font-semibold text-slate-700 hover:text-slate-900">
+              Hide details
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function addLecture(withFileHint=false) {
+    lectureSeq += 1;
+    const id = `L${Date.now()}_${lectureSeq}`;
+    const list = document.getElementById('lecturesList');
+    list.insertAdjacentHTML('beforeend', lectureTemplate(id));
+
+    document.getElementById('lecturesEmpty').classList.add('hidden');
+
+    // Pre-fill title for speed
+    const t = document.getElementById(`lectureTitle_${id}`);
+    t.value = `Lecture ${getLectureItems().length}`;
+
+    // Expand by default only for first 1–2 items
+    if (getLectureItems().length > 2) {
+      toggleLecture(id, true); // collapse
+    }
+
+    if (withFileHint) {
+      setTimeout(() => {
+        document.getElementById(`lectureFile_${id}`)?.click();
+      }, 50);
+    }
+
+    wireDnD();
+    onLectureChange(id);
+    syncLessonsFromLectures();
+    updateAll();
+  }
+
+  function getLectureItems() {
+    return Array.from(document.querySelectorAll('.lectureItem'));
+  }
+
+  function removeLecture(id) {
+    const el = document.querySelector(`[data-lecture-id="${id}"]`);
+    if (el) el.remove();
+
+    if (getLectureItems().length === 0) {
+      document.getElementById('lecturesEmpty').classList.remove('hidden');
+    }
+
+    syncLessonsFromLectures();
+    updateAll();
+  }
+
+  function toggleLecture(id, forceCollapse=false) {
+    const body = document.getElementById(`lectureBody_${id}`);
+    if (!body) return;
+    const collapsed = body.classList.contains('hidden');
+    if (forceCollapse) {
+      body.classList.add('hidden');
+      return;
+    }
+    body.classList.toggle('hidden', !collapsed);
+  }
+
+  function expandCollapseAll(expand) {
+    getLectureItems().forEach(item => {
+      const id = item.getAttribute('data-lecture-id');
+      const body = document.getElementById(`lectureBody_${id}`);
+      if (!body) return;
+      body.classList.toggle('hidden', !expand);
+    });
+  }
+
+  function clearLectureFile(id) {
+    const input = document.getElementById(`lectureFile_${id}`);
+    if (!input) return;
+    input.value = '';
+    document.getElementById(`lectureFileName_${id}`).textContent = 'No file selected';
+    onLectureChange(id);
+  }
+
+  function onLectureFileChange(id, event) {
+    const file = event.target.files && event.target.files[0];
+    document.getElementById(`lectureFileName_${id}`).textContent = file ? file.name : 'No file selected';
+    onLectureChange(id);
+  }
+
+  function duplicateLecture(id) {
+    const title = document.getElementById(`lectureTitle_${id}`)?.value || '';
+    const dur = document.getElementById(`lectureDuration_${id}`)?.value || '';
+    const free = document.getElementById(`lectureFree_${id}`)?.checked || false;
+
+    addLecture(false);
+
+    // Apply to last created
+    const items = getLectureItems();
+    const newItem = items[items.length - 1];
+    const newId = newItem.getAttribute('data-lecture-id');
+
+    document.getElementById(`lectureTitle_${newId}`).value = title ? `${title} (copy)` : `Lecture ${items.length}`;
+    document.getElementById(`lectureDuration_${newId}`).value = dur;
+    document.getElementById(`lectureFree_${newId}`).checked = free;
+
+    onLectureChange(newId);
+  }
+
+  function onLectureChange(id) {
+    const title = document.getElementById(`lectureTitle_${id}`)?.value || '';
+    const duration = document.getElementById(`lectureDuration_${id}`)?.value || '0';
+    const free = document.getElementById(`lectureFree_${id}`)?.checked || false;
+
+    // Update compact header view
+    const viewTitle = document.getElementById(`lectureTitleView_${id}`);
+    const meta = document.getElementById(`lectureMeta_${id}`);
+    const fileInput = document.getElementById(`lectureFile_${id}`);
+    const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : null;
+
+    if (viewTitle) viewTitle.textContent = title.trim() || 'New lecture';
+    if (meta) meta.textContent = `${file ? 'File attached' : 'No file'} • ${Number(duration||0)} min`;
+
+    const badge = document.getElementById(`lectureFreeBadge_${id}`);
+    if (badge) {
+      badge.className = "text-xs font-semibold px-2.5 py-1 rounded-full border";
+      if (free) {
+        badge.classList.remove('hidden');
+        badge.classList.add('bg-emerald-50','text-emerald-700','border-emerald-200');
+        badge.textContent = 'Free Preview';
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    syncLessonsFromLectures();
+    updateAll();
+  }
+
+  function computeLectureStats() {
+    const items = getLectureItems();
+    let total = 0;
+    let freeCount = 0;
+
+    const lectures = items.map(item => {
+      const id = item.getAttribute('data-lecture-id');
+      const t = document.getElementById(`lectureTitle_${id}`)?.value || '';
+      const d = Number(document.getElementById(`lectureDuration_${id}`)?.value || 0);
+      const f = !!document.getElementById(`lectureFree_${id}`)?.checked;
+      const fileInput = document.getElementById(`lectureFile_${id}`);
+      const hasFile = !!(fileInput && fileInput.files && fileInput.files[0]);
+
+      total += d;
+      if (f) freeCount += 1;
+
+      return { id, title: t.trim(), minutes: d, free: f, hasFile };
+    });
+
+    return { count: items.length, totalMinutes: total, freeCount, lectures };
+  }
+
+  function syncLessonsFromLectures(showToast=false) {
+    const stats = computeLectureStats();
+    const lessonsInput = document.getElementById('lessons_count');
+
+    // If user manually typed a number, we still allow "Sync from lectures" to overwrite,
+    // but auto-sync happens always (better data).
+    lessonsInput.value = stats.count ? stats.count : (lessonsInput.value || '');
+
+    if (showToast) {
+      // Minimal non-intrusive hint
+      const hint = document.getElementById('completionHint');
+      hint.className = "inline-flex text-xs font-semibold px-3 py-1.5 rounded-full border bg-blue-50 text-blue-700 border-blue-200";
+      hint.textContent = "Synced lessons from lectures";
+      setTimeout(() => hint.classList.add('hidden'), 1400);
+    }
+  }
+
+  function updateCurriculumPreview() {
+    const stats = computeLectureStats();
+
+    document.getElementById('lectureCountBadge').textContent = `${stats.count} lectures`;
+    document.getElementById('totalMinutesBadge').textContent = `${formatMinutes(stats.totalMinutes)}`;
+
+    document.getElementById('pLectureCount').textContent = stats.count;
+    document.getElementById('pTotalTime').textContent = `${formatMinutes(stats.totalMinutes)} total`;
+
+    const list = document.getElementById('pLectureList');
+    const hint = document.getElementById('pFreePreviewHint');
+
+    list.innerHTML = '';
+    if (!stats.count) {
+      list.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          Add lectures to preview the curriculum.
+        </div>`;
+      hint.classList.add('hidden');
+      return;
+    }
+
+    const show = stats.lectures.slice(0, 4);
+    show.forEach((lec, idx) => {
+      const safeTitle = lec.title || `Lecture ${idx + 1}`;
+      const pill = lec.free
+        ? `<span class="ml-2 inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold">FREE</span>`
+        : ``;
+
+      const filePill = lec.hasFile
+        ? `<span class="ml-2 inline-flex items-center rounded-full bg-slate-50 text-slate-700 border border-slate-200 px-2 py-0.5 text-[10px] font-semibold">FILE</span>`
+        : ``;
+
+      list.insertAdjacentHTML('beforeend', `
+        <div class="rounded-2xl border border-slate-200 bg-white px-3 py-2">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs font-semibold text-slate-900 truncate">
+              ${safeTitle}
+              ${pill}
+              ${filePill}
+            </p>
+            <p class="text-[11px] text-slate-500 shrink-0">${lec.minutes ? lec.minutes + ' min' : ''}</p>
+          </div>
+        </div>
+      `);
+    });
+
+    if (stats.count > 4) {
+      list.insertAdjacentHTML('beforeend', `
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          +${stats.count - 4} more lecture(s)
+        </div>
+      `);
+    }
+
+    if (stats.freeCount > 0) hint.classList.remove('hidden');
+    else hint.classList.add('hidden');
+  }
+
+  // =========================
+  // Drag & Drop reorder (lectures)
+  // =========================
+  function wireDnD() {
+    const list = document.getElementById('lecturesList');
+    if (!list) return;
+
+    let dragEl = null;
+
+    getLectureItems().forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        dragEl = item;
+        item.classList.add('opacity-70');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      item.addEventListener('dragend', () => {
+        item.classList.remove('opacity-70');
+        dragEl = null;
+        updateAll();
+      });
+
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (!dragEl || dragEl === item) return;
+
+        const rect = item.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > (rect.height / 2);
+
+        if (after) item.after(dragEl);
+        else item.before(dragEl);
+
+        syncLessonsFromLectures();
+        updateAll();
+      });
+    });
+  }
+
+  // =========================
+  // Completion / UX helpers
+  // =========================
+  function requiredFilled(id) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    if (el.type === 'file') return el.files && el.files.length > 0;
+    return String(el.value || '').trim().length > 0;
+  }
+
+  function computeCompletion() {
+    // Required basics (7 fields) + thumbnail + at least 1 lecture
+    const req = [
+      'course_title',
+      'category',
+      'instructor_name',
+      'difficulty',
+      'short_description',
+      'description',
+      'duration',
+      'skills_covered',
+      'price',
+      'thumbnail'
+    ];
+
+    let done = 0;
+    req.forEach(r => { if (requiredFilled(r)) done += 1; });
+
+    const stats = computeLectureStats();
+    const lectureOk = stats.count > 0;
+    if (lectureOk) done += 1;
+
+    const total = req.length + 1;
+    const pct = Math.round((done / total) * 100);
+
+    return { pct, lectureOk, done, total };
+  }
+
+  function updateCompletionUI() {
+    const { pct, lectureOk } = computeCompletion();
+
+    document.getElementById('completionPct').textContent = pct;
+    document.getElementById('completionBar').style.width = `${pct}%`;
+
+    const hint = document.getElementById('completionHint');
+    hint.className = "inline-flex text-xs font-semibold px-3 py-1.5 rounded-full border";
+
+    if (pct >= 90 && lectureOk) {
+      hint.classList.remove('hidden');
+      hint.classList.add('bg-emerald-50','text-emerald-700','border-emerald-200');
+      hint.textContent = 'Ready to publish';
+    } else if (!lectureOk) {
+      hint.classList.remove('hidden');
+      hint.classList.add('bg-amber-50','text-amber-700','border-amber-200');
+      hint.textContent = 'Add at least 1 lecture';
+    } else {
+      hint.classList.remove('hidden');
+      hint.classList.add('bg-slate-50','text-slate-700','border-slate-200');
+      hint.textContent = 'Keep going';
+    }
+  }
+
+  function updateAll() {
+    updatePreview();
+    updateCurriculumPreview();
+    updateCompletionUI();
+  }
+
+  // =========================
+  // Draft save (localStorage)
+  // =========================
+  const DRAFT_KEY = "course_create_draft_v1";
+
+  function saveDraft() {
+    const cat = document.getElementById('category');
+    const draft = {
+      title: document.getElementById('course_title')?.value || '',
+      category: cat ? cat.value : '',
+      instructor: document.getElementById('instructor_name')?.value || '',
+      difficulty: document.getElementById('difficulty')?.value || '',
+      short_description: document.getElementById('short_description')?.value || '',
+      description: document.getElementById('description')?.value || '',
+      duration_weeks: document.getElementById('duration')?.value || '',
+      lessons_count: document.getElementById('lessons_count')?.value || '',
+      skills_covered: document.getElementById('skills_covered')?.value || '',
+      price: document.getElementById('price')?.value || '',
+      lectures: computeLectureStats().lectures.map(l => ({
+        title: l.title,
+        minutes: l.minutes,
+        free: l.free
+      }))
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+
+    const hint = document.getElementById('completionHint');
+    hint.className = "inline-flex text-xs font-semibold px-3 py-1.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200";
+    hint.textContent = "Draft saved (local)";
+    hint.classList.remove('hidden');
+    setTimeout(() => updateCompletionUI(), 1200);
+  }
+
+  function loadDraft() {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    let draft = null;
+    try { draft = JSON.parse(raw); } catch(e) { return; }
+    if (!draft) return;
+
+    document.getElementById('course_title').value = draft.title || '';
+    document.getElementById('category').value = draft.category || '';
+    document.getElementById('instructor_name').value = draft.instructor || '';
+    document.getElementById('difficulty').value = draft.difficulty || '';
+    document.getElementById('short_description').value = draft.short_description || '';
+    document.getElementById('description').value = draft.description || '';
+    document.getElementById('duration').value = draft.duration_weeks || '';
+    document.getElementById('lessons_count').value = draft.lessons_count || '';
+    document.getElementById('skills_covered').value = draft.skills_covered || '';
+    document.getElementById('price').value = draft.price || '';
+
+    // Rebuild lectures (files can't be restored from local storage)
+    const list = document.getElementById('lecturesList');
+    list.innerHTML = '';
+    lectureSeq = 0;
+
+    if (draft.lectures && draft.lectures.length) {
+      document.getElementById('lecturesEmpty').classList.add('hidden');
+      draft.lectures.forEach((lec) => {
+        addLecture(false);
+        const items = getLectureItems();
+        const last = items[items.length - 1];
+        const id = last.getAttribute('data-lecture-id');
+        document.getElementById(`lectureTitle_${id}`).value = lec.title || '';
+        document.getElementById(`lectureDuration_${id}`).value = lec.minutes || '';
+        document.getElementById(`lectureFree_${id}`).checked = !!lec.free;
+        onLectureChange(id);
+      });
+    } else {
+      document.getElementById('lecturesEmpty').classList.remove('hidden');
+    }
+
+    updateAll();
+  }
+
+  // =========================
+  // Form submit guard (basic)
+  // =========================
+  document.getElementById('courseForm').addEventListener('submit', (e) => {
+    const stats = computeLectureStats();
+    if (stats.count === 0) {
+      e.preventDefault();
+      expandCollapseAll(true);
+      document.getElementById('lecturesEmpty')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const hint = document.getElementById('completionHint');
+      hint.className = "inline-flex text-xs font-semibold px-3 py-1.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200";
+      hint.textContent = "Please add at least 1 lecture";
+      hint.classList.remove('hidden');
+      return;
+    }
+  });
+
+  // =========================
+  // Init
+  // =========================
+  loadDraft();
+  updateAll();
+</script>
+
+{% endblock %}
